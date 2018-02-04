@@ -5,6 +5,7 @@ public class GetSet { // entire purpose of class is to get set values
 	private double[][] randomWeights3;
 	private double[][] randomWeights4;
 	private double[][] randomWeightsInsert; 
+	private double[][] deltaOutputSum; 
 	private double[][] hl; 
 	private double[][] hl2; 
 	private double[][] hl3; 
@@ -163,6 +164,20 @@ public class GetSet { // entire purpose of class is to get set values
 	public double[][] getTarget() {
 		return Targets;
 	}
+	
+	//next getters and setters are for backPropagation
+	
+	public void setDeltaOutputSum(){
+		this.deltaOutputSum = deltaOutputSum; 
+	}
+	public double[][] getDeltaOutputSum() {
+		return deltaOutputSum;
+	}
+	
+	
+	
+	
+	
 
 	public static double SigmoidFunction(double SynapticAnswer) { // used by the
 																	// return
@@ -226,5 +241,61 @@ public class GetSet { // entire purpose of class is to get set values
 
 	        return C;
 	    }
+	
+	 //need to initialize
+	 public double[][] SubtractAcross(double[][] a, double[][] b){
+		 
+		 double[][] result = new double[a.length][a[0].length]; 
+		 
+		 if (a.length != b.length || a[0].length != b[0].length){
+			 throw new IllegalArgumentException("Input did not match, arrays must be same dimensions; Subtraction Method");
+		 }
+		 
+		 for(int i =0; i<a.length; i++) { 
+			 for(int j=0; j<a[0].length; j++){
+				 result[i][j] = a[i][j] - b[i][j]; 
+			 }
+		 }
+		 
+		 return result;
+	 }
+	 public double[][] MultiplyAcross(double[][] a, double[][] b){ 
+		 
+		 double[][] result = new double[a.length][a[0].length]; 
+		 
+		 if (a.length != b.length || a[0].length != b[0].length){
+			 throw new IllegalArgumentException("Input did not match, arrays must be same dimensions; Multiplication Method");
+		 }
+		 
+		 for(int i =0; i<a.length; i++) { 
+			 for(int j=0; j<a[0].length; j++){
+				 result[i][j] = a[i][j] * b[i][j]; 
+			 }
+		 }
+		 
+		 return result; 
+	 }
+	 
+	 //these two methods apply a derivative digmoid to every number in an array
+	 public double[][] ApplySigmoidDerivative(double[][] a) { // , instead of ;
 
+			// instead of int sum = new sum[a.length];
+			double[][] sum = new double[a.length][a[0].length];
+
+			// i < a.length isntead of a.length
+			for (int i = 0; i < a.length; i++) {
+				for(int j=0; j<a[0].length; j++) {
+				sum[i][j] = ApplyActivationDerivative(a[i][j]);
+			}
+		}
+			return sum;
+		}
+
+		private static double ApplyActivationDerivative(double f) {
+			double a;
+			a = ((Math.pow(2.71828, f)) / (Math.pow(1 + Math.pow(2.71828, f), 2)));
+			return a;
+		}
+
+	 
 }
