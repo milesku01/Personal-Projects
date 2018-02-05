@@ -39,11 +39,14 @@ public class ForwardPropagation {
 		
 		
 		double[][] hiddenLayerThree = CreateNode(Object.gs.getHiddenLayer2(), Object.gs.getWeights3(),  x, y); // result
-																											// [x,y]
+		double[][] hiddenLayerThreePreSigmoid= CreateNodePreSigmoid(Object.gs.getHiddenLayer2(), Object.gs.getWeights3(),  x, y); 																									// [x,y]
 		Object.gs.setHiddenLayer3(hiddenLayerThree);
+		Object.gs.setHiddenLayer3PreSigmoid(hiddenLayerThreePreSigmoid); 
+		
+		double[][] resultPreSigmoid = CreateNodeResultPreSigmoid(Object.gs.getWeights4(), Object.gs.getHiddenLayer3(), x, y); 
 		double[][] result = CreateNodeResult(Object.gs.getWeights4(), Object.gs.getHiddenLayer3(), x, y); // result
 																										// =
-																										// [1,y]
+		Object.gs.setResultPreSigmoid(resultPreSigmoid); 																								// [1,y]
 		Object.gs.setResult(result);
 
 	}
@@ -59,6 +62,17 @@ public class ForwardPropagation {
 
 		return resultchange2;
 	}
+	
+	public double[][] CreateNodePreSigmoid(double[][] Inputs, double[][] randomWeights,  int x,
+			int y) {
+
+		double[][] resultchange;
+
+		resultchange = Object.gs.MatrixMultiplication(Inputs, randomWeights);
+		
+
+		return resultchange;
+	}
 
 	public double[][] CreateNodeResult(double[][] randomWeights, double[][] Inputs,  int x,
 			int y) {
@@ -70,5 +84,16 @@ public class ForwardPropagation {
 		resultchange2 = Object.gs.returnSigmoid(resultchange);
 		
 		return resultchange2;
+	}
+	
+	public double[][] CreateNodeResultPreSigmoid(double[][] randomWeights, double[][] Inputs,  int x,
+			int y) {
+
+		double[][] resultchange;
+
+		resultchange = Object.gs.MatrixMultiplication(randomWeights, Inputs);
+		
+		
+		return resultchange;
 	}
 }
