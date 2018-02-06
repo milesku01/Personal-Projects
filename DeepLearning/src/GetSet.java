@@ -6,6 +6,8 @@ public class GetSet { // entire purpose of class is to get set values
 	private double[][] randomWeights4;
 	private double[][] randomWeightsInsert; 
 	private double[][] deltaOutputSum; 
+	private double[][] hiddenLayer3PreSigmoid; 
+	private double[][] resultPreSigmoid; 
 	private double[][] hl; 
 	private double[][] hl2; 
 	private double[][] hl3; 
@@ -98,6 +100,18 @@ public class GetSet { // entire purpose of class is to get set values
 	public double[][] getWeights4() {
 		return randomWeights4;
 	}
+	public void setHiddenLayer3PreSigmoid(double[][] hiddenLayer3PreSigmoid) { 
+		this.hiddenLayer3PreSigmoid = hiddenLayer3PreSigmoid; 
+	}
+	public double[][] getHiddenLayer3PreSigmoid(){
+		return hiddenLayer3PreSigmoid; 
+	}
+	public void setResultPreSigmoid(double[][] resultPreSigmoid){
+		this.resultPreSigmoid = resultPreSigmoid; 
+	}
+	public double[][] getResultPreSigmoid() { 
+		return resultPreSigmoid; 
+	}
 
 	void makeWeights(int x, int y) { // makes weights
 
@@ -167,7 +181,7 @@ public class GetSet { // entire purpose of class is to get set values
 	
 	//next getters and setters are for backPropagation
 	
-	public void setDeltaOutputSum(){
+	public void setDeltaOutputSum(double[][] deltaOutputSum){
 		this.deltaOutputSum = deltaOutputSum; 
 	}
 	public double[][] getDeltaOutputSum() {
@@ -175,7 +189,14 @@ public class GetSet { // entire purpose of class is to get set values
 	}
 	
 	
-	
+	public double[][] specializedDivide(double[][] A, double[][] B) { 
+		// B is divided by A 
+		double[][] answer =null;
+		
+		
+		
+		return answer; 
+	}
 	
 	
 
@@ -243,7 +264,7 @@ public class GetSet { // entire purpose of class is to get set values
 	    }
 	
 	 //need to initialize
-	 public double[][] SubtractAcross(double[][] a, double[][] b){
+	 public double[][] AddAcross(double[][] a, double[][] b){
 		 
 		 double[][] result = new double[a.length][a[0].length]; 
 		 
@@ -296,6 +317,13 @@ public class GetSet { // entire purpose of class is to get set values
 			a = ((Math.pow(2.71828, f)) / (Math.pow(1 + Math.pow(2.71828, f), 2)));
 			return a;
 		}
-
+		
+		public double[][] MatrixTranspose(double [][] m){
+		        double[][] temp = new double[m[0].length][m.length];
+		        for (int i = 0; i < m.length; i++)
+		            for (int j = 0; j < m[0].length; j++)
+		                temp[j][i] = m[i][j];
+		        return temp;
+		    }
 	 
 }

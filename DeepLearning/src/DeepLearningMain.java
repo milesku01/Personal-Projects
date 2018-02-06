@@ -46,7 +46,8 @@ public class DeepLearningMain {
 		}
 		Object.gs.setTarget(targetMatrix); // used in back propagation class
 
-		Object.fp.run(numofInput, numofSets);
+		Object.fp.run(numofInput, numofSets); 
+		Object.bp.backPropagate();
 
 		System.out.println(java.util.Arrays.deepToString(Object.gs.getResult()));
 
