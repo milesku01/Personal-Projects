@@ -7,6 +7,7 @@ public class GetSet { // entire purpose of class is to get set values
 	private double[][] randomWeightsInsert; 
 	private double[][] deltaOutputSum; 
 	private double[][] hiddenLayer3PreSigmoid; 
+	private double[][] hiddenLayer2PreSigmoid; 
 	private double[][] resultPreSigmoid; 
 	private double[][] hl; 
 	private double[][] hl2; 
@@ -106,6 +107,12 @@ public class GetSet { // entire purpose of class is to get set values
 	public double[][] getHiddenLayer3PreSigmoid(){
 		return hiddenLayer3PreSigmoid; 
 	}
+	public void setHiddenLayer2PreSigmoid(double[][] hiddenLayer3PreSigmoid) { 
+		this.hiddenLayer2PreSigmoid = hiddenLayer3PreSigmoid; 
+	}
+	public double[][] getHiddenLayer2PreSigmoid(){
+		return hiddenLayer2PreSigmoid; 
+	}
 	public void setResultPreSigmoid(double[][] resultPreSigmoid){
 		this.resultPreSigmoid = resultPreSigmoid; 
 	}
@@ -189,12 +196,22 @@ public class GetSet { // entire purpose of class is to get set values
 	}
 	
 	
-	public double[][] specializedDivide(double[][] A, double[][] B) { 
-		// B is divided by A 
-		double[][] answer =null;
+	public double[][] specializedDivideAcross(double[][] A, double[][] B) { 
+		// A is divided by B
+		//in at least one instance, it will be an [1,x]/[x,x] 
 		
+		double x = A[0].length; 
+		double[][] answer = new double[B.length][B[0].length]; 
 		
+		for(int i =0; i<x; i++) {
+			for(int j=0; j<x; j++) {
+				
+				answer[i][j] = A[1][j]/B[i][j]; 
+				
+			}
+		}
 		
+
 		return answer; 
 	}
 	

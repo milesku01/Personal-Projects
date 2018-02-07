@@ -33,10 +33,11 @@ public class ForwardPropagation {
 		double[][] hiddenLayerInsert = CreateNode(Object.gs.getHiddenLayer(), Object.gs.getWeightsInsert(), x, y); 
 		Object.gs.setHiddenLayerInsert(hiddenLayerInsert); // result [x,y]
 		
-		double[][] hiddenLayerTwo = CreateNode(Object.gs.getHiddenLayerInsert(), Object.gs.getWeights2(), x, y); // result
-																											// [x,x]
-		Object.gs.setHiddenLayer2(hiddenLayerTwo);
+		double[][] hiddenLayerTwo = CreateNode(Object.gs.getHiddenLayerInsert(), Object.gs.getWeights2(), x, y); // result [x,x]
+		double[][] hiddenLayerTwoPreSigmoid = CreateNodePreSigmoid(Object.gs.getHiddenLayerInsert(), Object.gs.getWeights2(), x, y); 
 		
+		Object.gs.setHiddenLayer2(hiddenLayerTwo);
+		Object.gs.setHiddenLayer2PreSigmoid(hiddenLayerTwoPreSigmoid); 
 		
 		double[][] hiddenLayerThree = CreateNode(Object.gs.getHiddenLayer2(), Object.gs.getWeights3(),  x, y); // result
 		double[][] hiddenLayerThreePreSigmoid= CreateNodePreSigmoid(Object.gs.getHiddenLayer2(), Object.gs.getWeights3(),  x, y); 																									// [x,y]
