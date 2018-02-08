@@ -196,17 +196,18 @@ public class GetSet { // entire purpose of class is to get set values
 	}
 	
 	
-	public double[][] specializedDivideAcross(double[][] A, double[][] B) { 
+	public double[][] specializedMultiplyAcross(double[][] A, double[][] B) { 
 		// A is divided by B
-		//in at least one instance, it will be an [1,x]/[x,x] 
+		//in at least one instance, it will be an [1,x]*[x,y] 
 		
-		double x = A[0].length; 
+		double x = A[0].length; //[1,x]
+		double y = B[0].length; 
 		double[][] answer = new double[B.length][B[0].length]; 
 		
 		for(int i =0; i<x; i++) {
 			for(int j=0; j<x; j++) {
 				
-				answer[i][j] = A[1][j]/B[i][j]; 
+				answer[i][j] = A[0][j]*B[i][j]; //[1,x]*[x,y]
 				
 			}
 		}

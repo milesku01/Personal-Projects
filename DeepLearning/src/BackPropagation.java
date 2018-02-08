@@ -33,21 +33,30 @@ public class BackPropagation {
 		//////////////////////////////////
 		///////////////////////////////
 		/////////////////////////////////
-		double[][] test2= Object.gs.MatrixMultiplication(Object.gs.MatrixTranspose(Object.gs.getWeights3()), deltaOutputSum); // []*[1,y], result =  [x,y]
+		
+		//weights3 = [x][y]
+		double[][] test2= Object.gs.MatrixMultiplication(deltaOutputSum, Object.gs.MatrixTranspose(Object.gs.getWeights3())); // [1,y]*[y,x], result =  [1,x]
+		
+		
 		// must adjust the multiplication method on variable choice to divide to each row in the matrix (for variable test)
 		//specialized divide method to make deltaHiddenSum work 
 		
-		double[][] deltaHiddenSum2 = Object.gs.MultiplyAcross(test2, Object.gs.ApplySigmoidDerivative(Object.gs.getHiddenLayer2PreSigmoid())); // derivative of hiddenNodePreSigmoid 
-		 //set deltaHiddenSum
+		double[][] deltaHiddenSum2 = Object.gs.specializedMultiplyAcross(test2, Object.gs.ApplySigmoidDerivative(Object.gs.getHiddenLayer2PreSigmoid())); // derivative of hiddenNodePreSigmoid 
+		// [1,x][x,x]  need specializedMultiply across  
+		//result = [x,x]
 		
 		//weights adjustment can be overridden with new data 
-		double[][] weightAdjustment2 = Object.gs.MatrixMultiplication(Object.gs.MatrixTranspose(Object.gs.getHiddenLayerInsert()), deltaHiddenSum2);
+		double[][] weightAdjustment2 = Object.gs.MatrixMultiplication( Object.gs.MatrixTranspose(Object.gs.getHiddenLayerInsert()), deltaHiddenSum2); //
 		
 		//System.out.println(java.util.Arrays.deepToString(weightAdjustment)); 
+		weightAdjustment2 = Object.gs.MatrixTranspose(weightAdjustment2); 
 		
 		double[][] newWeights2 = Object.gs.AddAcross(Object.gs.getWeightsInsert(), weightAdjustment2);
 		
 		System.out.println(java.util.Arrays.deepToString(newWeights2));
+		
+		//////////////////////////
+		//////////////////////////
 		
 		
 		
