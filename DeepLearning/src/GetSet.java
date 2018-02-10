@@ -8,6 +8,8 @@ public class GetSet { // entire purpose of class is to get set values
 	private double[][] deltaOutputSum; 
 	private double[][] hiddenLayer3PreSigmoid; 
 	private double[][] hiddenLayer2PreSigmoid; 
+	private double[][] resultHiddenLayerPreSigmoid; 
+	private double[][] resultHiddenLayerInsertPreSigmoid;
 	private double[][] resultPreSigmoid; 
 	private double[][] hl; 
 	private double[][] hl2; 
@@ -119,6 +121,20 @@ public class GetSet { // entire purpose of class is to get set values
 	public double[][] getResultPreSigmoid() { 
 		return resultPreSigmoid; 
 	}
+	public void setHiddenLayerPreSigmoid(double[][] resultPreSigmoid){
+		this.resultHiddenLayerPreSigmoid = resultPreSigmoid; 
+	}
+	public double[][] getHiddenLayerPreSigmoid() { 
+		return resultHiddenLayerPreSigmoid; 
+	}	
+	public void setHiddenLayerInsertPreSigmoid(double[][] resultPreSigmoid){
+		this.resultHiddenLayerInsertPreSigmoid = resultPreSigmoid; 
+	}
+	public double[][] getHiddenLayerInsertPreSigmoid() { 
+		return resultHiddenLayerInsertPreSigmoid; 
+	}
+	
+	
 
 	void makeWeights(int x, int y) { // makes weights
 
@@ -208,6 +224,25 @@ public class GetSet { // entire purpose of class is to get set values
 			for(int j=0; j<x; j++) {
 				
 				answer[i][j] = A[0][j]*B[i][j]; //[1,x]*[x,y]
+				
+			}
+		}
+		
+
+		return answer; 
+	}
+	public double[][] specializedDivide(double[][] A, double[][] B) { 
+		// A is divided by B
+		//in at least one instance, it will be an [1,y]/[y,x]
+		
+		double y = A[0].length; //[1,x]
+		double x = B[0].length; 
+		double[][] answer = new double[A[0].length][B[0].length]; 
+		
+		for(int i =0; i<x; i++) {
+			for(int j=0; j<y; j++) {
+				
+				answer[j][i] = A[0][j]/B[j][i]; //[1,x]*[x,y]
 				
 			}
 		}

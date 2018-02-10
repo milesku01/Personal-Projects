@@ -16,8 +16,8 @@ public class ForwardPropagation {
 		
 		
 		double[][] hiddenLayerOne = CreateNode(Object.gs.getInputs(), Object.gs.getWeights(), x, y); // pass
-																							// in
-																							// dimensions
+		double[][] hiddenLayerOnePreSigmoid = CreateNodePreSigmoid(Object.gs.getInputs(), Object.gs.getWeights(), x, y); 																					// in
+		Object.gs.setHiddenLayerPreSigmoid(hiddenLayerOnePreSigmoid);																					// dimensions
 																							// of
 																							// array
 																							// and
@@ -29,10 +29,10 @@ public class ForwardPropagation {
 	
 		//hiddenLayerInsert is in between hiddenLayerOne and hiddenLayerTwo, and uses its own set of weights
 		// change made to solve the deltaOutput sum problem
-		
+		double[][] hiddenLayerInsertPreSigmoid = CreateNodePreSigmoid(Object.gs.getHiddenLayer(), Object.gs.getWeightsInsert(), x, y);
 		double[][] hiddenLayerInsert = CreateNode(Object.gs.getHiddenLayer(), Object.gs.getWeightsInsert(), x, y); 
 		Object.gs.setHiddenLayerInsert(hiddenLayerInsert); // result [x,y]
-		
+		Object.gs.setHiddenLayerInsertPreSigmoid(hiddenLayerInsertPreSigmoid);
 		double[][] hiddenLayerTwo = CreateNode(Object.gs.getHiddenLayerInsert(), Object.gs.getWeights2(), x, y); // result [x,x]
 		double[][] hiddenLayerTwoPreSigmoid = CreateNodePreSigmoid(Object.gs.getHiddenLayerInsert(), Object.gs.getWeights2(), x, y); 
 		
