@@ -12,8 +12,9 @@ public class BackPropagation {
 		double[][] ResultToHiddenWeightChange = Object.gs.MatrixMultiplication(deltaOutputSum, Object.gs.MatrixTranspose(Object.gs.getHiddenLayer3()));
 		// setting randomWeights4 to new value, look at later in context of looping
 		
-		Object.gs.setWeights4(Object.gs.AddAcross(Object.gs.getWeights4(), ResultToHiddenWeightChange));
-	
+		Object.gs.setWeights4(Object.gs.AddAcross(Object.gs.getWeights4(), Object.gs.scalarMultiply(ResultToHiddenWeightChange, -1))); // add negative
+		System.out.println(java.util.Arrays.deepToString(Object.gs.getWeights4()) + "weights, result to previous layer");
+		
 		double[][] test = Object.gs.MatrixMultiplication(Object.gs.MatrixTranspose(Object.gs.getWeights4()), deltaOutputSum); // [x, 1]*[1,y], result =  [x,y]
 		// must adjust the multiplication method on variable choice to divide to each row in the matrix (for variable test)
 		//specialized divide method to make deltaHiddenSum work 
@@ -26,9 +27,9 @@ public class BackPropagation {
 		
 		//System.out.println(java.util.Arrays.deepToString(weightAdjustment)); 
 		
-		double[][] newWeights = Object.gs.AddAcross(Object.gs.getWeights3(), weightAdjustment);
+		double[][] newWeights = Object.gs.AddAcross(Object.gs.getWeights3(), Object.gs.scalarMultiply(weightAdjustment, -1));
 		
-		System.out.println(java.util.Arrays.deepToString(newWeights));
+		System.out.println(java.util.Arrays.deepToString(newWeights) + "new weights");
 		
 		//////////////////////////////////
 		///////////////////////////////
@@ -52,9 +53,9 @@ public class BackPropagation {
 		//System.out.println(java.util.Arrays.deepToString(weightAdjustment)); 
 	
 		
-		double[][] newWeights2 = Object.gs.AddAcross(Object.gs.getWeights2(), weightAdjustment2); //weights2 = [y,x]
+		double[][] newWeights2 = Object.gs.AddAcross(Object.gs.getWeights2(), Object.gs.scalarMultiply(weightAdjustment2, -1)); //weights2 = [y,x]
 		
-		System.out.println(java.util.Arrays.deepToString(newWeights2));
+		System.out.println(java.util.Arrays.deepToString(newWeights2) + "new weights 2");
 		
 		//////////////////////////
 		//////////////////////////
@@ -67,9 +68,9 @@ public class BackPropagation {
 		
 		double[][] weightAdjustment3 = Object.gs.MatrixMultiplication(deltaHiddenSum3, Object.gs.MatrixTranspose(Object.gs.getHiddenLayerPreSigmoid())); //[y,x]
 		
-		double[][] newWeights3 = Object.gs.AddAcross(weightAdjustment, Object.gs.getWeightsInsert()); 
+		double[][] newWeights3 = Object.gs.AddAcross(Object.gs.getWeightsInsert(), Object.gs.scalarMultiply(weightAdjustment, -1)); 
 		
-		System.out.println(java.util.Arrays.deepToString(newWeights3));
+		System.out.println(java.util.Arrays.deepToString(newWeights3) + "new weights3 ");
 		
 		//System.out.println(java.util.Arrays.deepToString(weightAdjustment3)); 
 		
@@ -82,11 +83,17 @@ public class BackPropagation {
 	
 		double[][] weightAdjustment4 = Object.gs.MatrixMultiplication(Object.gs.MatrixTranspose(Object.gs.getInputs()), deltaHiddenSum4); 
 		
-		double[][] newWeights4 = Object.gs.AddAcross(weightAdjustment4, Object.gs.getWeights()); 
+		double[][] newWeights4 = Object.gs.AddAcross(Object.gs.getWeights() ,Object.gs.scalarMultiply(weightAdjustment4, -1)); 
 		
 		//System.out.println(java.util.Arrays.deepToString(weightAdjustment4));
 		
-		System.out.println(java.util.Arrays.deepToString(newWeights4));
+		System.out.println(java.util.Arrays.deepToString(newWeights4) + "new weights 4"); 
+		Object.gs.setWeights3(newWeights);
+		Object.gs.setWeights2(newWeights2);
+		Object.gs.setWeightsInsert(newWeights3);
+		Object.gs.setWeights(newWeights4);
+		
+		
 		
 		
 		

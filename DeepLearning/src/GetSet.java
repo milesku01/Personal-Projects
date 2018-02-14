@@ -378,5 +378,19 @@ public class GetSet { // entire purpose of class is to get set values
 		                temp[j][i] = m[i][j];
 		        return temp;
 		    }
+	
+		public double[][] scalarMultiply(double[][] A, double scalarVal) {
+			double[][] var = new double[A.length][A[0].length];
+			
+			for(int i =0; i<A.length; i++) {
+				for(int j =0; j<A[0].length; j++){
+					
+					var[i][j] = scalarVal * A[i][j];
+					
+				}
+			}
+			
+			return var; 
+		}
 	 
 }

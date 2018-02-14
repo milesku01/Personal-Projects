@@ -49,7 +49,36 @@ public class ForwardPropagation {
 																										// =
 		Object.gs.setResultPreSigmoid(resultPreSigmoid); 																								// [1,y]
 		Object.gs.setResult(result);
-
+		
+		double percentage = percentCorrect(result);
+		System.out.println("Percent accurate " + percentage); 
+		
+	}
+	
+	public double percentCorrect(double[][] A) {
+		double percentCorrect =0;
+		double avgPercentCorrect; 
+	//	double[][] percentCorrectArray; 
+		
+		double[][] targets = Object.gs.getTarget(); //[1,y]
+		double[][] result = Object.gs.getResult(); 
+ 		
+		for(int i=0; i<targets[0].length; i++) { //targets[0].length = 'y'
+			
+			if(targets[0][i] > result[0][i] ) {
+				percentCorrect+=(100*(result[0][i]/targets[0][i]));
+			}
+			
+			else {
+				percentCorrect+=(100*(targets[0][i])/result[0][i]);
+			}
+			
+			
+		}
+		
+		avgPercentCorrect = (percentCorrect / targets[0].length); 
+		
+		return avgPercentCorrect; 
 	}
 
 	public double[][] CreateNode(double[][] Inputs, double[][] randomWeights,  int x,
