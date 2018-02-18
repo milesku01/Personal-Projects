@@ -27,7 +27,7 @@ public class DeepLearningMain {
 				Inputs[i][j] = scan.nextDouble();
 			}
 		}
-		Object.gs.setInputs(Inputs);
+		Object.gs.setInputs(Object.gs.scalarMultiply(Inputs, .01));
 		// x = y, obviously
 
 		Object.gs.makeWeights(numofInput, numofSets); // creates the weights and sets
@@ -46,10 +46,11 @@ public class DeepLearningMain {
 		}
 		Object.gs.setTarget(targetMatrix); // used in back propagation class
 
-		for(int x=0; x<500; x++) { 
+		for(int x=0; x<10000; x++) { 
+			System.out.println("Counter " + (x+1));
 		Object.fp.run(numofInput, numofSets); 
 		Object.bp.backPropagate();
-		System.out.println();
+		
 		//System.out.println(java.util.Arrays.deepToString(Object.gs.getResult()));
 		
 		}
