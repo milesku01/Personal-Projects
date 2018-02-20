@@ -52,6 +52,7 @@ public class ForwardPropagation {
 		
 		double percentage = percentCorrect(result);
 		System.out.println("Percent accurate " + percentage); 
+		Object.gs.setCorrectness(percentage);
 		
 	}
 	
@@ -77,6 +78,7 @@ public class ForwardPropagation {
 		}
 		
 		avgPercentCorrect = (percentCorrect / targets[0].length); 
+		Object.gs.setCorrectness(avgPercentCorrect);
 		
 		return avgPercentCorrect; 
 	}

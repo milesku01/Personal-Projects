@@ -18,6 +18,7 @@ public class GetSet { // entire purpose of class is to get set values
 	private double[][] result; 
 	private double[][] Targets;
 	private double[][] inputs;
+	private double correct; 
 
 	
 	public void setHiddenLayer(double[][] randomWeights) {
@@ -201,7 +202,12 @@ public class GetSet { // entire purpose of class is to get set values
 	public double[][] getTarget() {
 		return Targets;
 	}
-	
+	public void setCorrectness(double correct) {
+		this.correct = correct;
+	}
+	public double getCorrectness() {
+		return correct;
+	}
 	//next getters and setters are for backPropagation
 	
 	public void setDeltaOutputSum(double[][] deltaOutputSum){

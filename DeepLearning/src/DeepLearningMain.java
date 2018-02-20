@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class DeepLearningMain {
@@ -22,8 +23,8 @@ public class DeepLearningMain {
 
 		System.out.println("Enter all input");
 
-		for (int i = 0; i < numofInput; i++) {
-			for (int j = 0; j < numofSets; j++) {
+		for (int j = 0; j < numofSets; j++) {
+			for (int i = 0; i < numofInput; i++) {
 				Inputs[i][j] = scan.nextDouble();
 			}
 		}
@@ -46,12 +47,30 @@ public class DeepLearningMain {
 		}
 		Object.gs.setTarget(targetMatrix); // used in back propagation class
 
-		for(int x=0; x<10000; x++) { 
-			System.out.println("Counter " + (x+1));
+		int iteration=0;
+		if(numofSets*numofInput < 100) {
+			iteration = 2500; 
+		} else { 
+			iteration = 8000; 
+		}
+		ArrayList<Double> percentages = new ArrayList(); 
+		percentages.add(0.0);
+		double bestPercentage = 0;
+		
+		
+		for(int x=0; x<iteration; x++) { 
+			
+		System.out.println("Counter " + (x+1));
 		Object.fp.run(numofInput, numofSets); 
 		Object.bp.backPropagate();
 		
+		percentages.add(Object.gs.getCorrectness());
 		//System.out.println(java.util.Arrays.deepToString(Object.gs.getResult()));
+		if(x>1000) {
+		if(percentages.get(x+1)<percentages.get(x)) {
+			break;
+		}
+		}
 		
 		}
 

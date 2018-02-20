@@ -3,13 +3,14 @@ public class BackPropagation {
 	
 	public void backPropagate() {
 		
+		double learningRate = 0.6;
 		double[][] result = Object.gs.getResult(); 
 		double[][] marginOfError = Object.gs.AddAcross(Object.gs.getTarget(), result);
 		double[][] var = Object.gs.ApplySigmoidDerivative(Object.gs.getResultPreSigmoid()); //result pre matrix
 		double[][] deltaOutputSum = Object.gs.MultiplyAcross(marginOfError, var);
 		Object.gs.setDeltaOutputSum(deltaOutputSum);
 		
-		double[][] ResultToHiddenWeightChange = Object.gs.MatrixMultiplication(deltaOutputSum, Object.gs.MatrixTranspose(Object.gs.getHiddenLayer3()));
+		double[][] ResultToHiddenWeightChange = Object.gs.scalarMultiply(Object.gs.MatrixMultiplication(deltaOutputSum, Object.gs.MatrixTranspose(Object.gs.getHiddenLayer3())), learningRate);
 		// setting randomWeights4 to new value, look at later in context of looping
 		
 		Object.gs.setWeights4(Object.gs.AddAcross(Object.gs.getWeights4(), Object.gs.scalarMultiply(ResultToHiddenWeightChange, -1))); // add negative
@@ -23,7 +24,7 @@ public class BackPropagation {
 		 //set deltaHiddenSum
 		
 		//weights adjustment can be overridden with new data 
-		double[][] weightAdjustment = Object.gs.MatrixMultiplication(Object.gs.MatrixTranspose(Object.gs.getHiddenLayer2()), deltaHiddenSum);
+		double[][] weightAdjustment = Object.gs.scalarMultiply(Object.gs.MatrixMultiplication(Object.gs.MatrixTranspose(Object.gs.getHiddenLayer2()), deltaHiddenSum), learningRate);
 		
 		//System.out.println(java.util.Arrays.deepToString(weightAdjustment)); 
 		
@@ -48,7 +49,7 @@ public class BackPropagation {
 		//result = [x,x]
 		
 		//weights adjustment can be overridden with new data 
-		double[][] weightAdjustment2 = Object.gs.MatrixMultiplication( Object.gs.MatrixTranspose(Object.gs.getHiddenLayerInsertPreSigmoid()), deltaHiddenSum2); //[y,x]*
+		double[][] weightAdjustment2 = Object.gs.scalarMultiply(Object.gs.MatrixMultiplication( Object.gs.MatrixTranspose(Object.gs.getHiddenLayerInsertPreSigmoid()), deltaHiddenSum2), learningRate); //[y,x]*
 		
 		//System.out.println(java.util.Arrays.deepToString(weightAdjustment)); 
 	
@@ -66,7 +67,7 @@ public class BackPropagation {
 		
 		double[][] deltaHiddenSum3 = Object.gs.MultiplyAcross(test3, Object.gs.ApplySigmoidDerivative(Object.gs.MatrixTranspose(Object.gs.getHiddenLayerInsertPreSigmoid()))); //[y,x] =result
 		
-		double[][] weightAdjustment3 = Object.gs.MatrixMultiplication(deltaHiddenSum3, Object.gs.MatrixTranspose(Object.gs.getHiddenLayerPreSigmoid())); //[y,x]
+		double[][] weightAdjustment3 = Object.gs.scalarMultiply(Object.gs.MatrixMultiplication(deltaHiddenSum3, Object.gs.MatrixTranspose(Object.gs.getHiddenLayerPreSigmoid())), learningRate); //[y,x]
 		
 		double[][] newWeights3 = Object.gs.AddAcross(Object.gs.getWeightsInsert(), Object.gs.scalarMultiply(weightAdjustment, -1)); 
 		
@@ -81,7 +82,7 @@ public class BackPropagation {
 		
 		double[][] deltaHiddenSum4 = Object.gs.specializedMultiplyAcross(test4, Object.gs.ApplySigmoidDerivative(Object.gs.getHiddenLayerPreSigmoid())); 
 	
-		double[][] weightAdjustment4 = Object.gs.MatrixMultiplication(Object.gs.MatrixTranspose(Object.gs.getInputs()), deltaHiddenSum4); 
+		double[][] weightAdjustment4 = Object.gs.scalarMultiply(Object.gs.MatrixMultiplication(Object.gs.MatrixTranspose(Object.gs.getInputs()), deltaHiddenSum4), learningRate); 
 		
 		double[][] newWeights4 = Object.gs.AddAcross(Object.gs.getWeights() ,Object.gs.scalarMultiply(weightAdjustment4, -1)); 
 		
