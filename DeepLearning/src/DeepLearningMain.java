@@ -47,22 +47,20 @@ public class DeepLearningMain {
 		}
 		Object.gs.setTarget(targetMatrix); // used in back propagation class
 
-<<<<<<< HEAD
-		int iteration=0;
-		if(numofSets*numofInput < 100) {
-			iteration = 2500; 
-		} else { 
-			iteration = 8000; 
-		}
+
+		
+		
+			
+		
+			
+		
 		ArrayList<Double> percentages = new ArrayList(); 
 		percentages.add(0.0);
 		double bestPercentage = 0;
 		
 		
-		for(int x=0; x<iteration; x++) { 
 			
-		System.out.println("Counter " + (x+1));
-=======
+
 		int a; 
 		
 		if(numofInput*numofSets <= 100){
@@ -74,7 +72,7 @@ public class DeepLearningMain {
 		
 		for(int x=0; x<a; x++) { 
 			System.out.println("Counter " + (x+1));
->>>>>>> c118d44ca2b63ac7117ecefc9c285ece5f004efb
+
 		Object.fp.run(numofInput, numofSets); 
 		Object.bp.backPropagate();
 		
