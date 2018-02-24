@@ -34,8 +34,8 @@ public class DeepLearningMain {
 
 		System.out.println("Enter all input");
 
-		for (int j = 0; j < numofSets; j++) {
-			for (int i = 0; i < numofInput; i++) {
+		for (int j = 0; j < numofSets; j++) { // j < y
+			for (int i = 0; i < numofInput; i++) { // i < x 
 				Inputs[i][j] = scan.nextDouble();
 			}
 		}
