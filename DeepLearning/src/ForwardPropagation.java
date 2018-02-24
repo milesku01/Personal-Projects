@@ -51,6 +51,7 @@ public class ForwardPropagation {
 		Object.gs.setResult(result);
 		
 		double percentage = percentCorrect(result);
+		System.out.println("Results " + java.util.Arrays.deepToString(result)); 
 		System.out.println("Percent accurate " + percentage); 
 		Object.gs.setCorrectness(percentage);
 		

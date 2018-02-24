@@ -3,7 +3,7 @@ public class BackPropagation {
 	
 	public void backPropagate() {
 		
-		double learningRate = 0.6;
+		double learningRate = 1;
 		double[][] result = Object.gs.getResult(); 
 		double[][] marginOfError = Object.gs.AddAcross(Object.gs.getTarget(), result);
 		double[][] var = Object.gs.ApplySigmoidDerivative(Object.gs.getResultPreSigmoid()); //result pre matrix
