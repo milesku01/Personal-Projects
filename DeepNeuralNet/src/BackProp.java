@@ -11,24 +11,24 @@ public class BackProp {
 
 		double[][] loss;
 		double[][] basicLoss;
-		double basicLossVal; 
+		double basicLossVal;
 		double lossVal = 0.0;
 		double gradientVar = 0.0001;
-		double learningRate = .1;
-//			double learningRate = (.5/Math.sqrt(Math.sqrt((double)counter)));
-		// double learningRate = .1/(1.0 + ((double)counter/500));
+		//double learningRate = .1;
+		// double learningRate = (.5/Math.sqrt(Math.sqrt((double)counter)));
+		 double learningRate = .1/(1.0 + ((double)counter/7500));
 
-		double var = 1.0 / (double)numofSets;
+		double var = 1.0 / (double) numofSets;
 		double adjustment = learningRate * var;
 
 		basicLoss = Objects.gtst.SubtractAcross(Objects.gtst.getResult(),
 				Objects.gtst.getTarget());
-		basicLoss = Objects.gtst.absoluteValAllElements(basicLoss); 
-		basicLossVal = Objects.gtst.sumAllElements(basicLoss); 
-		basicLossVal /= (double)numofSets; 
-		
+		basicLoss = Objects.gtst.absoluteValAllElements(basicLoss);
+		basicLossVal = Objects.gtst.sumAllElements(basicLoss);
+		basicLossVal /= (double) numofSets;
+
 		Objects.gtst.setLossBasic(basicLossVal);
-		
+
 		loss = Objects.gtst.SubtractAcross(Objects.gtst.getResult(),
 				Objects.gtst.getTarget());
 		loss = Objects.gtst.MultiplyAcross(loss, loss);
@@ -63,9 +63,9 @@ public class BackProp {
 		gradientChange4 = (Objects.gtst // change
 				.MatrixMultiplication(Objects.gtst.MatrixTranspose(Objects.gtst
 						.getLayerTwo()), gradientChangePrime4)); // use
-																				// when
-																				// adjusting
-																				// weights
+																	// when
+																	// adjusting
+																	// weights
 		// System.out.println(java.util.Arrays.deepToString(gradientChange4));
 		// //System check, logic good
 
@@ -75,10 +75,11 @@ public class BackProp {
 								.getResultWeights())),
 				oneMinusTangent(Objects.gtst.ApplyInverseTangent(Objects.gtst
 						.getLayerTwo())));
-		
-		gradientChange3 = (Objects.gtst.MatrixMultiplication(Objects.gtst
-						.MatrixTranspose(Objects.gtst.getLayerOne()),
-						removeLastColumn(gradientChangePrime3))); // use when adjusting weights
+
+		gradientChange3 = (Objects.gtst.MatrixMultiplication(
+				Objects.gtst.MatrixTranspose(Objects.gtst.getLayerOne()),
+				removeLastColumn(gradientChangePrime3))); // use when adjusting
+															// weights
 		// System.out.println(java.util.Arrays.deepToString(gradientChange3));
 		// //System check, looks good
 
@@ -88,7 +89,7 @@ public class BackProp {
 								.MatrixTranspose(Objects.gtst.getWeights2())),
 				oneMinusTangent(Objects.gtst.ApplyInverseTangent(Objects.gtst
 						.getLayerOne())));
-		
+
 		gradientChange2 = (Objects.gtst // change
 				.MatrixMultiplication(
 						Objects.gtst.MatrixTranspose(Objects.gtst.getInputs()),
@@ -96,18 +97,17 @@ public class BackProp {
 		// System.out.println(java.util.Arrays.deepToString(gradientChange2));
 		// //System check, looks good
 
-		weightChange3 = Objects.gtst.SubtractAcross(Objects.gtst.getResultWeights(), Objects.gtst
-				.scalarMultiply(Objects.gtst.getResultWeights(), gradientVar));
-		weightChange2 = Objects.gtst.SubtractAcross(Objects.gtst.getWeights2(), Objects.gtst
-				.scalarMultiply(Objects.gtst.getWeights2(), gradientVar));
-		weightChange = Objects.gtst.SubtractAcross(Objects.gtst.getWeights(), Objects.gtst
-				.scalarMultiply(Objects.gtst.getWeights(), gradientVar)); 
-		
-		
-		
-		
-		weightChange3 = Objects.gtst.SubtractAcross(
-				weightChange3,
+		weightChange3 = Objects.gtst.SubtractAcross(Objects.gtst
+				.getResultWeights(), Objects.gtst.scalarMultiply(
+				Objects.gtst.getResultWeights(), gradientVar));
+		weightChange2 = Objects.gtst.SubtractAcross(Objects.gtst.getWeights2(),
+				Objects.gtst.scalarMultiply(Objects.gtst.getWeights2(),
+						gradientVar));
+		weightChange = Objects.gtst.SubtractAcross(Objects.gtst.getWeights(),
+				Objects.gtst.scalarMultiply(Objects.gtst.getWeights(),
+						gradientVar));
+
+		weightChange3 = Objects.gtst.SubtractAcross(weightChange3,
 				Objects.gtst.scalarMultiply(gradientChange4, adjustment));
 		weightChange2 = Objects.gtst.SubtractAcross(weightChange2,
 				Objects.gtst.scalarMultiply(gradientChange3, adjustment));

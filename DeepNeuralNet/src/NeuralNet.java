@@ -4,24 +4,23 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-
 public class NeuralNet {
 
-	public static int numofNeuronLayerOne = 4; // subject to change
-	public static int numofNeuronLayerTwo = 2;
+	public static int numofNeuronLayerOne = 6; // subject to change
+	public static int numofNeuronLayerTwo = 5;
 	static Scanner scan = new Scanner(System.in);
 	static Thread timer = new Thread();
 
 	public static void main(String[] args) throws InterruptedException {
 		int numofInput;
 		int numofSets;
-		//boolean TorF = false;
-		int targetBoolean=0;
+		// boolean TorF = false;
+		int targetBoolean = 0;
 		String function;
 		String targetNormalize;
-		
-		boolean TorF = false; 
-		
+
+		boolean TorF = false; //false means you include targets in the inputs 
+
 		String WeightFilePath = "C:\\Users\\Miles\\Desktop\\Weights.txt";
 		String LossFilePath = "C:\\Users\\Miles\\Desktop\\Loss.txt";
 		ArrayList<Double> lossList = new ArrayList<Double>();
@@ -31,14 +30,15 @@ public class NeuralNet {
 		System.out
 				.println("Would you like to create a function?  y or yes/ Anything else means make prediction");
 		function = scan.nextLine();
-		
-		System.out.println("Normalize targets between [0,1]? y or yes/ Anything else [-1,1]");
+
+		System.out
+				.println("Normalize targets between [0,1]? y or yes/ Anything else [-1,1]");
 		targetNormalize = scan.nextLine();
-		
-		if(targetNormalize.equals("y") || targetNormalize.equals("yes")) {
+
+		if (targetNormalize.equals("y") || targetNormalize.equals("yes")) {
 			targetBoolean = 1; // range normalization
-		}else if (targetNormalize.equals("n") || targetNormalize.equals("no")){
-			targetBoolean = 2; //no normalization
+		} else if (targetNormalize.equals("n") || targetNormalize.equals("no")) {
+			targetBoolean = 2; // no normalization
 		}
 
 		if (function.equalsIgnoreCase("y") || function.equalsIgnoreCase("yes")) {
@@ -50,103 +50,109 @@ public class NeuralNet {
 
 			double[][] Inputs = new double[numofSets][numofInput];
 			double[][] biasedInputs = new double[numofSets][numofInput + 1];
-			double[][] biasedInputs2 = new double[numofSets][numofInput + 1]; // Necessary 
+			double[][] biasedInputs2 = new double[numofSets][numofInput + 1]; // Necessary
 			double[][] targets = new double[numofSets][1];
 
-		if(TorF == true) {
-			System.out.println("Enter all input");
+			if (TorF == true) {
+				System.out.println("Enter all input");
 
-			for (int j = 0; j < numofSets; j++) {
-				for (int i = 0; i < numofInput; i++) {
-					Inputs[j][i] = scan.nextDouble();
+				for (int j = 0; j < numofSets; j++) {
+					for (int i = 0; i < numofInput; i++) {
+						Inputs[j][i] = scan.nextDouble();
+					}
+				} // gets inputs without biases
+
+				System.out.println("Initial inputs "
+						+ java.util.Arrays.deepToString(Inputs));
+
+				Inputs = Objects.gtst.normalize(Inputs, numofSets, numofInput);
+
+				System.out.println(java.util.Arrays.deepToString(Inputs));
+
+				for (int j = 0; j < numofSets; j++) {
+					for (int i = 0; i < numofInput; i++) {
+						biasedInputs[j][i] = Inputs[j][i];
+					}
+				} // gets inputs, STILL without biases
+
+				for (int i = 0; i < numofSets; i++) {
+					biasedInputs[i][numofInput] = 1; // sets biases to one
 				}
-			} // gets inputs without biases
-			
-			System.out.println("Initial inputs " + java.util.Arrays.deepToString(Inputs));
-			
-			
-			Inputs = Objects.gtst.normalize(Inputs, numofSets, numofInput);
+				System.out.println("Enter targets ");
 
-			System.out.println(java.util.Arrays.deepToString(Inputs));
-			
-			for (int j = 0; j < numofSets; j++) {
-				for (int i = 0; i < numofInput; i++) {
-					biasedInputs[j][i] = Inputs[j][i];
+				for (int n = 0; n < numofSets; n++) {
+					targets[n][0] = scan.nextDouble();
 				}
-			} // gets inputs, STILL without biases
 
-			for (int i = 0; i < numofSets; i++) {
-				biasedInputs[i][numofInput] = 1; // sets biases to one
-			}
-			System.out.println("Enter targets ");
+			} else {
 
-			for (int n = 0; n < numofSets; n++) {
-				targets[n][0] = scan.nextDouble();
-			}
-		
-		} else {
-			
-			
-			double[][] Inputs2 = new double[numofSets][numofInput+1];
-			
-		
-			System.out.println("Enter Inputs that contain targets");
-			for (int j = 0; j < numofSets; j++) {
-				for (int i = 0; i < numofInput+1; i++) {
-					Inputs2[j][i] = scan.nextDouble();
+				double[][] Inputs2 = new double[numofSets][numofInput + 1];
+
+				System.out.println("Enter Inputs that contain targets");
+				for (int j = 0; j < numofSets; j++) {
+					for (int i = 0; i < numofInput + 1; i++) {
+						Inputs2[j][i] = scan.nextDouble();
+					}
+				} // gets inputs without biases
+
+				// System.out.println("Initial inputs " +
+				// java.util.Arrays.deepToString(Inputs));
+
+				for (int n = 0; n < numofSets; n++) {
+					targets[n][0] = Inputs2[n][numofInput];
 				}
-			} // gets inputs without biases
-			
-			//System.out.println("Initial inputs " + java.util.Arrays.deepToString(Inputs));
-			
-			for(int n=0; n<numofSets; n++) {
-				targets[n][0] = Inputs2[n][numofInput]; 
-			}
-			Inputs2 = Objects.bdp.removeLastColumn(Inputs2); 
-	//		Inputs2 = Objects.gtst.normalize(Inputs2, numofSets, numofInput);
+				Inputs2 = Objects.bdp.removeLastColumn(Inputs2);
+				
+				
+				// Inputs2 = Objects.gtst.normalize(Inputs2, numofSets,
+				// numofInput);
 
-			//System.out.println(java.util.Arrays.deepToString(Inputs));
-			
-			for (int j = 0; j < numofSets; j++) {
-				for (int i = 0; i < numofInput; i++) {
-					biasedInputs2[j][i] = Inputs2[j][i];
+				//UNCOMMENT IF WANT TO NORMALIZE INPUTS
+				
+				
+				// System.out.println(java.util.Arrays.deepToString(Inputs));
+
+				for (int j = 0; j < numofSets; j++) {
+					for (int i = 0; i < numofInput; i++) {
+						biasedInputs2[j][i] = Inputs2[j][i];
+					}
+				} // gets inputs, STILL without biases
+
+				for (int i = 0; i < numofSets; i++) {
+					biasedInputs2[i][numofInput] = 1; // sets biases to one
 				}
-			} // gets inputs, STILL without biases
 
-			for (int i = 0; i < numofSets; i++) {
-				biasedInputs2[i][numofInput] = 1; // sets biases to one
-			}
-			
-		} //end of else 
-			
-			System.out.println("Old targets " +java.util.Arrays.deepToString(targets));
+			} // end of else
+
+			System.out.println("Old targets "
+					+ java.util.Arrays.deepToString(targets));
 
 			int counter = 1;
-			
-			if(TorF == true) {
-			Objects.gtst.setInputs(biasedInputs);
+
+			if (TorF == true) {
+				Objects.gtst.setInputs(biasedInputs);
 			} else {
 				Objects.gtst.setInputs(biasedInputs2);
 			}
-			
-			if(targetBoolean == 0) {
-			Objects.gtst.setTarget(Objects.gtst.minMax(targets));
-			} else if (targetBoolean == 1){ 
-			Objects.gtst.setTarget(Objects.gtst.rangeNormalize(targets));
+
+			if (targetBoolean == 0) {
+				Objects.gtst.setTarget(Objects.gtst.minMax(targets));
+			} else if (targetBoolean == 1) {
+				Objects.gtst.setTarget(Objects.gtst.rangeNormalize(targets));
 			} else {
-			Objects.gtst.setTarget(targets);
+				Objects.gtst.setTarget(targets);
 			}
 
 			Objects.gtst.createWeights(numofNeuronLayerOne,
 					numofNeuronLayerTwo, numofInput);
 
+			// System.out.println("Weights "
+			// + java.util.Arrays.deepToString(Objects.gtst.getWeights()));
 
-			//System.out.println("Weights "
-				//	+ java.util.Arrays.deepToString(Objects.gtst.getWeights()));
+			System.out.println("New Targets "
+					+ java.util.Arrays.deepToString(Objects.gtst.getTarget()));
 
-				System.out.println("New Targets " + java.util.Arrays.deepToString(Objects.gtst.getTarget()));
-			
-				int m = 5000;
+			int m = 50000;
 			for (int i = 0; i < m; i++) {
 
 				System.out.println("\n" + "Counter " + counter);
@@ -155,22 +161,20 @@ public class NeuralNet {
 				Objects.fdp.CreateSecondLayer(Objects.gtst.getLayerOne());
 				Objects.fdp.CreateResult(Objects.gtst.getLayerTwo());
 
-			/*
-				System.out.println("1 "
-						+ java.util.Arrays.deepToString(Objects.gtst
-								.getWeights()));
-				System.out.println("2 "
-						+ java.util.Arrays.deepToString(Objects.gtst
-								.getWeights2()));
-				System.out.println("3 "
-						+ java.util.Arrays.deepToString(Objects.gtst
-								.getResultWeights()));
-								
-			*/
-			//	System.out.println("Targets "+ java.util.Arrays.deepToString(Objects.gtst.getTarget()));
-				//System.out.println("Result "
-					//	+ java.util.Arrays.deepToString(Objects.gtst
-						//		.getResult()));
+				/*
+				 * System.out.println("1 " +
+				 * java.util.Arrays.deepToString(Objects.gtst .getWeights()));
+				 * System.out.println("2 " +
+				 * java.util.Arrays.deepToString(Objects.gtst .getWeights2()));
+				 * System.out.println("3 " +
+				 * java.util.Arrays.deepToString(Objects.gtst
+				 * .getResultWeights()));
+				 */
+				// System.out.println("Targets "+
+				// java.util.Arrays.deepToString(Objects.gtst.getTarget()));
+				// System.out.println("Result "
+				// + java.util.Arrays.deepToString(Objects.gtst
+				// .getResult()));
 
 				if (i < m - 1) {
 					Objects.bdp.runIteration(numofSets, counter);
@@ -234,10 +238,22 @@ public class NeuralNet {
 							bos.write((Objects.gtst.getResultWeights()[k][l] + "")
 									.getBytes());
 							bos.write(System.lineSeparator().getBytes());
-
 						}
 					}
 
+					if(targetBoolean == 0) {
+						bos.write((GettersSetters.getMinValue() + "").getBytes());
+						bos.write(System.lineSeparator().getBytes());
+						bos.write((GettersSetters.getMaxValue() + "").getBytes());
+						bos.write(System.lineSeparator().getBytes());
+					}
+					else if(targetBoolean == 1){
+						bos.write((GettersSetters.getMidRange() + "").getBytes());
+						bos.write(System.lineSeparator().getBytes());
+						bos.write((GettersSetters.getRange() + "").getBytes());
+						bos.write(System.lineSeparator().getBytes());
+					}
+					
 					bos.close();
 					System.out.println("Weights saved successfully");
 				} catch (IOException e) {
@@ -251,7 +267,7 @@ public class NeuralNet {
 			System.out
 					.println("numofLayerTwo and then input. Weights saved to file from earlier function \n");
 
-			Objects.pre.runPrediction();
+			Objects.pre.runPrediction(targetBoolean);
 
 		}// end of else
 

@@ -14,7 +14,11 @@ public class GettersSetters {
 	static double[][] result;
 	static double loss;
 	static double lossBasic;
-
+	static double maxVal; 
+	static double minVal; 
+	static double rangeVal;
+	static double midRangeVal; 
+	
 	public void setWeights(double[][] a) {
 		randWeights = a;
 	}
@@ -94,6 +98,38 @@ public class GettersSetters {
 	public double getLossBasic() {
 		return lossBasic;
 	}
+	 ///////////////////////////
+	
+	public void setMinValue(double a) {
+		minVal = a;
+	}
+
+	public static double getMinValue() {
+		return minVal;
+	}
+	public void setMaxValue(double a) {
+		maxVal = a;
+	}
+
+	public static double getMaxValue() {
+		return maxVal;
+	}
+	public void setMidRange(double a) {
+		midRangeVal = a;
+	}
+
+	public static double getMidRange() {
+		return midRangeVal;
+	}
+	public void setRange(double a) {
+		rangeVal = a;
+	}
+
+	public static double getRange() {
+		return rangeVal;
+	}
+	
+	
 
 	public void createWeights(int numofLayers, int numofLayers2, int numofInputs) {
 		double[][] randomWeights = new double[numofInputs + 1][numofLayers]; // +1
@@ -169,7 +205,8 @@ public class GettersSetters {
 		int bColumns = B[0].length;
 
 		if (aColumns != bRows) {
-			throw new IllegalArgumentException("A:col: " + aColumns + " did not match B:rows " + bRows + ".");
+			throw new IllegalArgumentException("A:col: " + aColumns
+					+ " did not match B:rows " + bRows + ".");
 		}
 
 		double[][] C = new double[aRows][bColumns];
@@ -264,7 +301,8 @@ public class GettersSetters {
 	public double InverseTangent(double a) {
 
 		if (Math.abs(a) > 1) {
-			throw new IllegalArgumentException("You cannot input a value greater than one");
+			throw new IllegalArgumentException(
+					"You cannot input a value greater than one");
 		}
 		double result = .5 * Math.log((1 + a) / (1 - a));
 
@@ -366,65 +404,98 @@ public class GettersSetters {
 	public double[][] minMax(double[][] A) {
 		double min = getMax(A);
 		double max = getMin(A);
-		double[][] result = A; 
 		
-		for(int i=0; i<A.length; i++) {
-			for(int h=0; h<A[0].length; h++) {
-				result[i][h] = ((A[i][h] - min)/(max-min)) +0.0; 
+		setMinValue(min);
+		setMaxValue(max); 
+		
+		double[][] result = A;
+
+		for (int i = 0; i < A.length; i++) {
+			for (int h = 0; h < A[0].length; h++) {
+				result[i][h] = ((A[i][h] - min) / (max - min)) + 0.0;
 			}
 		}
-		return result; 
-	
+		return result;
+
 	}
 
 	public double[][] normalize(double[][] A, int numofSets, int numofInput) {
-		
+
 		double[][] result = new double[A.length][A[0].length];
-		double mean =0.0; 
-		double strdDev =0.0;
-		
-		for(int i=0; i<A.length; i++) {
-			for(int h=0; h<A[0].length; h++) {
-				mean += A[i][h];
+		double[] mean = new double[numofInput];
+		double[] strdDev = new double[numofInput];
+
+		for(int i =0; i< numofInput; i++) {
+			for(int j=0; j< numofSets; j++){
+				mean[i] += A[j][i]; 
 			}
 		}
-		mean = (mean/((double)numofSets*(double)numofInput)); 
+
+		for(int i=0; i<numofInput; i++) {
+			mean[i] = mean[i]/(double)numofSets; }
 		
-		for(int i=0; i<A.length; i++) {
-			for(int h=0; h<A[0].length; h++) {
-				strdDev+= (((A[i][h]-mean)*(A[i][h]-mean))/((double)numofSets*(double)numofInput));
+		//FIX BINARY ENCODING PROBLEM 
+		
+		for(int i =0; i< numofInput; i++) {
+			for(int j=0; j< numofSets; j++){
+				strdDev[i] = Math.pow(A[j][i]-mean[i], 2); 
 			}
 		}
-		strdDev = Math.sqrt(strdDev);
+		for(int i =0; i<numofInput; i++){
+			strdDev[i] = strdDev[i]/(double)numofSets; 
+		}
+		for(int i =0; i< numofInput; i++){
+			strdDev[i] = Math.sqrt(strdDev[i]); 
+		}
 		
-		for(int i=0; i<A.length; i++) {
-			for(int h=0; h<A[0].length; h++) {
-				result[i][h] = ((A[i][h]-mean)/strdDev);
+		for(int i =0; i< numofInput; i++) {
+			for(int j=0; j< numofSets; j++){
+				result[j][i] = (A[j][i] - mean[i])/strdDev[i]; 
 			}
 		}
-	
-		System.out.println("strdDev" + strdDev);
-		System.out.println("mean" + mean);
 		
+		System.out.println("strdDev" + java.util.Arrays.toString(strdDev));
+		System.out.println("mean" + java.util.Arrays.toString(mean));
+
 		return result;
 	}
-	
-	public double[][] rangeNormalize(double[][] A){
-		
-		double midRange  = ((getMax(A) + getMin(A)) / 2.0);
-		double range  =  ((getMax(A) - getMin(A)) / 2.0);
-		
-		for(int i =0; i<A.length; i++) {
-			for(int h=0; h<A[0].length; h++) {
-				A[i][h] = ((A[i][h]-midRange)/range);
+
+	public double[][] rangeNormalize(double[][] A) {
+
+		 double midRange = ((getMax(A) + getMin(A)) / 2.0);
+		 double range = ((getMax(A) - getMin(A)) / 2.0);
+		 
+		 setMidRange(midRange);
+		 setRange(range); 
+
+		for (int i = 0; i < A.length; i++) {
+			for (int h = 0; h < A[0].length; h++) {
+				A[i][h] = ((A[i][h] - midRange) / range);
 			}
 		}
-		
+
 		return A;
 	}
 	
-	
-	
-	
+	public double[][] InverseMinMax(double[][] A, double max, double min){ 
+		
+		for(int i =0; i<A.length;i++){
+			for(int j=0; j<A[0].length; j++){
+				A[i][j] = (A[i][j]*(max-min))+min; 
+			}
+		}
+		
+		return A; 
+	}
+	public double[][] InverseRangeNormalize(double[][] A, double range, double midRange){
+		
+		for(int i=0; i<A.length; i++) {
+			for(int j=0; j<A[0].length; j++){
+				A[i][j] = (A[i][j]*(range))+midRange; 
+			}
+		}
+		
+		return A; 
+	}
 
 }

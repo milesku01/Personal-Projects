@@ -6,7 +6,7 @@ public class Predict {
 
 	static double weightBias = .1;
 
-	public void runPrediction() {
+	public void runPrediction(int targetBoolean) {
 
 		ArrayList<Double> list = new ArrayList<Double>();
 		ArrayList<Double> Inputs = new ArrayList<Double>();
@@ -21,6 +21,7 @@ public class Predict {
 		int numofInputs = 0;
 		int numofLayerOne = 0;
 		int numofLayerTwo = 0;
+		double max = 0, min = 0, midRange = 0 , range = 0; 
 		double[][] biasedInputs = null;
 
 		double[][] InputArray;
@@ -54,6 +55,9 @@ public class Predict {
 
 				}
 			}
+			
+			
+			//FIX THIS SO THE INPUTS ARE NORMALIZED ACCORDING TO WHEN THE WEIGHTS WERE SAVED
 
 			biasedInputs = new double[numofSets][numofInputs + 1];
 			for (int j = 0; j < numofSets; j++) {
@@ -76,6 +80,7 @@ public class Predict {
 		double[][] WeightArray;
 		double[][] WeightArray2;
 		double[][] WeightArrayResult;
+		int a = (numofInputs+1)*numofLayerOne + (numofLayerOne+1)*numofLayerTwo + numofLayerTwo + 4;
 
 		WeightArray = new double[numofInputs + 1][numofLayerOne];
 
@@ -86,7 +91,7 @@ public class Predict {
 
 			br2 = new BufferedReader(new FileReader(
 					"C:\\Users\\Miles\\Desktop\\Weights.txt"));
-			while ((weight = br2.readLine()) != null) {
+			while ((weight = br2.readLine()) != null) { //becuase of the 4 extraDataPoints 
 				weightNum = Double.parseDouble(weight);
 				list.add(weightNum);
 			}
@@ -111,6 +116,22 @@ public class Predict {
 					WeightArrayResult[o][p] = list.get(weightcounter);
 				}
 			}
+			
+			
+			
+			
+			if(targetBoolean == 0) {
+				weightcounter++; 
+				min = list.get(weightcounter); 
+				weightcounter++;
+				max = list.get(weightcounter); 
+			}
+			else if(targetBoolean == 1) {
+				weightcounter++; 
+				midRange = list.get(weightcounter); 
+				weightcounter++;
+				range = list.get(weightcounter); 
+			} 
 
 			/*
 			 * for (int i = 0; i < numofLayerOne; i++) { // wrong
@@ -153,8 +174,19 @@ public class Predict {
 		Objects.fdp.CreateSecondLayer(Objects.gtst.getLayerOne());
 		Objects.fdp.CreateResult(Objects.gtst.getLayerTwo());
 
+		
+		if(targetBoolean == 0) {
 		System.out.println("Prediction "
-				+ java.util.Arrays.deepToString(Objects.gtst.getResult()));
-
+				+ java.util.Arrays.deepToString(Objects.gtst.InverseMinMax(Objects.gtst.getResult(), max, min)));
+		} 
+		else if(targetBoolean == 1) {
+			System.out.println("Prediction "
+					+ java.util.Arrays.deepToString(Objects.gtst.InverseRangeNormalize(Objects.gtst.getResult(), range, midRange)));
+			
+		} else { 
+			System.out.println("Prediction "
+					+ java.util.Arrays.deepToString(Objects.gtst.getResult()));
+		}
+		
 	}
 }
