@@ -6,12 +6,12 @@ import java.util.Scanner;
 
 public class NeuralNet {
 
-	public static int numofNeuronLayerOne = 6; // subject to change
+	public static int numofNeuronLayerOne = 5; // subject to change
 	public static int numofNeuronLayerTwo = 5;
 	static Scanner scan = new Scanner(System.in);
 	static Thread timer = new Thread();
 
-	public static void main(String[] args) throws InterruptedException {
+	public static void main(String[] args) throws InterruptedException  {
 		int numofInput;
 		int numofSets;
 		// boolean TorF = false;
@@ -52,6 +52,7 @@ public class NeuralNet {
 			double[][] biasedInputs = new double[numofSets][numofInput + 1];
 			double[][] biasedInputs2 = new double[numofSets][numofInput + 1]; // Necessary
 			double[][] targets = new double[numofSets][1];
+			double[] placeHolder = {1.0,2.0,3.0};
 
 			if (TorF == true) {
 				System.out.println("Enter all input");
@@ -65,7 +66,9 @@ public class NeuralNet {
 				System.out.println("Initial inputs "
 						+ java.util.Arrays.deepToString(Inputs));
 
-				Inputs = Objects.gtst.normalize(Inputs, numofSets, numofInput);
+				
+			Inputs = Objects.gtst.normalize(Inputs, numofSets, numofInput, placeHolder, placeHolder, false);
+			
 
 				System.out.println(java.util.Arrays.deepToString(Inputs));
 
@@ -103,10 +106,9 @@ public class NeuralNet {
 				}
 				Inputs2 = Objects.bdp.removeLastColumn(Inputs2);
 				
-				
-				// Inputs2 = Objects.gtst.normalize(Inputs2, numofSets,
-				// numofInput);
+				Inputs2 = Objects.gtst.normalize(Inputs2, numofSets, numofInput, placeHolder, placeHolder, false);
 
+				System.out.println(java.util.Arrays.deepToString(Inputs2));
 				//UNCOMMENT IF WANT TO NORMALIZE INPUTS
 				
 				
@@ -151,8 +153,9 @@ public class NeuralNet {
 
 			System.out.println("New Targets "
 					+ java.util.Arrays.deepToString(Objects.gtst.getTarget()));
+			
 
-			int m = 50000;
+			int m = 30000;
 			for (int i = 0; i < m; i++) {
 
 				System.out.println("\n" + "Counter " + counter);
@@ -161,6 +164,11 @@ public class NeuralNet {
 				Objects.fdp.CreateSecondLayer(Objects.gtst.getLayerOne());
 				Objects.fdp.CreateResult(Objects.gtst.getLayerTwo());
 
+				 //System.out.println("Result 1"
+				//		 + java.util.Arrays.deepToString(Objects.gtst
+					//	 .getResult()));
+				 
+				
 				/*
 				 * System.out.println("1 " +
 				 * java.util.Arrays.deepToString(Objects.gtst .getWeights()));
@@ -172,10 +180,7 @@ public class NeuralNet {
 				 */
 				// System.out.println("Targets "+
 				// java.util.Arrays.deepToString(Objects.gtst.getTarget()));
-				// System.out.println("Result "
-				// + java.util.Arrays.deepToString(Objects.gtst
-				// .getResult()));
-
+			
 				if (i < m - 1) {
 					Objects.bdp.runIteration(numofSets, counter);
 				}
@@ -240,17 +245,42 @@ public class NeuralNet {
 							bos.write(System.lineSeparator().getBytes());
 						}
 					}
-
+					
+				
 					if(targetBoolean == 0) {
 						bos.write((GettersSetters.getMinValue() + "").getBytes());
 						bos.write(System.lineSeparator().getBytes());
 						bos.write((GettersSetters.getMaxValue() + "").getBytes());
 						bos.write(System.lineSeparator().getBytes());
+						bos.write((targetBoolean + "").getBytes());
+						bos.write(System.lineSeparator().getBytes());
+							for(int i =0; i<numofInput; i++) {
+						bos.write((GettersSetters.getMean()[i] + "").getBytes());
+						bos.write(System.lineSeparator().getBytes());
+						} 
+							for(int j=0; j<numofInput; j++){
+						bos.write((GettersSetters.getStrdDev()[j] + "").getBytes());
+						bos.write(System.lineSeparator().getBytes());
+						}
 					}
 					else if(targetBoolean == 1){
 						bos.write((GettersSetters.getMidRange() + "").getBytes());
 						bos.write(System.lineSeparator().getBytes());
 						bos.write((GettersSetters.getRange() + "").getBytes());
+						bos.write(System.lineSeparator().getBytes());
+						bos.write((targetBoolean + "").getBytes());
+						bos.write(System.lineSeparator().getBytes());
+								for(int i =0; i<numofInput; i++) {
+							bos.write((GettersSetters.getMean()[i] + "").getBytes());
+							bos.write(System.lineSeparator().getBytes());
+							} 
+								for(int j=0; j<numofInput; j++){
+							bos.write((GettersSetters.getStrdDev()[j] + "").getBytes());
+							bos.write(System.lineSeparator().getBytes());
+							}
+					}
+					else{ //worry about this later 
+						bos.write((targetBoolean + "").getBytes());
 						bos.write(System.lineSeparator().getBytes());
 					}
 					
@@ -267,7 +297,7 @@ public class NeuralNet {
 			System.out
 					.println("numofLayerTwo and then input. Weights saved to file from earlier function \n");
 
-			Objects.pre.runPrediction(targetBoolean);
+			Objects.pre.runPrediction();
 
 		}// end of else
 

@@ -14,9 +14,9 @@ public class BackProp {
 		double basicLossVal;
 		double lossVal = 0.0;
 		double gradientVar = 0.0001;
-		//double learningRate = .1;
+		double learningRate = .01;
 		// double learningRate = (.5/Math.sqrt(Math.sqrt((double)counter)));
-		 double learningRate = .1/(1.0 + ((double)counter/7500));
+		// double learningRate = .1/(1.0 + ((double)counter/500));
 
 		double var = 1.0 / (double) numofSets;
 		double adjustment = learningRate * var;
@@ -50,6 +50,8 @@ public class BackProp {
 		gradientChange4 = Objects.gtst.SubtractAcross(Objects.gtst.getTarget(),
 				Objects.gtst.getResult());
 
+	
+		
 		double[][] gradientChangePrime4 = Objects.gtst.MultiplyAcross(
 				gradientChange4,
 				Objects.gtst.scalarMultiply(oneMinusTangent(Objects.gtst

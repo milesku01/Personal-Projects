@@ -1,3 +1,10 @@
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -18,6 +25,8 @@ public class GettersSetters {
 	static double minVal; 
 	static double rangeVal;
 	static double midRangeVal; 
+	static double[] meanVal; 
+	static double[] strdDevVal; 
 	
 	public void setWeights(double[][] a) {
 		randWeights = a;
@@ -129,7 +138,22 @@ public class GettersSetters {
 		return rangeVal;
 	}
 	
+	public void setMean(double[] a) {
+		meanVal = a;
+	}
+
+	public static double[] getMean() {
+		return meanVal;
+	}
+
+	public void setStrdDev(double[] a) {
+		strdDevVal = a;
+	}
+	public static double[] getStrdDev() {
+		return strdDevVal;
+	}
 	
+
 
 	public void createWeights(int numofLayers, int numofLayers2, int numofInputs) {
 		double[][] randomWeights = new double[numofInputs + 1][numofLayers]; // +1
@@ -140,7 +164,7 @@ public class GettersSetters {
 		// weights between input and hidden node 1
 		for (int k = 0; k < numofInputs; k++) {
 			for (int l = 0; l < numofLayers; l++) {
-				randomWeights[k][l] = ((double) ((Math.random() * 2) - 1));
+				randomWeights[k][l] = ((double) ((Math.random() * 1) - .5));
 			}
 			for (int i = 0; i < numofLayers; i++) { // wrong
 				randomWeights[numofInputs][i] = weightBias;
@@ -152,7 +176,7 @@ public class GettersSetters {
 
 			for (int i = 0; i < numofLayers; i++) {
 				for (int j = 0; j < numofLayers2; j++) {
-					randomWeights2[i][j] = ((double) ((Math.random() * 2) - 1));
+					randomWeights2[i][j] = ((double) ((Math.random() * 1) - .5));
 				}
 			}
 			for (int i = 0; i < numofLayers2; i++) {
@@ -164,7 +188,7 @@ public class GettersSetters {
 
 			for (int i = 0; i < numofLayers2; i++) {
 				for (int j = 0; j < 1; j++) {
-					resultWeights[i][j] = ((double) ((Math.random() * 2) - 1));
+					resultWeights[i][j] = ((double) ((Math.random() * 1) - .5));
 				}
 			}
 
@@ -402,8 +426,8 @@ public class GettersSetters {
 	}
 
 	public double[][] minMax(double[][] A) {
-		double min = getMax(A);
-		double max = getMin(A);
+		double min = getMin(A);
+		double max = getMax(A);
 		
 		setMinValue(min);
 		setMaxValue(max); 
@@ -419,34 +443,45 @@ public class GettersSetters {
 
 	}
 
-	public double[][] normalize(double[][] A, int numofSets, int numofInput) {
+	public double[][] normalize(double[][] A, int numofSets, int numofInput, double[] meanGet, 
+			double[] strdDevGet, boolean TorF){
 
 		double[][] result = new double[A.length][A[0].length];
 		double[] mean = new double[numofInput];
-		double[] strdDev = new double[numofInput];
-
-		for(int i =0; i< numofInput; i++) {
-			for(int j=0; j< numofSets; j++){
-				mean[i] += A[j][i]; 
+		double[] strdDev = new double[numofInput]; 
+	
+		if(TorF == false) {
+			
+			for(int i =0; i< numofInput; i++) {
+				for(int j=0; j< numofSets; j++){
+					mean[i] += A[j][i]; 
+				}
 			}
-		}
 
-		for(int i=0; i<numofInput; i++) {
-			mean[i] = mean[i]/(double)numofSets; }
-		
-		//FIX BINARY ENCODING PROBLEM 
-		
-		for(int i =0; i< numofInput; i++) {
-			for(int j=0; j< numofSets; j++){
-				strdDev[i] = Math.pow(A[j][i]-mean[i], 2); 
+			for(int i=0; i<numofInput; i++) {
+				mean[i] = mean[i]/(double)numofSets; }
+			
+			//FIX BINARY ENCODING PROBLEM 
+			
+			for(int i =0; i< numofInput; i++) {
+				for(int j=0; j< numofSets; j++){
+					strdDev[i] = Math.pow(A[j][i]-mean[i], 2); 
+				}
 			}
+			for(int i =0; i<numofInput; i++){
+				strdDev[i] = strdDev[i]/(double)numofSets; 
+			}
+			for(int i =0; i< numofInput; i++){
+				strdDev[i] = Math.sqrt(strdDev[i]); 
+			}
+			
+		} else {
+			mean = meanGet; 
+			strdDev = strdDevGet; 
 		}
-		for(int i =0; i<numofInput; i++){
-			strdDev[i] = strdDev[i]/(double)numofSets; 
-		}
-		for(int i =0; i< numofInput; i++){
-			strdDev[i] = Math.sqrt(strdDev[i]); 
-		}
+		setStrdDev(strdDev);
+		setMean(mean);
+		
 		
 		for(int i =0; i< numofInput; i++) {
 			for(int j=0; j< numofSets; j++){
@@ -456,6 +491,7 @@ public class GettersSetters {
 		
 		System.out.println("strdDev" + java.util.Arrays.toString(strdDev));
 		System.out.println("mean" + java.util.Arrays.toString(mean));
+		 
 
 		return result;
 	}

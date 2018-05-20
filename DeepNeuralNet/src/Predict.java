@@ -6,31 +6,36 @@ public class Predict {
 
 	static double weightBias = .1;
 
-	public void runPrediction(int targetBoolean) {
+	public void runPrediction() {
 
 		ArrayList<Double> list = new ArrayList<Double>();
 		ArrayList<Double> Inputs = new ArrayList<Double>();
 		BufferedReader br = null;
 		BufferedReader br2 = null;
+		
 
+		
 		String weight;
 		double weightNum;
 		String input;
 		double inputNum;
-		int numofSets;
+		int numofSets = 0;
 		int numofInputs = 0;
 		int numofLayerOne = 0;
 		int numofLayerTwo = 0;
-		double max = 0, min = 0, midRange = 0 , range = 0; 
+		double targetBoolean = 0.0; 
+		double max = 0.0, min = 0.0, midRange = 0.0 , range = 0.0; 
 		double[][] biasedInputs = null;
 
-		double[][] InputArray;
+		double[][] InputArray = null;
 
 		int counter = -1;
 
 		try {
 			br = new BufferedReader(new FileReader(
 					"C:\\Users\\Miles\\Desktop\\Inputs.txt"));
+		
+			 
 			String nS = br.readLine();
 			String nI = br.readLine();
 			String nLO = br.readLine();
@@ -55,22 +60,6 @@ public class Predict {
 
 				}
 			}
-			
-			
-			//FIX THIS SO THE INPUTS ARE NORMALIZED ACCORDING TO WHEN THE WEIGHTS WERE SAVED
-
-			biasedInputs = new double[numofSets][numofInputs + 1];
-			for (int j = 0; j < numofSets; j++) {
-				for (int i = 0; i < numofInputs; i++) {
-					biasedInputs[j][i] = InputArray[j][i];
-				}
-			} // gets inputs, STILL without biases
-
-			for (int i = 0; i < numofSets; i++) {
-				biasedInputs[i][numofInputs] = 1; // sets biases to one
-			}
-
-			Objects.gtst.setInputs(biasedInputs);
 
 			br.close();
 		} catch (Exception e) {
@@ -80,7 +69,8 @@ public class Predict {
 		double[][] WeightArray;
 		double[][] WeightArray2;
 		double[][] WeightArrayResult;
-		int a = (numofInputs+1)*numofLayerOne + (numofLayerOne+1)*numofLayerTwo + numofLayerTwo + 4;
+		
+		
 
 		WeightArray = new double[numofInputs + 1][numofLayerOne];
 
@@ -117,22 +107,55 @@ public class Predict {
 				}
 			}
 			
+			 targetBoolean = list.get(weightcounter+3); 
+			 int x  = weightcounter+3; 
 			
-			
-			
-			if(targetBoolean == 0) {
+			if(targetBoolean == 0.0) {
 				weightcounter++; 
 				min = list.get(weightcounter); 
 				weightcounter++;
 				max = list.get(weightcounter); 
 			}
-			else if(targetBoolean == 1) {
+			else if(targetBoolean == 1.0) {
 				weightcounter++; 
 				midRange = list.get(weightcounter); 
 				weightcounter++;
 				range = list.get(weightcounter); 
 			} 
+			
+		
+			
+			
+			double[] mean = new double[numofInputs];
+			double[] strdDev = new double[numofInputs]; 
+			
+			for(int i=0; i<numofInputs; i++) {
+				x++; 
+				mean[i] = list.get(x);
+			}
+			for(int j=0; j<numofInputs; j++ ){
+				x++;
+				strdDev[j] = list.get(x);  
+			}
+			
+		
+			InputArray = Objects.gtst.normalize(InputArray, numofSets, numofInputs, mean, strdDev, true); 
+		//	System.out.println(java.util.Arrays.deepToString(InputArray));
+			
+			//FIX THIS SO THE INPUTS ARE NORMALIZED ACCORDING TO WHEN THE WEIGHTS WERE SAVED
 
+			biasedInputs = new double[numofSets][numofInputs + 1];
+			for (int j = 0; j < numofSets; j++) {
+				for (int i = 0; i < numofInputs; i++) {
+					biasedInputs[j][i] = InputArray[j][i];
+				}
+			} // gets inputs, STILL without biases
+
+			for (int i = 0; i < numofSets; i++) {
+				biasedInputs[i][numofInputs] = 1; // sets biases to one
+			}
+
+			Objects.gtst.setInputs(biasedInputs);
 			/*
 			 * for (int i = 0; i < numofLayerOne; i++) { // wrong
 			 * WeightArray[numofInputs][i] = weightBias; } // adds bias to
@@ -153,7 +176,7 @@ public class Predict {
 			// WeightArrayResult[numofLayerTwo][0] = weightBias;
 
 			Objects.gtst.setResultWeights(WeightArrayResult);
-
+/*
 			System.out.println("1 "
 					+ java.util.Arrays.deepToString(Objects.gtst.getWeights()));
 			System.out
@@ -163,7 +186,7 @@ public class Predict {
 			System.out.println("3 "
 					+ java.util.Arrays.deepToString(Objects.gtst
 							.getResultWeights()));
-
+*/
 			br2.close();
 
 		} catch (Exception e) {
@@ -173,13 +196,16 @@ public class Predict {
 		Objects.fdp.CreateLayer(Objects.gtst.getInputs());
 		Objects.fdp.CreateSecondLayer(Objects.gtst.getLayerOne());
 		Objects.fdp.CreateResult(Objects.gtst.getLayerTwo());
+		
+	
 
 		
-		if(targetBoolean == 0) {
+		if(targetBoolean == 0.0) {
+			System.out.println("Prediction pre-InverseMinMax " + java.util.Arrays.deepToString(Objects.gtst.getResult())); 
 		System.out.println("Prediction "
 				+ java.util.Arrays.deepToString(Objects.gtst.InverseMinMax(Objects.gtst.getResult(), max, min)));
 		} 
-		else if(targetBoolean == 1) {
+		else if(targetBoolean == 1.0) {
 			System.out.println("Prediction "
 					+ java.util.Arrays.deepToString(Objects.gtst.InverseRangeNormalize(Objects.gtst.getResult(), range, midRange)));
 			
