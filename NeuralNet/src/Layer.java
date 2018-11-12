@@ -23,7 +23,6 @@ class InputLayer extends Layer {
 	int numofInput = 0;
 	String fileName = "";
 	FileReader fileReader;
-	Targets targets = new Targets(); 
 	Normalizer normalizer = new Normalizer();
 	
 	public InputLayer(int numofSets, int numofInput, String fileName) {
@@ -33,16 +32,17 @@ class InputLayer extends Layer {
 		this.fileName = fileName; 
 	}
 	
-	public void initializeLayer(InputLayer inputLayer) {
+	public void initializeLayer(InputLayer inputLayer, Targets targets) {
 		fileReader = new FileReader(fileName);
-		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput));
+		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput)); 
+		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
 		targets.determineTargets(inputLayer.layerValue, numofInput); 
 		inputLayer.setLayerValue(extractInputs(inputLayer.layerValue));
 		inputLayer.setLayerValue(normalizer.normalizeInputs(inputLayer.layerValue)); 
 	}
 	
 	public double[][] extractInputs(double[][] inputs) {
-		int targetSize = fileReader.getTargetSize(numofSets, numofInput);
+		int targetSize = fileReader.determineTargetSize(numofSets, numofInput);
 		double[][] result  = new double[inputs.length][inputs[0].length - targetSize]; 
 		
 		for(int i=0; i < inputs.length; i++) {

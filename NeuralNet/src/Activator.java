@@ -12,7 +12,7 @@ public class Activator {
 			activationObject = new Sigmoid();
 		} else if (activation.equals("TANH")){
 			activationObject = new Tanh();
-		} else if (activation.equals("SOTMAX")){
+		} else if (activation.equals("SOFTMAX")){
 			activationObject = new Softmax();
 		} else if (activation.equals("LEAKYRELU")){ 
 			activationObject = new LeakyRelu(); 
@@ -34,11 +34,20 @@ public class Activator {
 		layerValue = activationObject.computeActivatedDerivative(layer);
 		return layerValue; 
 	}
-	
+	public double[][] copyArray(double[][] input) {
+		double[][] copy = new double[input.length][input[0].length]; 
+		for(int i=0; i<input.length; i++) {
+			for(int j=0; j<input[0].length; j++) {
+				copy[i][j] = input[i][j];
+			}
+		}
+		return copy;
+	}
 }
+
 class Sigmoid extends Activator{
 	public double[][] activate(Layer layer){
-		double[][] layerValue = layer.layerValue; 
+		double[][] layerValue = copyArray(layer.layerValue);
 		for(int i = 0; i < layerValue.length; i++) {
 			for (int j = 0; j < layerValue[0].length; j++) {
 				layerValue[i][j] = sigmoid(layerValue[i][j]);
@@ -52,7 +61,7 @@ class Sigmoid extends Activator{
 	}
 	
 	public double[][] computeActivatedDerivative(Layer layer){
-		double[][] layerValue = layer.preActivatedValue;
+		double[][] layerValue = copyArray(layer.preActivatedValue);
 		for(int i = 0; i < layerValue.length; i++) {
 			for (int j = 0; j < layerValue[0].length; j++) {
 				layerValue[i][j] = sigmoid(layerValue[i][j]) * (1-layerValue[i][j]);
@@ -64,7 +73,7 @@ class Sigmoid extends Activator{
 
 class Elu extends Activator{
 	public double[][] activate(Layer layer){
-		double[][] layerValue = layer.layerValue;
+		double[][] layerValue = copyArray(layer.layerValue);
 		for(int i=0; i < layerValue.length; i++) {
 			for(int j=0; j < layerValue[0].length; j++) {
 				if(layerValue[i][j] < 0) {
@@ -75,7 +84,7 @@ class Elu extends Activator{
 		return layerValue; 
 	}
 	public double[][] computeActivatedDerivative(Layer layer){
-		double[][] layerValue = layer.preActivatedValue;
+		double[][] layerValue = copyArray(layer.preActivatedValue);
 		
 		for(int i = 0; i < layerValue.length; i++) {
 			for (int j = 0; j < layerValue[0].length; j++) {
@@ -91,7 +100,7 @@ class Elu extends Activator{
 }
 class Relu extends Activator{
 	public double[][] activate(Layer layer){
-		double[][] layerValue = layer.layerValue;
+		double[][] layerValue = copyArray(layer.layerValue);
 		for(int i=0; i < layerValue.length; i++) {
 			for(int j=0; j < layerValue[0].length; j++) {
 				if(layerValue[i][j] < 0) {
@@ -102,7 +111,7 @@ class Relu extends Activator{
 		return layerValue; 
 	}
 	public double[][] computeActivatedDerivative(Layer layer){
-		double[][] layerValue = layer.preActivatedValue;
+		double[][] layerValue = copyArray(layer.preActivatedValue);
 		for(int i=0; i < layerValue.length; i++) {
 			for(int j=0; j < layerValue[0].length; j++) {
 				if(layerValue[i][j] < 0) {
@@ -111,12 +120,13 @@ class Relu extends Activator{
 					layerValue[i][j] = 1; 
 				}
 			}
+		}
 		return layerValue; 
 	}
 }
 class LeakyRelu extends Activator{
 	public double[][] activate(Layer layer){
-		double[][] layerValue = layer.layerValue;
+		double[][] layerValue = copyArray(layer.layerValue);
 		for(int i=0; i < layerValue.length; i++) {
 			for(int j=0; j < layerValue[0].length; j++) {
 				if(layerValue[i][j] < 0) {
@@ -127,7 +137,7 @@ class LeakyRelu extends Activator{
 		return layerValue; 
 	}
 	public double[][] computeActivatedDerivative(Layer layer){
-		double[][] layerValue = layer.preActivatedValue;
+		double[][] layerValue = copyArray(layer.preActivatedValue);
 		for(int i=0; i < layerValue.length; i++) {
 			for(int j=0; j < layerValue[0].length; j++) {
 				if(layerValue[i][j] < 0) {
@@ -136,13 +146,14 @@ class LeakyRelu extends Activator{
 					layerValue[i][j] = 1; 
 				}
 			}
+		}
 		return layerValue; 
 	}
 }
 
 class Tanh extends Activator{
 	public double[][] activate(Layer layer){
-		double[][] layerValue = layer.layerValue;
+		double[][] layerValue = copyArray(layer.layerValue);
 		for(int i = 0; i < layerValue.length; i++) {
 			for (int j = 0; j < layerValue[0].length; j++) {
 				layerValue[i][j] = Math.tanh(layerValue[i][j]);
@@ -151,7 +162,7 @@ class Tanh extends Activator{
 		return layerValue;
 	}
 	public double[][] computeActivatedDerivative(Layer layer){
-		double[][] layerValue = layer.preActivatedValue;
+		double[][] layerValue = copyArray(layer.preActivatedValue);
 		for (int i = 0; i < layerValue.length; i++) {
 			for (int j = 0; j < layerValue[0].length; j++) {
 				layerValue[i][j] = (1 - (Math.pow(Math.tanh(layerValue[i][j]), 2)));
@@ -160,13 +171,14 @@ class Tanh extends Activator{
 		return layerValue; 
 	}
 }
+
 class Linear extends Activator{
 	public double[][] activate(Layer layer){
-		double[][] layerValue = layer.layerValue;
+		double[][] layerValue = copyArray(layer.layerValue);
 		return layerValue;
 	}
 	public double[][] computeActivatedDerivative(Layer layer){
-		double[][] layerValue = layer.preActivatedValue;
+		double[][] layerValue = copyArray(layer.preActivatedValue);
 		for(int i = 0; i < layerValue.length; i++) {
 			for (int j = 0; j < layerValue[0].length; j++) {
 				layerValue[i][j] = 1;
@@ -176,8 +188,8 @@ class Linear extends Activator{
 	}
 }
 class Softmax extends Activator{
-	public double[][] activate(Layer layer){
-		double[][] layerValue = layer.layerValue;
+	public double[][] activate(Layer layer) {
+		double[][] layerValue = copyArray(layer.layerValue);
 		double[] sums = formatSums(layerValue); 
 		
 		for(int i=0; i<layerValue.length; i++) {
@@ -198,8 +210,14 @@ class Softmax extends Activator{
 		return sums; 
 	}
 	public double[][] computeActivatedDerivative(Layer layer){
-		double[][] layerValue = layer.preActivatedValue;
-		return null; 
+		double[][] layerValue = copyArray(layer.layerValue); //doesn't require previous layerValue **special case 
+		
+		for(int i=0; i < layerValue.length; i++) {
+			for(int j=0; j < layerValue[0].length; j++) {
+				layerValue[i][j] = (layerValue[i][j])*(1.0-layerValue[i][j]);
+			}
+		}
+		return layerValue; 
 	}
 }
 

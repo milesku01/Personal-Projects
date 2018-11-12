@@ -3,6 +3,7 @@ import java.util.List;
 
 public class NetworkModel {
 	public List layerList = new ArrayList();
+	public Targets targets = new Targets(); 
 	public int batchSize;
 	public int numofEpochs;
 	
@@ -13,7 +14,7 @@ public class NetworkModel {
 	
 	public void buildInputLayer(String filePath, int numofSets, int numofInputs) {
 		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, filePath); // no activation
-		inputLayer.initializeLayer(inputLayer);
+		inputLayer.initializeLayer(inputLayer, targets);
 		layerList.add(inputLayer);
 	
 	}

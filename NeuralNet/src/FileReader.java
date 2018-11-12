@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class FileReader {
+	public int targetSize;
 	String fileName = ""; 
 	Scanner scan; 
 	List<Double> valuesFromFile = new ArrayList<Double>();
@@ -36,7 +37,7 @@ public class FileReader {
 	
 	public double[][] ListToArray(int dimension1, int dimension2) {
 		int counter =0;
-		int targetSize = getTargetSize(dimension1, dimension2); 
+		int targetSize = determineTargetSize(dimension1, dimension2); 
 		double[][] array = new double[dimension1][dimension2 + targetSize]; 
 		
 		for(int i=0; i < dimension1; i++) {
@@ -48,9 +49,10 @@ public class FileReader {
 		return array; 
 	}
 	
-	public int getTargetSize(int dimension1, int dimension2) {
+	public int determineTargetSize(int dimension1, int dimension2) {
 		int sizeOfInputs = dimension1*dimension2; 
 		int targetArea = valuesFromFile.size() - sizeOfInputs;
+		targetSize = (targetArea / dimension1);
 		return (targetArea / dimension1);
 	}
 	

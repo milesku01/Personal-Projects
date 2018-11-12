@@ -1,9 +1,9 @@
 
 public class Targets {
 	double[][] targets;
+	public int targetSize; 
 
 	public void determineTargets(double[][] layerValue, int numofInput) {
-		int targetSize = layerValue[0].length - numofInput;
 		targets = new double[layerValue.length][targetSize]; 
 		
 		for(int i=0; i < layerValue.length; i++) {
