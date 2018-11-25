@@ -32,7 +32,7 @@ class InputLayer extends Layer {
 		this.fileName = fileName; 
 	}
 	
-	public void initializeLayer(InputLayer inputLayer, Targets targets) {
+	public void initializeLayer(InputLayer inputLayer, Targets targets) { //add error handling
 		fileReader = new FileReader(fileName);
 		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);

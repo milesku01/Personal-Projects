@@ -1,4 +1,7 @@
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class NetworkTrainer {
@@ -18,14 +21,26 @@ public class NetworkTrainer {
 		targets = model.targets;
 
 		int iterations = calculateNumofBatches() * numofEpochs;
-
+	
+		long startTime = System.nanoTime(); 
 		for (int i = 0; i < iterations; i++) {
+			if(i == 0) initializeLists();
 			forwardPropagation();
 			backPropagation();
 			formatOutput();
 		}
+		long endTime = System.nanoTime(); 
+		System.out.println("Training time: " + getTrainingTime(startTime, endTime) + " sec"); 
 	}
 
+	private String getTrainingTime(long startTime, long endTime) {
+		Double n = (double) (endTime - startTime)/(double)1000000000; 
+		DecimalFormat df = new DecimalFormat("#.####");
+		df.setRoundingMode(RoundingMode.CEILING);
+		Double d = n.doubleValue();
+	    return df.format(d);
+	}
+	
 	private int calculateNumofBatches() {
 		double rawBatchNum = Math.ceil((double) layers.get(0).layerValue.length / (double) batchSize);
 		return (int) rawBatchNum;
@@ -59,14 +74,13 @@ public class NetworkTrainer {
 		for (int i = 1; i < layers.size(); i++) {
 			System.out.println("Layer " + i + java.util.Arrays.deepToString(layers.get(i).layerValue));
 		}
-		
 		System.out.println("Target Batch: " + java.util.Arrays.deepToString(currentTargetBatch));
 		System.out.println();
+		for (int i = 0; i < weightList.size(); i++) {
+			System.out.println("weight " + i + java.util.Arrays.deepToString(weightList.get(i)));
+		}
 		System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
 		System.out.println();
-		for (int i = 0; i < gradients.size(); i++) {
-			System.out.println("Gradient " + java.util.Arrays.deepToString(gradients.get(i)));
-		}
 	}
 
 	public double reportLoss(Layer finalLayer) {
@@ -88,9 +102,23 @@ public class NetworkTrainer {
 			}
 			loss *= ((1 / (double) result.length) * (1.0 / 2.0));
 		}
+		loss += regularizationTerm(); 
+		System.out.println("Reg. " + regularizationTerm());
 		return loss;
 	}
-
+	private double regularizationTerm() {
+		double weightSquaredSum = 0.0; 
+		for(int i=0; i<weightList.size(); i++) { 
+			for(int j=0; j < weightList.get(i).length; j++) {
+				for(int k=0; k < weightList.get(i)[0].length; k++) {
+					weightSquaredSum += Math.pow(weightList.get(i)[j][k], 2); 
+				}
+			}
+		}
+		weightSquaredSum *= regularize/(2.0*(double)currentBatch.length); 
+		return weightSquaredSum; 
+	}
+	
 	public void appendBiasColumn(Layer layer) {
 		double[][] layerValue = copyArray(layer.layerValue);
 		double[][] inputsWithBiases = new double[layerValue.length][layerValue[0].length + 1];
@@ -121,8 +149,6 @@ public class NetworkTrainer {
 
 		if (!hasReachedEndofBatch()) {
 			batch = new double[batchSize][layer.layerSize + 1];
-			System.out.println("Ran batch");
-
 			for (int i = 0; i < batchSize; i++) {
 				for (int j = 0; j < layer.layerSize + 1; j++) { // added one for the bias column
 					batch[i][j] = layer.layerValue[batchTracker][j];
@@ -133,7 +159,6 @@ public class NetworkTrainer {
 
 		} else {
 			batch = new double[remainingBatchSize][layer.layerSize + 1];
-			System.out.println("Ran remaining batch"); 
 			for (int i = 0; i < remainingBatchSize; i++) {
 				for (int j = 0; j < layer.layerSize + 1; j++) {
 					batch[i][j] = layer.layerValue[batchTracker][j];
@@ -153,6 +178,7 @@ public class NetworkTrainer {
 			return false;
 		}
 	}
+
 	public boolean hasReachedEndofBatchTarget() {
 		if (calculateNumofBatches() - 1 == batchCounterTarget) {
 			return true;
@@ -173,8 +199,6 @@ public class NetworkTrainer {
 		}
 		if (!hasReachedEndofBatchTarget()) {
 			batch = new double[batchSize][targets.targetSize];
-			System.out.println("Ran non remaining target batch " + batchSize);
-
 			for (int i = 0; i < batchSize; i++) {
 				for (int j = 0; j < targets.targetSize; j++) {
 					batch[i][j] = targets.targets[batchTrackerTarget][j];
@@ -184,7 +208,6 @@ public class NetworkTrainer {
 			batchCounterTarget++; 
 			currentTargetBatch = batch; 
 		} else {
-			System.out.println("Ran remaining target batch");
 			batch = new double[remainingBatchSize][targets.targetSize];
 
 			for (int i = 0; i < remainingBatchSize; i++) {
@@ -212,11 +235,15 @@ public class NetworkTrainer {
 		updateBiasedSecondMomentEstimate();
 		computeBiasCorrectedFirstMoment();
 		computeBiasCorrectedSecondMoment();
+		formatLists(); 
 		updateParameters();
+		formatLists(); //reverse again 
+		cleanGradients();
 	}
 
 	double[][] previousPartialGradient;
 	List<double[][]> gradients = new ArrayList<double[][]>();
+	double regularize = 0.001; 
 
 	private void computeGradients() {
 		double[][] gradient;
@@ -224,9 +251,15 @@ public class NetworkTrainer {
 		previousPartialGradient = computePartialGradientLastLayer(layers.get(layers.size() - 1));
 		gradient = matrixMultiplication(matrixTranspose(layers.get(layers.size() - 2).layerValue),
 				previousPartialGradient);
+		
+		for(int i=0; i<gradient.length; i++) {
+			for(int j=0; j<gradient[0].length; j++) {
+				gradient[i][j] = gradient[i][j] + regularize*weightList.get(weightList.size()-1)[i][j];
+			}
+		}
 		gradients.add(gradient);
 
-		for (int i = weightList.size() - 1; i > 0; i--) { // must be edited because hidden layers are propagated
+		for (int i = weightList.size() - 1; i > 0; i--) { //no need for weightList.get(0) 
 			gradient = matrixMultiplication(previousPartialGradient, matrixTranspose(weightList.get(i)));
 			layers.get(i).preActivatedValue = concatenateColumn(layers.get(i).preActivatedValue);
 			gradient = elementwiseMultiplication(gradient, computeDerivative(layers.get(i)));
@@ -237,10 +270,20 @@ public class NetworkTrainer {
 			} else {
 				gradient = matrixMultiplication(matrixTranspose(currentBatch), gradient);
 			}
+			
+			for(int j=0; j<gradient.length; j++) {
+				for(int k=0; k<gradient[0].length; k++) {
+					gradient[j][k] = gradient[j][k] + regularize*weightList.get(i-1)[j][k];
+				}
+			}
 			gradients.add(gradient);
 		}
 	}
 
+	private void cleanGradients() {
+		gradients.clear();
+	}
+	
 	private double[][] concatenateColumn(double[][] input) {
 		double[][] inputsWithBiases = new double[input.length][input[0].length + 1];
 
@@ -273,8 +316,13 @@ public class NetworkTrainer {
 
 	private double[][] computePartialGradientLastLayer(Layer finalLayer) {
 		double[][] partialGradient;
-		partialGradient = elementwiseMultiplication((computeDerivativeofError(getTargetBatch(), finalLayer)),
-				computeDerivative(finalLayer)); // might have to change part of this to negative
+		if(finalLayer.activation.equals("SOFTMAX")) {
+			partialGradient = elementwiseMultiplication((computeDerivativeofError(getTargetBatch(), finalLayer)),
+				computeDerivative(finalLayer)); 
+		} else {
+			partialGradient = elementwiseMultiplication((computeDerivativeofError(getTargetBatch(), finalLayer)),
+					scalarMultiply(-1.0, computeDerivative(finalLayer))); 
+		}
 		return partialGradient;
 	}
 
@@ -298,7 +346,7 @@ public class NetworkTrainer {
 		}
 		return derivativeOfError;
 	}
-
+ 
 	private double[][] elementwiseMultiplication(double[][] m, double[][] n) {
 		double[][] result = new double[m.length][m[0].length];
 		if (m.length != n.length || m[0].length != n[0].length) {
@@ -321,29 +369,107 @@ public class NetworkTrainer {
 		return temp;
 	}
 
-	private void updateBiasedFirstMomentEstimate() {
-		// TODO Auto-generated method stub
-
+	private double[][] scalarMultiply(double num, double[][] m) {
+		for(int i=0; i<m.length; i++) {
+			for(int j=0; j<m[0].length; j++) {
+				m[i][j] = num*m[i][j];
+			}
+		}
+		return m; 
+	}
+	
+	double beta1 = .9;
+	double beta2 = .999;
+	double learningRate = .01; 
+	double offSet = .000000001;
+	int betaCounter = 1; 
+	List<double[][]> firstMomentEstimate;
+	List<double[][]> secondMomentEstimate;
+	List<double[][]> firstMomentEstimateCorrected;
+	List<double[][]> secondMomentEstimateCorrected;
+ 
+	private void initializeLists() {
+		firstMomentEstimate = initializeMomentList();
+		secondMomentEstimate = initializeMomentList();
+		firstMomentEstimateCorrected = initializeMomentList();
+		secondMomentEstimateCorrected = initializeMomentList();
+	}
+	
+	private List initializeMomentList() {
+		double[][] array;
+		List newList = new ArrayList(); 
+		
+		for(int i=weightList.size()-1; i>=0; i--) {
+			array = new double[weightList.get(i).length][weightList.get(i)[0].length];
+			newList.add(array);
+		}
+		return newList; 
 	}
 
+	private void updateBiasedFirstMomentEstimate() { 
+		for(int k=0; k<gradients.size(); k++) {
+			for(int i=0; i<gradients.get(k).length; i++) {
+				for(int j=0; j<gradients.get(k)[0].length; j++) {
+					firstMomentEstimate.get(k)[i][j] = (beta1*firstMomentEstimate.get(k)[i][j]) + 
+							((1.0-beta1)* (gradients.get(k)[i][j]));
+				}
+			}
+		}
+	}
+ 
 	private void updateBiasedSecondMomentEstimate() {
-		// TODO Auto-generated method stub
+		for(int k=0; k<gradients.size(); k++) {
+			for(int i=0; i<gradients.get(k).length; i++) {
+				for(int j=0; j<gradients.get(k)[0].length; j++) {
+					secondMomentEstimate.get(k)[i][j] = (beta2*secondMomentEstimate.get(k)[i][j]) + 
+							((1.0-beta2)*gradients.get(k)[i][j]*gradients.get(k)[i][j]);
+				}
+			}
+		}
 
 	}
 
 	private void computeBiasCorrectedFirstMoment() {
-		// TODO Auto-generated method stub
-
+		for(int k=0; k<gradients.size(); k++) { 
+			for(int i=0; i<gradients.get(k).length; i++) {
+				for(int j=0; j<gradients.get(k)[0].length; j++) {
+					firstMomentEstimateCorrected.get(k)[i][j] =	firstMomentEstimate.get(k)[i][j]/
+							(1.0-Math.pow(beta1, betaCounter));
+					
+				}
+			}
+		}
 	}
 
 	private void computeBiasCorrectedSecondMoment() {
-		// TODO Auto-generated method stub
-
+		for(int k=0; k<gradients.size(); k++) {
+			for(int i=0; i<gradients.get(k).length; i++) {
+				for(int j=0; j<gradients.get(k)[0].length; j++) {
+					secondMomentEstimateCorrected.get(k)[i][j] = secondMomentEstimate.get(k)[i][j]/
+							(1.0-Math.pow(beta2, betaCounter));
+					
+				}
+			}
+		}
 	}
 
+	private void formatLists() {
+		Collections.reverse(firstMomentEstimateCorrected);
+		Collections.reverse(secondMomentEstimateCorrected);
+	}
+	
 	private void updateParameters() {
-		// TODO Auto-generated method stub
-
+		for(int i=0; i < weightList.size(); i++) {
+			for(int j=0; j <weightList.get(i).length; j++) {
+				for(int k=0; k<weightList.get(i)[0].length; k++) {
+					weightList.get(i)[j][k] -= ((((double) currentBatch.length/(double) batchSize)*learningRate*
+							firstMomentEstimateCorrected.get(i)[j][k])/
+								(Math.sqrt(secondMomentEstimateCorrected.get(i)[j][k])
+										+ offSet));
+				}
+			}
+		}
+		betaCounter++; 
 	}
 
 	private double[][] matrixMultiplication(double[][] A, double[][] B) {
@@ -368,7 +494,21 @@ public class NetworkTrainer {
 		return C;
 	}
 	
+	private double[][] subtractAcross(double[][] A, double[][] B) {
+		if (A.length != B.length || A[0].length != B[0].length) {
+			throw new IllegalArgumentException(
+					"Dimensions did not match" + A.length + " " + A[0].length + " " + B.length + " " + B[0].length);
+		}
+		for(int i=0; i<A.length; i++) {
+			for(int j=0; j<A[0].length; j++) {
+				A[i][j] = A[i][j] + B[i][j];
+			}
+		}
+		return A; 
+	}
+	
 	public double[][] copyArray(double[][] input) {
+
 		double[][] copy = new double[input.length][input[0].length]; 
 		for(int i=0; i<input.length; i++) {
 			for(int j=0; j<input[0].length; j++) {

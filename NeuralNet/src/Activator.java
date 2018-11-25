@@ -191,7 +191,7 @@ class Softmax extends Activator{
 	public double[][] activate(Layer layer) {
 		double[][] layerValue = copyArray(layer.layerValue);
 		double[] sums = formatSums(layerValue); 
-		
+	
 		for(int i=0; i<layerValue.length; i++) {
 			for(int j=0; j<layerValue[0].length; j++) {
 				layerValue[i][j] = (Math.pow(Math.E, layerValue[i][j])) / sums[i]; 
@@ -209,6 +209,7 @@ class Softmax extends Activator{
 		}
 		return sums; 
 	}
+	
 	public double[][] computeActivatedDerivative(Layer layer){
 		double[][] layerValue = copyArray(layer.layerValue); //doesn't require previous layerValue **special case 
 		
