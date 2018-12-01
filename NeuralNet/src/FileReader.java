@@ -1,5 +1,6 @@
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
@@ -15,7 +16,7 @@ public class FileReader {
 	
 	public double[][] readInputIntoArray(int dimension1, int dimension2) {
 		initializeFileReader(); 
-		readFileIntoList(); 
+		readFileIntoList();
 		return ListToArray(dimension1, dimension2); 
 	}
 	
@@ -34,7 +35,7 @@ public class FileReader {
 			valuesFromFile.add(scan.nextDouble());
 		}
 	}
-	
+
 	public double[][] ListToArray(int dimension1, int dimension2) {
 		int counter =0;
 		int targetSize = determineTargetSize(dimension1, dimension2); 

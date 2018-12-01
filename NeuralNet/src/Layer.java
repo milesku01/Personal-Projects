@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class Layer { // superclass
 	double[][] layerValue;
@@ -36,10 +39,33 @@ class InputLayer extends Layer {
 		fileReader = new FileReader(fileName);
 		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
+		inputLayer.layerValue = copyArray(shuffleArray(inputLayer.layerValue)); 
+		
 		targets.determineTargets(inputLayer.layerValue, numofInput); 
 		inputLayer.setLayerValue(extractInputs(inputLayer.layerValue));
 		inputLayer.setLayerValue(normalizer.normalizeInputs(inputLayer.layerValue)); 
 	}
+	
+	private double[][] shuffleArray(double[][] inputLayer) {
+		List<double[]> list = new ArrayList<double[]>();
+		double[] array = null; 
+		
+		for(int i=0; i<inputLayer.length; i++) {
+			array = new double[inputLayer[0].length]; 
+			for(int j=0; j<inputLayer[0].length; j++) {
+				array[j] = inputLayer[i][j];  
+			}
+			list.add(array);
+		}
+		Collections.shuffle(list);
+		for(int i=0; i<inputLayer.length; i++) {
+			for(int j=0; j<inputLayer[0].length; j++) {
+				inputLayer[i][j] = list.get(i)[j];
+			}
+		}
+		return inputLayer; 
+	}
+	
 	
 	public double[][] extractInputs(double[][] inputs) {
 		int targetSize = fileReader.determineTargetSize(numofSets, numofInput);
@@ -53,6 +79,16 @@ class InputLayer extends Layer {
 		return result; 
 	}
 	
+	private double[][] copyArray(double[][] input) {
+		double[][] copy = new double[input.length][input[0].length];
+		for (int i = 0; i < input.length; i++) {
+			for (int j = 0; j < input[0].length; j++) {
+				copy[i][j] = input[i][j];
+			}
+		}
+		return copy;
+	}
+
 } // end of class inputlayer
 
 class HiddenLayer extends Layer {
