@@ -13,7 +13,7 @@ public class NetworkTrainer {
 	Activator activator = new Activator();
 	double[][] currentBatch;
 	double[][] fullFinalLayer;
-	int numofBatches; 
+	int numofBatches;
 
 	public void train(NetworkModel model, Weights weights) {
 		batchSize = model.batchSize;
@@ -24,19 +24,21 @@ public class NetworkTrainer {
 
 		numofBatches = calculateNumofBatches();
 		int iterations = numofBatches * numofEpochs;
-		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length]; 
+		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length];
 
 		long startTime = System.nanoTime();
+		int counter = 0;
+
 		for (int i = 1; i <= iterations; i++) {
-			if (i == 1)initializeLists();
+			if (i == 1)
+				initializeLists();
 			forwardPropagation();
-			computeGradients();
+			backPropagation(); // computeGradiednts
 
 			if (i % numofBatches == 0) {
-				averageGradients();
-				backPropagation();
 				formatOutput();
 			}
+
 		}
 		long endTime = System.nanoTime();
 		System.out.println("Training time: " + getTrainingTime(startTime, endTime) + " sec");
@@ -55,7 +57,6 @@ public class NetworkTrainer {
 		return (int) rawBatchNum;
 	}
 
-	
 	public void forwardPropagation() {
 		double[][] preActivatedValue;
 		propagateInputLayer();
@@ -66,26 +67,26 @@ public class NetworkTrainer {
 			layers.get(i + 1).preActivatedValue = preActivatedValue;
 			layers.get(i + 1).setLayerValue(activate(layers.get(i + 1)));
 		}
-		determineTargetForError(); 
+		determineTargetForError();
 	}
-	
-	int targetPositionCounter=0; 
+
+	int targetPositionCounter = 0;
+
 	private void determineTargetForError() {
-		if(targetPositionCounter != (batchSize*(numofBatches-1))) {
-			for(int i=0; i < batchSize; i++) {
-				for(int j=0; j < targets.targetSize; j++) { 
-					fullFinalLayer[i+targetPositionCounter][j] =
-							layers.get(layers.size()-1).layerValue[i][j]; 
+		if (targetPositionCounter != (batchSize * (numofBatches - 1))) {
+			for (int i = 0; i < batchSize; i++) {
+				for (int j = 0; j < targets.targetSize; j++) {
+					fullFinalLayer[i + targetPositionCounter][j] = layers.get(layers.size() - 1).layerValue[i][j];
 				}
 			}
-		targetPositionCounter+=batchSize;
+			targetPositionCounter += batchSize;
 		} else {
-			for(int i=0; i < remainingBatchSize; i++) {
-				for(int j=0; j < targets.targetSize; j++) {
-					fullFinalLayer[i+targetPositionCounter][j] = layers.get(layers.size()-1).layerValue[i][j]; 
+			for (int i = 0; i < remainingBatchSize; i++) {
+				for (int j = 0; j < targets.targetSize; j++) {
+					fullFinalLayer[i + targetPositionCounter][j] = layers.get(layers.size() - 1).layerValue[i][j];
 				}
 			}
-		targetPositionCounter=0;
+			targetPositionCounter = 0;
 		}
 	}
 
@@ -104,14 +105,14 @@ public class NetworkTrainer {
 		// System.out.println("Layer 0 " + java.util.Arrays.deepToString(currentBatch));
 		// System.out.println("Last Layer " +
 		// java.util.Arrays.deepToString(fullFinalLayer));
-		 
+
 		// System.out.println("Targets: " +
-		 //java.util.Arrays.deepToString(targets.targets));
-		 //System.out.println();
-		 //for (int i = 0; i < weightList.size(); i++) {
-		 //System.out.println("weight " + i +
-		 //java.util.Arrays.deepToString(weightList.get(i)));
-		 //}
+		// java.util.Arrays.deepToString(targets.targets));
+		// System.out.println();
+		// for (int i = 0; i < weightList.size(); i++) {
+		// System.out.println("weight " + i +
+		// java.util.Arrays.deepToString(weightList.get(i)));
+		// }
 		System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
 	}
 
@@ -263,6 +264,7 @@ public class NetworkTrainer {
 	}
 
 	public void backPropagation() {
+		computeGradients(); // remove this line for averaging
 		updateBiasedFirstMomentEstimate();
 		updateBiasedSecondMomentEstimate();
 		computeBiasCorrectedFirstMoment();
@@ -303,6 +305,14 @@ public class NetworkTrainer {
 				gradient = matrixMultiplication(matrixTranspose(currentBatch), gradient);
 			}
 
+			if (i == 1) {
+				for (int j = 0; j < gradient.length; j++) {
+					for (int k = 0; k < gradient[0].length; k++) {
+						gradient[j][k] = ((double) remainingBatchSize / (double) batchSize) * gradient[j][k];
+					}
+				}
+			}
+
 			for (int j = 0; j < gradient.length; j++) {
 				for (int k = 0; k < gradient[0].length; k++) {
 					gradient[j][k] = gradient[j][k] + regularize * weightList.get(i - 1)[j][k];
@@ -310,39 +320,6 @@ public class NetworkTrainer {
 			}
 			gradients.add(gradient);
 		}
-	}
-
-	private void averageGradients() {
-		List<double[][]> avgGradients = new ArrayList();
-		double[][] tempArray = null;
-		int size = weightList.size(); 
-		int gradSize = gradients.size(); 
-
-		  for(int i=gradients.size()-1; i>=(gradients.size()-weightList.size()); i--) {
-			for (int j = 0; j < gradients.get(i).length; j++) {
-				for (int k = 0; k < gradients.get(i)[0].length; k++) {
-					gradients.get(i)[j][k] = ((double)remainingBatchSize/(double)batchSize)*gradients.get(i)[j][k]; 
-				}
-			}
-		} 
-	
-		for (int m = 0; m < size; m++) {
-			tempArray = new double[gradients.get(m).length][gradients.get(m)[0].length];
-			for (int i = m; i < gradSize+ m; i += size) {
-				for (int j = 0; j < gradients.get(i).length; j++) {
-					for (int k = 0; k < gradients.get(i)[0].length; k++) {
-						tempArray[j][k] += 
-								((double) size / (double) gradSize)*
-								gradients.get(i)[j][k];
-					}
-				}
-			}
-			avgGradients.add(tempArray); 
-		}
-		
-		cleanGradients(); 
-		for(int i=0; i<avgGradients.size(); i++) {gradients.add((double[][]) avgGradients.get(i));}
-		avgGradients.clear();
 	}
 
 	private void cleanGradients() {
@@ -412,40 +389,9 @@ public class NetworkTrainer {
 		return derivativeOfError;
 	}
 
-	private double[][] elementwiseMultiplication(double[][] m, double[][] n) {
-		double[][] result = new double[m.length][m[0].length];
-		if (m.length != n.length || m[0].length != n[0].length) {
-			throw new IllegalArgumentException(
-					"Dimensions did not match" + m.length + " " + m[0].length + " " + n.length + " " + n[0].length);
-		}
-		for (int i = 0; i < m.length; i++) {
-			for (int j = 0; j < m[0].length; j++) {
-				result[i][j] = m[i][j] * n[i][j];
-			}
-		}
-		return result;
-	}
-
-	private double[][] matrixTranspose(double[][] m) {
-		double[][] temp = new double[m[0].length][m.length];
-		for (int i = 0; i < m.length; i++)
-			for (int j = 0; j < m[0].length; j++)
-				temp[j][i] = m[i][j];
-		return temp;
-	}
-
-	private double[][] scalarMultiply(double num, double[][] m) {
-		for (int i = 0; i < m.length; i++) {
-			for (int j = 0; j < m[0].length; j++) {
-				m[i][j] = num * m[i][j];
-			}
-		}
-		return m;
-	}
-
 	double beta1 = .9;
 	double beta2 = .999;
-	double learningRate = .02;
+	double learningRate = .01;
 	double offSet = .000000001;
 	int betaCounter = 1;
 	List<double[][]> firstMomentEstimate;
@@ -527,8 +473,7 @@ public class NetworkTrainer {
 		for (int i = 0; i < weightList.size(); i++) {
 			for (int j = 0; j < weightList.get(i).length; j++) {
 				for (int k = 0; k < weightList.get(i)[0].length; k++) {
-					weightList.get(i)[j][k] -= ((learningRate
-							* firstMomentEstimateCorrected.get(i)[j][k])
+					weightList.get(i)[j][k] -= ((learningRate * firstMomentEstimateCorrected.get(i)[j][k])
 							/ (Math.sqrt(secondMomentEstimateCorrected.get(i)[j][k]) + offSet));
 				}
 			}
@@ -558,19 +503,6 @@ public class NetworkTrainer {
 		return C;
 	}
 
-	private double[][] subtractAcross(double[][] A, double[][] B) {
-		if (A.length != B.length || A[0].length != B[0].length) {
-			throw new IllegalArgumentException(
-					"Dimensions did not match" + A.length + " " + A[0].length + " " + B.length + " " + B[0].length);
-		}
-		for (int i = 0; i < A.length; i++) {
-			for (int j = 0; j < A[0].length; j++) {
-				A[i][j] = A[i][j] + B[i][j];
-			}
-		}
-		return A;
-	}
-
 	public double[][] copyArray(double[][] input) {
 
 		double[][] copy = new double[input.length][input[0].length];
@@ -581,4 +513,36 @@ public class NetworkTrainer {
 		}
 		return copy;
 	}
+
+	private double[][] elementwiseMultiplication(double[][] m, double[][] n) {
+		double[][] result = new double[m.length][m[0].length];
+		if (m.length != n.length || m[0].length != n[0].length) {
+			throw new IllegalArgumentException(
+					"Dimensions did not match" + m.length + " " + m[0].length + " " + n.length + " " + n[0].length);
+		}
+		for (int i = 0; i < m.length; i++) {
+			for (int j = 0; j < m[0].length; j++) {
+				result[i][j] = m[i][j] * n[i][j];
+			}
+		}
+		return result;
+	}
+
+	private double[][] matrixTranspose(double[][] m) {
+		double[][] temp = new double[m[0].length][m.length];
+		for (int i = 0; i < m.length; i++)
+			for (int j = 0; j < m[0].length; j++)
+				temp[j][i] = m[i][j];
+		return temp;
+	}
+
+	private double[][] scalarMultiply(double num, double[][] m) {
+		for (int i = 0; i < m.length; i++) {
+			for (int j = 0; j < m[0].length; j++) {
+				m[i][j] = num * m[i][j];
+			}
+		}
+		return m;
+	}
+
 }

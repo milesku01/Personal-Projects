@@ -39,7 +39,7 @@ class InputLayer extends Layer {
 		fileReader = new FileReader(fileName);
 		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
-		inputLayer.layerValue = copyArray(shuffleArray(inputLayer.layerValue)); 
+		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
 		
 		targets.determineTargets(inputLayer.layerValue, numofInput); 
 		inputLayer.setLayerValue(extractInputs(inputLayer.layerValue));
@@ -77,16 +77,6 @@ class InputLayer extends Layer {
 			}
 		}
 		return result; 
-	}
-	
-	private double[][] copyArray(double[][] input) {
-		double[][] copy = new double[input.length][input[0].length];
-		for (int i = 0; i < input.length; i++) {
-			for (int j = 0; j < input[0].length; j++) {
-				copy[i][j] = input[i][j];
-			}
-		}
-		return copy;
 	}
 
 } // end of class inputlayer

@@ -8,6 +8,24 @@ public class Weights {
 	List<double[][]> weightList = new ArrayList<double[][]>();  
 	Random r = new Random(); 
 	
+	public void createStandardWeights(NetworkModel model) {
+		int nextLayer = 1; 
+		List<Layer> layerList = model.layerList;
+		for(int i=0; i < layerList.size() - 1; i++) { //finishes before the output layer is multiplied
+			weightList.add(generateWeightStandard(layerList.get(i), layerList.get(nextLayer))); 
+			nextLayer++; 
+		}
+	}
+	private double[][] generateWeightStandard(Layer previousLayer, Layer nextLayer) {
+		weightArray = new double[previousLayer.layerSize][nextLayer.layerSize];
+		for(int i=0; i < previousLayer.layerSize; i++) {
+			for(int j=0; j < nextLayer.layerSize; j++) {
+				weightArray[i][j] = .2; 
+			}
+		}
+		return addWeightBiases(weightArray); 
+	}
+	
 	public void generateInitialWeights(NetworkModel model) {
 		int nextLayer = 1; 
 		List<Layer> layerList = model.layerList;
