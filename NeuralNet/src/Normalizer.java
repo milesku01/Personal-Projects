@@ -47,7 +47,7 @@ public class Normalizer {
 	
 	public double[][] jiggleInputs(double[][] inputs) {
 		for(int i=0; i<inputs[0].length; i++) {
-			inputs[0][i] = inputs[0][i] + .000000001;
+			inputs[0][i] = inputs[0][i] + .0000000001;
 		}
 		return inputs; 
 	}

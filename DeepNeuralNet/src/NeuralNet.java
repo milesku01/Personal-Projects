@@ -232,7 +232,7 @@ public class NeuralNet {
 							bos.write((Objects.gtst.getWeights2()[k][l] + "")
 									.getBytes());
 							bos.write(System.lineSeparator().getBytes());
-						}
+						} 
 					}
 
 					for (int k = 0; k < numofNeuronLayerTwo + 1; k++) { // make

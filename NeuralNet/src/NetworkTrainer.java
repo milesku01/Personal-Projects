@@ -11,35 +11,34 @@ public class NetworkTrainer {
 	Targets targets;
 	List<double[][]> weightList;
 	Activator activator = new Activator();
+	Optimizer optimizer = new Optimizer(); 
 	double[][] currentBatch;
 	double[][] fullFinalLayer;
 	int numofBatches;
+	String optimizerString;
 
-	public void train(NetworkModel model, Weights weights) {
+	public void train(NetworkModel model, Weights weights, String optimizerString) {
 		batchSize = model.batchSize;
 		numofEpochs = model.numofEpochs;
 		layers = model.layerList;
 		weightList = weights.weightList;
 		targets = model.targets;
+		this.optimizerString = optimizerString;
 
 		numofBatches = calculateNumofBatches();
 		int iterations = numofBatches * numofEpochs;
 		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length];
 
 		long startTime = System.nanoTime();
-		int counter = 0;
 
 		for (int i = 1; i <= iterations; i++) {
-			if (i == 1)
-				initializeLists();
 			forwardPropagation();
-			backPropagation(); // computeGradiednts
-
-			if (i % numofBatches == 0) {
-				formatOutput();
-			}
-
+			backPropagation();
+			formatOutput(i);
 		}
+		
+		
+		
 		long endTime = System.nanoTime();
 		System.out.println("Training time: " + getTrainingTime(startTime, endTime) + " sec");
 	}
@@ -100,20 +99,22 @@ public class NetworkTrainer {
 		layers.get(1).setLayerValue(activate(layers.get(1)));
 	}
 
-	public void formatOutput() {
+	public void formatOutput(int i) {
+		if(i % numofBatches == 0) {
 		System.out.println();
 		// System.out.println("Layer 0 " + java.util.Arrays.deepToString(currentBatch));
 		// System.out.println("Last Layer " +
 		// java.util.Arrays.deepToString(fullFinalLayer));
 
-		// System.out.println("Targets: " +
-		// java.util.Arrays.deepToString(targets.targets));
-		// System.out.println();
+		 //System.out.println("Targets: " +
+		 //java.util.Arrays.deepToString(targets.targets));
+		 //System.out.println();
 		// for (int i = 0; i < weightList.size(); i++) {
 		// System.out.println("weight " + i +
 		// java.util.Arrays.deepToString(weightList.get(i)));
 		// }
 		System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
+		}
 	}
 
 	public double reportLoss(Layer finalLayer) {
@@ -263,15 +264,11 @@ public class NetworkTrainer {
 		return activatedValue;
 	}
 
+	List<double[][]> weightChanges; 
 	public void backPropagation() {
 		computeGradients(); // remove this line for averaging
-		updateBiasedFirstMomentEstimate();
-		updateBiasedSecondMomentEstimate();
-		computeBiasCorrectedFirstMoment();
-		computeBiasCorrectedSecondMoment();
-		formatLists();
-		updateParameters();
-		formatLists(); // reverse again
+		weightChanges = optimizer.optimize(gradients, optimizerString);
+		updateParameters(); 
 		cleanGradients();
 	}
 
@@ -389,100 +386,17 @@ public class NetworkTrainer {
 		return derivativeOfError;
 	}
 
-	double beta1 = .9;
-	double beta2 = .999;
-	double learningRate = .01;
-	double offSet = .000000001;
-	int betaCounter = 1;
-	List<double[][]> firstMomentEstimate;
-	List<double[][]> secondMomentEstimate;
-	List<double[][]> firstMomentEstimateCorrected;
-	List<double[][]> secondMomentEstimateCorrected;
-
-	private void initializeLists() {
-		firstMomentEstimate = initializeMomentList();
-		secondMomentEstimate = initializeMomentList();
-		firstMomentEstimateCorrected = initializeMomentList();
-		secondMomentEstimateCorrected = initializeMomentList();
-	}
-
-	private List initializeMomentList() {
-		double[][] array;
-		List newList = new ArrayList();
-
-		for (int i = weightList.size() - 1; i >= 0; i--) {
-			array = new double[weightList.get(i).length][weightList.get(i)[0].length];
-			newList.add(array);
-		}
-		return newList;
-	}
-
-	private void updateBiasedFirstMomentEstimate() {
-		for (int k = 0; k < gradients.size(); k++) {
-			for (int i = 0; i < gradients.get(k).length; i++) {
-				for (int j = 0; j < gradients.get(k)[0].length; j++) {
-					firstMomentEstimate.get(k)[i][j] = (beta1 * firstMomentEstimate.get(k)[i][j])
-							+ ((1.0 - beta1) * (gradients.get(k)[i][j]));
-				}
-			}
-		}
-	}
-
-	private void updateBiasedSecondMomentEstimate() {
-		for (int k = 0; k < gradients.size(); k++) {
-			for (int i = 0; i < gradients.get(k).length; i++) {
-				for (int j = 0; j < gradients.get(k)[0].length; j++) {
-					secondMomentEstimate.get(k)[i][j] = (beta2 * secondMomentEstimate.get(k)[i][j])
-							+ ((1.0 - beta2) * gradients.get(k)[i][j] * gradients.get(k)[i][j]);
-				}
-			}
-		}
-
-	}
-
-	private void computeBiasCorrectedFirstMoment() {
-		for (int k = 0; k < gradients.size(); k++) {
-			for (int i = 0; i < gradients.get(k).length; i++) {
-				for (int j = 0; j < gradients.get(k)[0].length; j++) {
-					firstMomentEstimateCorrected.get(k)[i][j] = firstMomentEstimate.get(k)[i][j]
-							/ (1.0 - Math.pow(beta1, betaCounter));
-
-				}
-			}
-		}
-	}
-
-	private void computeBiasCorrectedSecondMoment() {
-		for (int k = 0; k < gradients.size(); k++) {
-			for (int i = 0; i < gradients.get(k).length; i++) {
-				for (int j = 0; j < gradients.get(k)[0].length; j++) {
-					secondMomentEstimateCorrected.get(k)[i][j] = secondMomentEstimate.get(k)[i][j]
-							/ (1.0 - Math.pow(beta2, betaCounter));
-
-				}
-			}
-		}
-	}
-
-	private void formatLists() {
-		Collections.reverse(firstMomentEstimateCorrected);
-		Collections.reverse(secondMomentEstimateCorrected);
-	}
-
 	private void updateParameters() {
-		for (int i = 0; i < weightList.size(); i++) {
-			for (int j = 0; j < weightList.get(i).length; j++) {
-				for (int k = 0; k < weightList.get(i)[0].length; k++) {
-					weightList.get(i)[j][k] -= ((learningRate * firstMomentEstimateCorrected.get(i)[j][k])
-							/ (Math.sqrt(secondMomentEstimateCorrected.get(i)[j][k]) + offSet));
+		for (int i = 0; i < weightChanges.size(); i++) {
+			for (int j = 0; j < weightChanges.get(i).length; j++) {
+				for (int k = 0; k < weightChanges.get(i)[0].length; k++) {
+					weightList.get(i)[j][k] -= weightChanges.get(i)[j][k];
 				}
 			}
 		}
-		betaCounter++;
 	}
 
 	private double[][] matrixMultiplication(double[][] A, double[][] B) {
-
 		int aRows = A.length;
 		int aColumns = A[0].length;
 		int bRows = B.length;
