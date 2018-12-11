@@ -22,6 +22,46 @@ public class Activator {
 
 	}
 	
+	public int convertActivationString(String activation) {
+		int integerIdentifier = 0; 
+		if(activation.equals("RELU")) {
+			integerIdentifier = 1; 
+		} else if (activation.equals("ELU")){
+			integerIdentifier = 2; 
+		} else if (activation.equals("SIGMOID")){
+			integerIdentifier = 3; 
+		} else if (activation.equals("TANH")){
+			integerIdentifier = 4; 
+		} else if (activation.equals("SOFTMAX")){
+			integerIdentifier = 5; 
+		} else if (activation.equals("LEAKYRELU")){ 
+			integerIdentifier = 6; 
+		} else if (activation.equals("LINEAR")){
+			integerIdentifier = 7; 
+		}
+		return integerIdentifier; 
+	}
+	
+	public String convertActivationInt(int actInt) {
+		String identifier = ""; 
+		if(actInt == 1) {
+			identifier = "RELU"; 
+		} else if (actInt == 2){
+			identifier = "ELU"; 
+		} else if (actInt == 3){
+			identifier = "SIGMOID"; 
+		} else if (actInt == 4){
+			identifier = "TANH";  
+		} else if (actInt == 5){
+			identifier = "SOFTMAX";  
+		} else if (actInt == 6){ 
+			identifier = "LEAKYRELU";  
+		} else if (actInt == 7){
+			identifier = "LINEAR"; 
+		}
+		return identifier;
+	}
+	
 	double[][] layerValue; 
 	
 	public double[][] activate(Layer layer) { //used only for overriding the superclass

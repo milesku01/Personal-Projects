@@ -9,6 +9,7 @@ import java.util.Scanner;
 
 
 public class ModelSaver {
+	Activator activator = new Activator(); 
 	
 	public void saveModel(NetworkModel model, Weights weights) {
 		promptUser(); 
@@ -68,7 +69,9 @@ public class ModelSaver {
 	
 	private void saveModelToFile(NetworkModel model, Weights weights) {
 		int counter = 1; 
+		int activationInt; 
 		String space = " "; 
+
 		List<Layer> list = model.layerList; 
 		InputLayer inputLayer = (InputLayer) model.layerList.get(0); //check if reference problem
 		
@@ -76,8 +79,18 @@ public class ModelSaver {
 			
 		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath + "\\"  + fileName + ".txt")); 
 	
+		bos.write((list.size() + "").getBytes());
+		
 		for(int i=0; i<list.size(); i++) {  //layer sizes
-			bos.write((list.get(i).layerSize + "").getBytes()); 
+			bos.write((space + "").getBytes());
+			bos.write((list.get(i).layerSize + "").getBytes());
+		}
+		
+		bos.write(System.lineSeparator().getBytes());
+		
+		for(int i=1; i<list.size(); i++) {
+			activationInt = activator.convertActivationString(list.get(i).activation); 
+			bos.write((activationInt + "").getBytes());
 			bos.write((space + "").getBytes());
 		}
 		

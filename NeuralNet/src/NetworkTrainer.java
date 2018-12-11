@@ -11,7 +11,7 @@ public class NetworkTrainer {
 	Targets targets;
 	List<double[][]> weightList;
 	Activator activator = new Activator();
-	Optimizer optimizer = new Optimizer(); 
+	Optimizer optimizer = new Optimizer();
 	double[][] currentBatch;
 	double[][] fullFinalLayer;
 	int numofBatches;
@@ -31,14 +31,12 @@ public class NetworkTrainer {
 
 		long startTime = System.nanoTime();
 
-		for (int i = 1; i <= iterations; i++) {
+		for (int i = 1; i <= iterations + 1; i++) {
 			forwardPropagation();
-			backPropagation();
+			if(i != iterations + 1) backPropagation();
 			formatOutput(i);
 		}
-		
-		
-		
+
 		long endTime = System.nanoTime();
 		System.out.println("Training time: " + getTrainingTime(startTime, endTime) + " sec");
 	}
@@ -100,20 +98,20 @@ public class NetworkTrainer {
 	}
 
 	public void formatOutput(int i) {
-		if(i % numofBatches == 0) {
-		System.out.println();
-		// System.out.println("Layer 0 " + java.util.Arrays.deepToString(currentBatch));
-		// System.out.println("Last Layer " +
-		// java.util.Arrays.deepToString(fullFinalLayer));
+		if (i % numofBatches == 0) {
+			System.out.println();
+			System.out.println("Layer 0 " + java.util.Arrays.deepToString(currentBatch));
+			for (int j = 1; j < layers.size() - 1; j++) {
+				System.out.println("Layer " + java.util.Arrays.deepToString(layers.get(j).layerValue));
+			}
+			System.out.println("Last Layer " + java.util.Arrays.deepToString(fullFinalLayer));
 
-		 //System.out.println("Targets: " +
-		 //java.util.Arrays.deepToString(targets.targets));
-		 //System.out.println();
-		// for (int i = 0; i < weightList.size(); i++) {
-		// System.out.println("weight " + i +
-		// java.util.Arrays.deepToString(weightList.get(i)));
-		// }
-		System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
+			System.out.println("Targets: " + java.util.Arrays.deepToString(targets.targets));
+			System.out.println();
+			for (int j = 0; j < weightList.size(); j++) {
+				System.out.println("weight " + j + java.util.Arrays.deepToString(weightList.get(j)));
+			}
+			System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
 		}
 	}
 
@@ -264,11 +262,12 @@ public class NetworkTrainer {
 		return activatedValue;
 	}
 
-	List<double[][]> weightChanges; 
+	List<double[][]> weightChanges;
+
 	public void backPropagation() {
 		computeGradients(); // remove this line for averaging
 		weightChanges = optimizer.optimize(gradients, optimizerString);
-		updateParameters(); 
+		updateParameters();
 		cleanGradients();
 	}
 
@@ -396,7 +395,7 @@ public class NetworkTrainer {
 		}
 	}
 
-	private double[][] matrixMultiplication(double[][] A, double[][] B) {
+	double[][] matrixMultiplication(double[][] A, double[][] B) {
 		int aRows = A.length;
 		int aColumns = A[0].length;
 		int bRows = B.length;

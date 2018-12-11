@@ -20,7 +20,7 @@ public class FileReader {
 		return ListToArray(dimension1, dimension2); 
 	}
 	
-	public void initializeFileReader() {
+	public void initializeFileReader() { 
 		try {
 			File file = new File(fileName);
 			scan = new Scanner(file); 

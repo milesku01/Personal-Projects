@@ -11,7 +11,7 @@ public class Layer { // superclass
 	public Layer(int layerSize) {
 		this.layerSize = layerSize; 
 	}
-	
+
 	public double[][] getLayerValue() {
 		return layerValue;
 	}
@@ -39,7 +39,7 @@ class InputLayer extends Layer {
 		fileReader = new FileReader(fileName);
 		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
-		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
+		//inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
 		
 		targets.determineTargets(inputLayer.layerValue, numofInput); 
 		inputLayer.setLayerValue(extractInputs(inputLayer.layerValue));

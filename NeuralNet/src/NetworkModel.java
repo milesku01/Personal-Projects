@@ -12,6 +12,7 @@ public class NetworkModel {
 		this.numofEpochs = numofEpochs;
 	}
 	
+	
 	public void buildInputLayer(String filePath, int numofSets, int numofInputs) {
 		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, filePath); // no activation
 		inputLayer.initializeLayer(inputLayer, targets);
