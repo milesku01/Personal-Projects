@@ -61,8 +61,10 @@ public class ModelSaver {
 		
 		while(Files.exists(path)) {
 			path = Paths.get(filePath + "\\"  + fileName + ".txt");
-			System.out.println("A file with that name already exists, please choose another");
-			fileName = scan.nextLine(); 
+			if(Files.exists(path)) {
+				System.out.println("A file with that name already exists, please choose another");
+				fileName = scan.nextLine(); 
+			}
 		}
 
 	}

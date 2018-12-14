@@ -5,6 +5,7 @@ import java.util.List;
 public class Layer { // superclass
 	double[][] layerValue;
 	double[][] preActivatedValue; 
+	double[][] testData; 
 	int layerSize; 
 	String activation; 
 	
@@ -25,6 +26,7 @@ class InputLayer extends Layer {
 	int numofSets = 0; 
 	int numofInput = 0;
 	String fileName = "";
+	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\";
 	FileReader fileReader;
 	Normalizer normalizer = new Normalizer();
 	
@@ -36,14 +38,48 @@ class InputLayer extends Layer {
 	}
 	
 	public void initializeLayer(InputLayer inputLayer, Targets targets) { //add error handling
-		fileReader = new FileReader(fileName);
+		fileReader = new FileReader(strdFilePath + fileName + ".txt");
 		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
 		//inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
+		inputLayer.setLayerValue(normalizer.normalizeInputs(inputLayer.layerValue, targets.targetSize)); 
+		
+		trainTestSplit(inputLayer, targets.targetSize); 
+		initializeTestData(inputLayer, targets);
 		
 		targets.determineTargets(inputLayer.layerValue, numofInput); 
 		inputLayer.setLayerValue(extractInputs(inputLayer.layerValue));
-		inputLayer.setLayerValue(normalizer.normalizeInputs(inputLayer.layerValue)); 
+		
+	}
+	int trainingSize; 
+	
+	private void trainTestSplit(InputLayer inputLayer, int targetSize) {
+		double[][] trainingData; 
+		trainingSize = (int)(.7 * numofSets); 
+		int testingSize = numofSets-trainingSize; 
+		
+		if(numofSets > 140) { //roughly 70% of 140 is 100
+			trainingData = new double[trainingSize][numofInput + targetSize]; 
+			testData = new double[testingSize][numofInput + targetSize]; 
+			
+			for(int i=0; i<trainingSize; i++) {
+				for(int j=0; j<numofInput + targetSize; j++) {
+					trainingData[i][j] = inputLayer.layerValue[i][j];
+				}
+			}
+			for(int i=trainingSize; i<numofSets; i++) {
+				for(int j=0; j<numofInput + targetSize; j++) {
+					testData[i-trainingSize][j] = inputLayer.layerValue[i][j]; 
+				}
+			}
+			
+			inputLayer.layerValue = trainingData; 
+		}
+	}
+	
+	private void initializeTestData(InputLayer inputLayer, Targets target) {
+		target.determineTestTargets(inputLayer.testData, numofInput, trainingSize);
+		inputLayer.testData = extractInputs(inputLayer.testData); 
 	}
 	
 	private double[][] shuffleArray(double[][] inputLayer) {
@@ -65,7 +101,6 @@ class InputLayer extends Layer {
 		}
 		return inputLayer; 
 	}
-	
 	
 	public double[][] extractInputs(double[][] inputs) {
 		int targetSize = fileReader.determineTargetSize(numofSets, numofInput);

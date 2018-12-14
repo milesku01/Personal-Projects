@@ -1,4 +1,4 @@
-public class Normalizer {
+ public class Normalizer {
 
 	double[] meanArray;
 	double[] strdDev;
@@ -13,9 +13,9 @@ public class Normalizer {
 		return inputs;
 	}
 
-	public double[][] normalizeInputs(double[][] inputs) {
+	public double[][] normalizeInputs(double[][] inputs, int targetSize) {
 		calculateStrdDev(inputs);
-		for (int i = 0; i < inputs[0].length; i++) {
+		for (int i = 0; i < inputs[0].length - targetSize; i++) {
 			for (int j = 0; j < inputs.length; j++) {
 				inputs[j][i] = ((inputs[j][i] - meanArray[i]) / strdDev[i]);
 			}
