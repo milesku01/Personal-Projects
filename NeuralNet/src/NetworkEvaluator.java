@@ -23,7 +23,7 @@ public class NetworkEvaluator {
 	
 	public void predict(String model, double ...inputs) {
 		inputLayer = new double[1][inputs.length];
-
+	
 		acquireModelValues(model); 
 		
 		for(int i=0; i<inputs.length; i++) {
@@ -91,6 +91,7 @@ public class NetworkEvaluator {
 		fr = new FileReader(filePath + modelPath + ".txt");
 		fr.initializeFileReader(); //initializes scanner
 		fr.readFileIntoList();
+		
 		listOfValues = fr.valuesFromFile; 
 		numofLayers = (int)(double)listOfValues.get(0); 
 		
@@ -104,6 +105,7 @@ public class NetworkEvaluator {
 		
 		
 		activationStrings = new String[numofLayers-1];
+		
 		
 		for(int i=0; i < numofLayers; i++) {
 		   layerSizes[i] = (int)(double)listOfValues.get(0);  
@@ -141,8 +143,6 @@ public class NetworkEvaluator {
 				counter++; 
 			}
 		}
-		
-		
 	}
 	
 	public double[][] appendBiasColumn(double[][] layer) {

@@ -8,7 +8,7 @@ public class NetworkTrainer {
 	int batchSize = 0;
 	int numofEpochs = 0;
 	List<Layer> layers;
-	InputLayer inputLayer; 
+	InputLayer inputLayer;
 	Targets targets;
 	List<double[][]> weightList;
 	Activator activator = new Activator();
@@ -18,19 +18,19 @@ public class NetworkTrainer {
 	double[][] fullFinalLayer;
 	int numofBatches;
 	String optimizerString;
-	String[] activatorStrings; 
+	String[] activatorStrings;
 
 	public void train(NetworkModel model, Weights weights, String optimizerString) {
 		batchSize = model.batchSize;
 		numofEpochs = model.numofEpochs;
 		layers = model.layerList;
-		activatorStrings = new String[layers.size()-1];
-		inputLayer = (InputLayer)layers.get(0);
+		activatorStrings = new String[layers.size() - 1];
+		inputLayer = (InputLayer) layers.get(0);
 		weightList = weights.weightList;
 		targets = model.targets;
 		this.optimizerString = optimizerString;
 
-		getActivatorStrings(); 
+		getActivatorStrings();
 		numofBatches = calculateNumofBatches();
 		int iterations = numofBatches * numofEpochs;
 		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length];
@@ -39,7 +39,8 @@ public class NetworkTrainer {
 
 		for (int i = 1; i <= iterations + 1; i++) {
 			forwardPropagation();
-			if(i != iterations + 1) backPropagation();
+			if (i != iterations + 1)
+				backPropagation();
 			formatOutput(i);
 		}
 
@@ -47,13 +48,11 @@ public class NetworkTrainer {
 		System.out.println("Training time: " + getTrainingTime(startTime, endTime) + " sec");
 	}
 
-	
 	private void getActivatorStrings() {
-		for(int i=0; i<activatorStrings.length; i++) {
-			activatorStrings[i] = layers.get(i+1).activation; 
+		for (int i = 0; i < activatorStrings.length; i++) {
+			activatorStrings[i] = layers.get(i + 1).activation;
 		}
 	}
-
 
 	private String getTrainingTime(long startTime, long endTime) {
 		Double n = (double) (endTime - startTime) / (double) 1000000000;
@@ -79,8 +78,7 @@ public class NetworkTrainer {
 			layers.get(i + 1).setLayerValue(activate(layers.get(i + 1)));
 		}
 		determineTargetForError();
-		determineAccuracy(); 
-		
+
 	}
 
 	int targetPositionCounter = 0;
@@ -105,11 +103,11 @@ public class NetworkTrainer {
 
 	double[][] finalTestLayer;
 	double[][] layerValue;
-	
+
 	private void determineAccuracy() {
 		finalTestLayer = forwardPropTest(inputLayer.testData, weightList, activatorStrings);
-		System.out.println("Accuracy " + computeAccuracy()); 
-		
+		System.out.println("Accuracy " + computeAccuracy());
+
 	}
 
 	public double[][] forwardPropTest(double[][] inputLayer, List<double[][]> weights, String[] activators) {
@@ -117,24 +115,21 @@ public class NetworkTrainer {
 		for (int i = 1; i < weights.size(); i++) {
 			layerValue = appendBiasColumn(layerValue);
 			layerValue = matrixMultiplication(layerValue, weightList.get(i));
-			layer.layerValue = layerValue; 
+			layer.layerValue = layerValue;
 			layer.activation = activators[i];
 			layerValue = activate(layer);
 		}
 		return layerValue;
 	}
-	
+
 	public void propagateInputTest(double[][] inputLayer, double[][] weights, String activation) {
 		layerValue = appendBiasColumn(inputLayer);
-		layerValue =  matrixMultiplication(layerValue, weights);
-		layer.layerValue = layerValue; 
+		layerValue = matrixMultiplication(layerValue, weights);
+		layer.layerValue = layerValue;
 		layer.activation = activation;
 		layerValue = activate(layer);
 	}
-	
-	
-	
-	
+
 	public void propagateInputLayer() {
 		double[][] preActivatedValue;
 		appendBiasColumn(layers.get(0));
@@ -148,44 +143,47 @@ public class NetworkTrainer {
 	public void formatOutput(int i) {
 		if (i % numofBatches == 0) {
 			System.out.println();
-		/*
-			System.out.println("Layer 0 " + java.util.Arrays.deepToString(currentBatch));
-			for (int j = 1; j < layers.size() - 1; j++) {
-				System.out.println("Layer " + java.util.Arrays.deepToString(layers.get(j).layerValue));
-			}
-			System.out.println("Last Layer " + java.util.Arrays.deepToString(fullFinalLayer));
 
-			System.out.println("Targets: " + java.util.Arrays.deepToString(targets.targets));
-			System.out.println();
-			for (int j = 0; j < weightList.size(); j++) {
-				System.out.println("weight " + j + java.util.Arrays.deepToString(weightList.get(j)));
+			if (layers.get(0).layerSize > 140) {
+				determineAccuracy();
 			}
-		*/	
+			/*
+			 * System.out.println("Layer 0 " + java.util.Arrays.deepToString(currentBatch));
+			 * for (int j = 1; j < layers.size() - 1; j++) { System.out.println("Layer " +
+			 * java.util.Arrays.deepToString(layers.get(j).layerValue)); }
+			 * System.out.println("Last Layer " +
+			 * java.util.Arrays.deepToString(fullFinalLayer));
+			 * 
+			 * System.out.println("Targets: " +
+			 * java.util.Arrays.deepToString(targets.targets)); System.out.println(); for
+			 * (int j = 0; j < weightList.size(); j++) { System.out.println("weight " + j +
+			 * java.util.Arrays.deepToString(weightList.get(j))); }
+			 */
 			System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
 		}
 	}
-	
+
 	private double computeAccuracy() {
-		double loss = 0; 
+		double loss = 0;
 		double[][] result = copyArray(finalTestLayer);
 		double[][] target = copyArray(targets.testTargets);
-		String lastAct = activatorStrings[activatorStrings.length-1]; 
-		
-		if(lastAct.equals("SOFTMAX")) {
-			
+		String lastAct = activatorStrings[activatorStrings.length - 1];
+
+		if (lastAct.equals("SOFTMAX")) {
+
 		} else {
 			for (int i = 0; i < result.length; i++) {
 				loss += Math.pow((target[i][0] - result[i][0]), 2);
 			}
 			loss *= ((1 / (double) result.length) * (1.0 / 2.0));
 		}
-		
-		if(lastAct.equals("SOFTMAX")) {
+
+		if (lastAct.equals("SOFTMAX")) {
 			return loss; // must change
 		} else {
 			return loss;
 		}
-		
+
 	}
 
 	public double reportLoss(Layer finalLayer) {
@@ -347,9 +345,10 @@ public class NetworkTrainer {
 	double[][] previousPartialGradient;
 	List<double[][]> gradients = new ArrayList<double[][]>();
 	double regularize = .001;
+	
 
 	private void computeGradients() {
-		double[][] gradient;
+		double[][] gradient = null;
 
 		previousPartialGradient = computePartialGradientLastLayer(layers.get(layers.size() - 1));
 		gradient = matrixMultiplication(matrixTranspose(layers.get(layers.size() - 2).layerValue),
@@ -425,6 +424,7 @@ public class NetworkTrainer {
 		return result;
 	}
 
+
 	private double[][] computePartialGradientLastLayer(Layer finalLayer) {
 		double[][] partialGradient;
 		if (finalLayer.activation.equals("SOFTMAX")) {
@@ -499,7 +499,7 @@ public class NetworkTrainer {
 		}
 		return copy;
 	}
-	
+
 	public double[][] appendBiasColumn(double[][] layer) {
 		double[][] inputsWithBiases = new double[layer.length][layer[0].length + 1];
 
@@ -511,9 +511,8 @@ public class NetworkTrainer {
 		for (int i = 0; i < layer.length; i++) {
 			inputsWithBiases[i][layer[0].length] = 1;
 		}
-		return inputsWithBiases; 
+		return inputsWithBiases;
 	}
-	
 
 	private double[][] elementwiseMultiplication(double[][] m, double[][] n) {
 		double[][] result = new double[m.length][m[0].length];
