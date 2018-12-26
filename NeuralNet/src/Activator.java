@@ -3,7 +3,6 @@ public class Activator {
 	Activator activationObject; 
 	
 	public void createActivationObject(String activation) {
-
 		if(activation.equals("RELU")) {
 			activationObject = new Relu();
 		} else if (activation.equals("ELU")){

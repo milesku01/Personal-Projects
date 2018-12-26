@@ -11,7 +11,7 @@ public class NetworkEvaluator {
 	List<double[][]> layerList = new ArrayList<double[][]>();
 	String filePath = System.getProperty("user.home") + "\\Desktop\\Models\\";
 	String testFilePath =  System.getProperty("user.home") + "\\Desktop\\";
-	Layer layer = new Layer(0);
+	Layer layer = new Layer();
 	int numofLayers; 
 	int[] layerSizes;  
 	double[] mean; 

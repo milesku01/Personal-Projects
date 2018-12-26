@@ -7,25 +7,28 @@ import java.util.List;
 public class NetworkTrainer {
 	int batchSize = 0;
 	int numofEpochs = 0;
+	int remainingBatchSize;
 	List<Layer> layers;
+	
 	InputLayer inputLayer;
 	Targets targets;
 	List<double[][]> weightList;
 	Activator activator = new Activator();
 	Optimizer optimizer = new Optimizer();
-	Layer layer = new Layer(0);
+	ForwardPropagator fp = new ForwardPropagator(); 
+	Layer layer = new Layer();
 	double[][] currentBatch;
 	double[][] fullFinalLayer;
 	int numofBatches;
 	String optimizerString;
 	String[] activatorStrings;
 
-	public void train(NetworkModel model, Weights weights, String optimizerString) {
-		batchSize = model.batchSize;
-		numofEpochs = model.numofEpochs;
+	public void train(NetworkModel model, Weights weights, int numofEpochs, String optimizerString) {
+		this.numofEpochs = numofEpochs;
 		layers = model.layerList;
 		activatorStrings = new String[layers.size() - 1];
 		inputLayer = (InputLayer) layers.get(0);
+		batchSize = inputLayer.batchSize;
 		weightList = weights.weightList;
 		targets = model.targets;
 		this.optimizerString = optimizerString;
@@ -34,13 +37,16 @@ public class NetworkTrainer {
 		numofBatches = calculateNumofBatches();
 		int iterations = numofBatches * numofEpochs;
 		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length];
+		
+		fp.constructForwardPropagationObjects(layers, weightList);
 
 		long startTime = System.nanoTime();
 
 		for (int i = 1; i <= iterations + 1; i++) {
 			forwardPropagation();
+			if(i == 1) remainingBatchSize = fp.remainingBatchSize;  //clean (verb)
 			if (i != iterations + 1)
-				backPropagation();
+			backPropagation();
 			formatOutput(i);
 		}
 
@@ -68,15 +74,11 @@ public class NetworkTrainer {
 	}
 
 	public void forwardPropagation() {
-		double[][] preActivatedValue;
-		propagateInputLayer();
-		for (int i = 1; i < layers.size() - 1; i++) {
-			appendBiasColumn(layers.get(i));
-			preActivatedValue = matrixMultiplication(layers.get(i).layerValue, weightList.get(i));
-			layers.get(i + 1).setLayerValue(preActivatedValue);
-			layers.get(i + 1).preActivatedValue = preActivatedValue;
-			layers.get(i + 1).setLayerValue(activate(layers.get(i + 1)));
+		
+		for(int i = 0; i < layers.size() - 1; i++) {
+			layers.get(i + 1).layerValue = fp.propagate(layers.get(i), layers.get(i + 1)); //nextLayer, previousLayer
 		}
+		
 		determineTargetForError();
 
 	}
@@ -99,52 +101,33 @@ public class NetworkTrainer {
 			}
 			targetPositionCounter = 0;
 		}
+	
 	}
 
 	double[][] finalTestLayer;
 	double[][] layerValue;
 
 	private void determineAccuracy() {
-		finalTestLayer = forwardPropTest(inputLayer.testData, weightList, activatorStrings);
+		finalTestLayer = forwardPropTest();
 		System.out.println("Accuracy " + computeAccuracy());
 
 	}
 
-	public double[][] forwardPropTest(double[][] inputLayer, List<double[][]> weights, String[] activators) {
-		propagateInputTest(inputLayer, weights.get(0), activators[0]);
-		for (int i = 1; i < weights.size(); i++) {
-			layerValue = appendBiasColumn(layerValue);
-			layerValue = matrixMultiplication(layerValue, weightList.get(i));
-			layer.layerValue = layerValue;
-			layer.activation = activators[i];
-			layerValue = activate(layer);
+	public double[][] forwardPropTest() {
+		for(int i = 0; i < layers.size() - 1; i++) {
+			layers.get(i + 1).layerValue = fp.propagateTest(layers.get(i), layers.get(i + 1)); //nextLayer, previousLayer
 		}
-		return layerValue;
+	
+		return layers.get(layers.size()-1).layerValue;
 	}
 
-	public void propagateInputTest(double[][] inputLayer, double[][] weights, String activation) {
-		layerValue = appendBiasColumn(inputLayer);
-		layerValue = matrixMultiplication(layerValue, weights);
-		layer.layerValue = layerValue;
-		layer.activation = activation;
-		layerValue = activate(layer);
-	}
-
-	public void propagateInputLayer() {
-		double[][] preActivatedValue;
-		appendBiasColumn(layers.get(0));
-		currentBatch = getBatch(layers.get(0));
-		preActivatedValue = matrixMultiplication(currentBatch, weightList.get(0));
-		layers.get(1).setLayerValue(preActivatedValue);
-		layers.get(1).preActivatedValue = preActivatedValue;
-		layers.get(1).setLayerValue(activate(layers.get(1)));
-	}
+	
 
 	public void formatOutput(int i) {
 		if (i % numofBatches == 0) {
 			System.out.println();
 
-			if (layers.get(0).layerSize > 140) {
+			if (inputLayer.numofSets > 140) {
 				determineAccuracy();
 			}
 			/*
@@ -172,6 +155,7 @@ public class NetworkTrainer {
 		if (lastAct.equals("SOFTMAX")) {
 
 		} else {
+
 			for (int i = 0; i < result.length; i++) {
 				loss += Math.pow((target[i][0] - result[i][0]), 2);
 			}
@@ -223,65 +207,6 @@ public class NetworkTrainer {
 		return weightSquaredSum;
 	}
 
-	public void appendBiasColumn(Layer layer) {
-		double[][] layerValue = copyArray(layer.layerValue);
-		double[][] inputsWithBiases = new double[layerValue.length][layerValue[0].length + 1];
-
-		for (int i = 0; i < layerValue.length; i++) {
-			for (int j = 0; j < layerValue[0].length; j++) {
-				inputsWithBiases[i][j] = layerValue[i][j];
-			}
-		}
-		for (int i = 0; i < layerValue.length; i++) {
-			inputsWithBiases[i][layerValue[0].length] = 1;
-		}
-
-		layer.setLayerValue(inputsWithBiases);
-	}
-
-	int batchTracker = 0;
-	int batchCounter = 0;
-	int remainingBatchSize = 0;
-
-	public double[][] getBatch(Layer layer) {
-		double[][] batch;
-		remainingBatchSize = (layer.layerValue.length % batchSize);
-
-		if (remainingBatchSize == 0) {
-			remainingBatchSize = batchSize;
-		}
-
-		if (!hasReachedEndofBatch()) {
-			batch = new double[batchSize][layer.layerSize + 1];
-			for (int i = 0; i < batchSize; i++) {
-				for (int j = 0; j < layer.layerSize + 1; j++) { // added one for the bias column
-					batch[i][j] = layer.layerValue[batchTracker][j];
-				}
-				batchTracker++;
-			}
-			batchCounter++;
-
-		} else {
-			batch = new double[remainingBatchSize][layer.layerSize + 1];
-			for (int i = 0; i < remainingBatchSize; i++) {
-				for (int j = 0; j < layer.layerSize + 1; j++) {
-					batch[i][j] = layer.layerValue[batchTracker][j];
-				}
-				batchTracker++;
-			}
-			batchTracker = 0;
-			batchCounter = 0;
-		}
-		return batch;
-	}
-
-	public boolean hasReachedEndofBatch() {
-		if (calculateNumofBatches() - 1 == batchCounter) {
-			return true;
-		} else {
-			return false;
-		}
-	}
 
 	public boolean hasReachedEndofBatchTarget() {
 		if (calculateNumofBatches() - 1 == batchCounterTarget) {
@@ -336,10 +261,15 @@ public class NetworkTrainer {
 	List<double[][]> weightChanges;
 
 	public void backPropagation() {
+		updateCurrentBatch(); 
 		computeGradients(); // remove this line for averaging
 		weightChanges = optimizer.optimize(gradients, optimizerString);
 		updateParameters();
 		cleanGradients();
+	}
+	
+	private void updateCurrentBatch() {
+		currentBatch = layers.get(0).currentBatch;
 	}
 
 	double[][] previousPartialGradient;
@@ -380,7 +310,7 @@ public class NetworkTrainer {
 					}
 				}
 			}
-
+	
 			for (int j = 0; j < gradient.length; j++) {
 				for (int k = 0; k < gradient[0].length; k++) {
 					gradient[j][k] = gradient[j][k] + regularize * weightList.get(i - 1)[j][k];
@@ -468,7 +398,7 @@ public class NetworkTrainer {
 		}
 	}
 
-	double[][] matrixMultiplication(double[][] A, double[][] B) {
+	 double[][] matrixMultiplication(double[][] A, double[][] B) {
 		int aRows = A.length;
 		int aColumns = A[0].length;
 		int bRows = B.length;

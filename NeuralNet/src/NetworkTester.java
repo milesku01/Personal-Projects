@@ -1,6 +1,6 @@
 
 public class NetworkTester {
-	static NetworkModel model = new NetworkModel(4, 5);
+	static NetworkModel model = new NetworkModel();
 	static Weights weights = new Weights(); 
 	static NetworkEvaluator modelEvaluator = new NetworkEvaluator();
 	static NetworkTrainer trainer = new NetworkTrainer(); 
@@ -8,15 +8,15 @@ public class NetworkTester {
 	
 	public static void main(String[] args) {
 
-		
-		model.buildInputLayer("Inputs", 4, 2);
-		model.buildHiddenLayer(2, "RELU");
-		model.buildOutputLayer(1, "LINEAR"); 
+		model.buildInputLayer("Inputs", 4, 2, 2);
+		model.buildHiddenLayer(100, "RELU");
+		model.buildHiddenLayer(100, "RELU");
+		model.buildOutputLayer(2, "SOFTMAX"); 
 		
 		weights.generateInitialWeights(model);
-		trainer.train(model, weights, "ADAM"); 
+		trainer.train(model, weights, 100, "ADAM"); 
 	
-		modelSaver.saveModel(model, weights); 
+	//	modelSaver.saveModel(model, weights); 
 		
 		
 		

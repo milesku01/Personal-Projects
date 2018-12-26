@@ -4,15 +4,13 @@ import java.util.List;
 
 public class Layer { // superclass
 	double[][] layerValue;
+	double[][] currentBatch;
 	double[][] preActivatedValue; 
 	double[][] testData; 
 	int layerSize; 
 	String activation; 
+	ForwardPropagator fp = new ForwardPropagator(); 
 	
-	public Layer(int layerSize) {
-		this.layerSize = layerSize; 
-	}
-
 	public double[][] getLayerValue() {
 		return layerValue;
 	}
@@ -25,15 +23,17 @@ public class Layer { // superclass
 class InputLayer extends Layer {
 	int numofSets = 0; 
 	int numofInput = 0;
+	int batchSize = 0;
 	String fileName = "";
 	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\";
 	FileReader fileReader;
 	Normalizer normalizer = new Normalizer();
 	
-	public InputLayer(int numofSets, int numofInput, String fileName) {
-		super(numofInput);
+	public InputLayer(int numofSets, int numofInput, int batchSize, String fileName) {
+		layerSize = numofInput;
 		this.numofSets = numofSets; 
 		this.numofInput = numofInput;
+		this.batchSize = batchSize; 
 		this.fileName = fileName; 
 	}
 	
@@ -41,7 +41,7 @@ class InputLayer extends Layer {
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
 		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
-		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
+		//inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
 		inputLayer.setLayerValue(normalizer.normalizeInputs(inputLayer.layerValue, targets.targetSize)); 
 		
 		if(numofSets > 140) {
@@ -50,6 +50,7 @@ class InputLayer extends Layer {
 		}
 		targets.determineTargets(inputLayer.layerValue, numofInput); 
 		inputLayer.setLayerValue(extractInputs(inputLayer.layerValue));
+		inputLayer.setLayerValue(fp.appendBiasColumn(inputLayer));
 		
 	}
 	int trainingSize; 
@@ -80,7 +81,7 @@ class InputLayer extends Layer {
 	
 	private void initializeTestData(InputLayer inputLayer, Targets target) {
 		target.determineTestTargets(inputLayer.testData, numofInput, trainingSize);
-		inputLayer.testData = extractInputs(inputLayer.testData); 
+		inputLayer.testData= extractInputs(inputLayer.testData); 
 	}
 	
 	private double[][] shuffleArray(double[][] inputLayer) {
@@ -120,7 +121,7 @@ class InputLayer extends Layer {
 class HiddenLayer extends Layer {
 	int numofNeuron = 0;
 	public HiddenLayer(int numofNeuron, String activation) {
-		super(numofNeuron);
+		layerSize = numofNeuron;
 		this.numofNeuron = numofNeuron;
 		this.activation = activation; 
 	}
@@ -130,8 +131,27 @@ class OutputLayer extends Layer {
 	int numofOutputNeuron = 0;
 	
 	public OutputLayer(int numofOutputNeuron, String activation) {
-		super(numofOutputNeuron);
+		layerSize = numofOutputNeuron;
 		this.numofOutputNeuron = numofOutputNeuron;
 		this.activation = activation; 
 	}
 }
+
+class ConvolutionalLayer extends Layer{
+	public ConvolutionalLayer() {
+		
+	}
+}
+
+class PoolingLayer extends Layer{
+	public PoolingLayer() {
+		
+	}
+}
+
+class TestLayer extends Layer {
+	
+}
+
+
+
