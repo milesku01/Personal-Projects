@@ -41,7 +41,7 @@ class InputLayer extends Layer {
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
 		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
-		//inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
+		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
 		inputLayer.setLayerValue(normalizer.normalizeInputs(inputLayer.layerValue, targets.targetSize)); 
 		
 		if(numofSets > 140) {

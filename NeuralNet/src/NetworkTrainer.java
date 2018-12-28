@@ -1,7 +1,6 @@
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class NetworkTrainer {
@@ -44,14 +43,14 @@ public class NetworkTrainer {
 
 		for (int i = 1; i <= iterations + 1; i++) {
 			forwardPropagation();
-			if(i == 1) remainingBatchSize = fp.remainingBatchSize;  //clean (verb)
+			if(i == 1) remainingBatchSize = ForwardPropagator.remainingBatchSize;  //clean (verb)
 			if (i != iterations + 1)
 			backPropagation();
 			formatOutput(i);
 		}
 
 		long endTime = System.nanoTime();
-		System.out.println("Training time: " + getTrainingTime(startTime, endTime) + " sec");
+		System.out.println(" \nTraining time: " + getTrainingTime(startTime, endTime) + " sec");
 	}
 
 	private void getActivatorStrings() {
@@ -109,8 +108,11 @@ public class NetworkTrainer {
 
 	private void determineAccuracy() {
 		finalTestLayer = forwardPropTest();
-		System.out.println("Accuracy " + computeAccuracy());
-
+		if(activatorStrings[activatorStrings.length - 1].equals("SOFTMAX")) {
+			System.out.println("Accuracy " + computeAccuracy());
+		} else {
+			System.out.println("Loss over test set " + computeAccuracy()); 
+		}
 	}
 
 	public double[][] forwardPropTest() {
@@ -130,32 +132,37 @@ public class NetworkTrainer {
 			if (inputLayer.numofSets > 140) {
 				determineAccuracy();
 			}
-			/*
-			 * System.out.println("Layer 0 " + java.util.Arrays.deepToString(currentBatch));
-			 * for (int j = 1; j < layers.size() - 1; j++) { System.out.println("Layer " +
-			 * java.util.Arrays.deepToString(layers.get(j).layerValue)); }
-			 * System.out.println("Last Layer " +
-			 * java.util.Arrays.deepToString(fullFinalLayer));
-			 * 
-			 * System.out.println("Targets: " +
-			 * java.util.Arrays.deepToString(targets.targets)); System.out.println(); for
-			 * (int j = 0; j < weightList.size(); j++) { System.out.println("weight " + j +
-			 * java.util.Arrays.deepToString(weightList.get(j))); }
-			 */
+			
+			//  System.out.println("Layer 0 " + java.util.Arrays.deepToString(currentBatch));
+			//  for (int j = 1; j < layers.size() - 1; j++) { System.out.println("Layer " +
+			//  java.util.Arrays.deepToString(layers.get(j).layerValue)); }
+			//  System.out.println("Last Layer " +
+			//  java.util.Arrays.deepToString(fullFinalLayer));
+			  
+			//  System.out.println("Targets: " +
+			//  java.util.Arrays.deepToString(targets.targets)); System.out.println(); for
+			//  (int j = 0; j < weightList.size(); j++) { System.out.println("weight " + j +
+			//  java.util.Arrays.deepToString(weightList.get(j))); }
+			 
 			System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
 		}
 	}
 
 	private double computeAccuracy() {
+		int correct = 0; 
 		double loss = 0;
 		double[][] result = copyArray(finalTestLayer);
 		double[][] target = copyArray(targets.testTargets);
 		String lastAct = activatorStrings[activatorStrings.length - 1];
 
 		if (lastAct.equals("SOFTMAX")) {
-
+			for(int i=0; i<result.length; i++) {
+				if(Math.abs(target[i][0] - result[i][0]) < .5) {
+					correct++; 
+				}
+			}
 		} else {
-
+			
 			for (int i = 0; i < result.length; i++) {
 				loss += Math.pow((target[i][0] - result[i][0]), 2);
 			}
@@ -163,7 +170,7 @@ public class NetworkTrainer {
 		}
 
 		if (lastAct.equals("SOFTMAX")) {
-			return loss; // must change
+			return (double)(correct/(double)result.length); // must change
 		} else {
 			return loss;
 		}
@@ -274,15 +281,22 @@ public class NetworkTrainer {
 
 	double[][] previousPartialGradient;
 	List<double[][]> gradients = new ArrayList<double[][]>();
-	double regularize = .001;
+	double regularize = .01;
 	
 
 	private void computeGradients() {
 		double[][] gradient = null;
 
 		previousPartialGradient = computePartialGradientLastLayer(layers.get(layers.size() - 1));
-		gradient = matrixMultiplication(matrixTranspose(layers.get(layers.size() - 2).layerValue),
-				previousPartialGradient);
+		
+		if (layers.size() > 2) { //must add layer size handling, must have input and output layer (at least two layers)
+			gradient = matrixMultiplication(matrixTranspose(layers.get(layers.size() - 2).layerValue),
+					previousPartialGradient);
+		} else {
+			gradient = matrixMultiplication(matrixTranspose(layers.get(layers.size() - 2).currentBatch),
+					previousPartialGradient);
+		} 
+	
 
 		for (int i = 0; i < gradient.length; i++) {
 			for (int j = 0; j < gradient[0].length; j++) {

@@ -42,7 +42,6 @@ public class Weights {
 				weightArray[i][j] = r.nextGaussian() * Math.sqrt(2.0/(double)(previousLayer.layerSize)); 
 			}
 		}
-		System.out.println(java.util.Arrays.deepToString(weightArray));
 		return addWeightBiases(weightArray); 
 	}
 	
