@@ -87,6 +87,7 @@ public class ForwardPropagator {
 		this.layerList = layerList; 		
 		inputLayer = (InputLayer) layerList.get(0); 
 		batchSize = inputLayer.batchSize; 
+		remainingBatchSize = inputLayer.remainingBatchSize;
 		this.weightList = weightList; 
 	}
 	public double[][] appendBiasColumn(Layer layer) {
@@ -130,7 +131,7 @@ class InputLayerPropagator extends ForwardPropagator {
 		currentBatch = getBatch(layer); 
 		layer.currentBatch = currentBatch; 
 		layerValue = nt.matrixMultiplication(currentBatch, weightList.get(0));
-		nextLayer.preActivatedValue = layerValue;  
+		nextLayer.preActivatedValue = layerValue;
 		nextLayer.layerValue = layerValue; //it's here for a reason
 		nextLayer.layerValue = activate(nextLayer);
 		return nextLayer.layerValue; 
@@ -141,7 +142,6 @@ class InputLayerPropagator extends ForwardPropagator {
 
 	public double[][] getBatch(Layer layer) {
 		double[][] batch;
-		remainingBatchSize = (layer.layerValue.length % batchSize);
 
 		if (remainingBatchSize == 0) {
 			remainingBatchSize = batchSize;
@@ -172,17 +172,13 @@ class InputLayerPropagator extends ForwardPropagator {
 	}
 
 	public boolean hasReachedEndofBatch() {
-		if (calculateNumofBatches() - 1 == batchCounter) {
+		if (nt.numofBatches - 1 == batchCounter) {
 			return true;
 		} else {
 			return false;
 		}
 	}
 	
-	private int calculateNumofBatches() {
-		double rawBatchNum = Math.ceil((double) inputLayer.layerValue.length / (double) batchSize);
-		return (int) rawBatchNum;
-	}
 	
 }
 

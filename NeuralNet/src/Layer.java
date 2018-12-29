@@ -24,6 +24,7 @@ class InputLayer extends Layer {
 	int numofSets = 0; 
 	int numofInput = 0;
 	int batchSize = 0;
+	int remainingBatchSize = 0; 
 	String fileName = "";
 	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\";
 	FileReader fileReader;
@@ -35,6 +36,7 @@ class InputLayer extends Layer {
 		this.numofInput = numofInput;
 		this.batchSize = batchSize; 
 		this.fileName = fileName; 
+		remainingBatchSize = (numofSets % batchSize);
 	}
 	
 	public void initializeLayer(InputLayer inputLayer, Targets targets) { //add error handling
@@ -58,6 +60,8 @@ class InputLayer extends Layer {
 	private void trainTestSplit(InputLayer inputLayer, int targetSize) {
 		double[][] trainingData; 
 		trainingSize = (int)(.7 * numofSets); 
+		remainingBatchSize = (trainingSize % batchSize);
+		
 		int testingSize = numofSets-trainingSize; 
 		
 		if(numofSets > 140) { //roughly 70% of 140 is 100

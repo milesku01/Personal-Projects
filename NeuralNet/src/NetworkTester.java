@@ -8,13 +8,13 @@ public class NetworkTester {
 		NetworkModel model = new NetworkModel();
 		Weights weights = new Weights(); 
 	
-		model.buildInputLayer("Inputs", 250, 200, 250);
-		model.buildHiddenLayer(50, "TANH");
+		model.buildInputLayer("Inputs", 1500, 100, 1500);
+		model.buildHiddenLayer(100, "TANH");
 		model.buildHiddenLayer(50, "TANH");
 		model.buildOutputLayer(2, "SOFTMAX"); 
 		
 		weights.generateInitialWeights(model);
-		trainer.train(model, weights, 100, "ADAM"); 
+		trainer.train(model, weights, 200, "ADAM"); 
 	
 		//modelSaver.saveModel(model, weights); 
 		
