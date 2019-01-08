@@ -17,7 +17,6 @@ public class NetworkTrainer {
 	ForwardPropagator fp = new ForwardPropagator(); 
 	BackPropagator bp = new BackPropagator(); 
 	Layer layer = new Layer();
-	double[][] currentBatch;
 	double[][] fullFinalLayer;
 	static int numofBatches;
 	String optimizerString;
@@ -41,7 +40,11 @@ public class NetworkTrainer {
 		
 		getActivatorStrings();
 		numofBatches = calculateNumofBatches();
+		
+		
 		int iterations = numofBatches * numofEpochs;
+		//int iterations = 1; 
+		
 		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length];
 		
 		fp.constructForwardPropagationObjects(layers, weightList);
@@ -138,18 +141,23 @@ public class NetworkTrainer {
 				determineAccuracy();
 			}
 			
-			/*
-			  System.out.println("Layer 0 " + java.util.Arrays.deepToString(layers.get(0).layerValue));
-			  for (int j = 1; j < layers.size() - 1; j++) { System.out.println("Layer " +
-			  java.util.Arrays.deepToString(layers.get(j).layerValue)); }
-			  System.out.println("Last Layer " +
-			  java.util.Arrays.deepToString(fullFinalLayer));
+			
+			 
+		//	System.out.println("Current batch " + java.util.Arrays.deepToString(layers.get(0).currentBatch));
+		//	 System.out.println("Layer 0 " + java.util.Arrays.deepToString(layers.get(0).layerValue));
+		//	  for (int j = 1; j < layers.size() - 1; j++) { System.out.println("Layer " +
+		//	  java.util.Arrays.deepToString(layers.get(j).layerValue)); }
+		//	  System.out.println("Last Layer " +
+		//	  java.util.Arrays.deepToString(fullFinalLayer));
 			  
-			  System.out.println("Targets: " +
-			  java.util.Arrays.deepToString(targets.targets)); System.out.println(); for
-			  (int j = 0; j < weightList.size(); j++) { System.out.println("weight " + j +
-			  java.util.Arrays.deepToString(weightList.get(j))); }
-		*/	 
+		//	  System.out.println("Targets: " +
+		//	  java.util.Arrays.deepToString(targets.targets));
+			  //System.out.println(); 
+		//	  for (int j = 0; j < weightList.size(); j++) { 
+		//		  System.out.println("weight " + j + java.util.Arrays.deepToString(weightList.get(j))); 
+		//	  }
+		 
+		 
 			System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
 		
 		}
@@ -192,6 +200,13 @@ public class NetworkTrainer {
 		if (finalLayer.activation.equals("SOFTMAX")) {
 			for (int i = 0; i < result.length; i++) {
 				for (int j = 0; j < result[0].length; j++) {
+						
+					if(result[i][j] == 0.0) {
+						result[i][j] += .000000001;
+					} else if(result[i][j] == 1.0){
+						result[i][j] -= .000000001;
+					}
+				
 					loss += ((target[i][j] * Math.log(result[i][j]))
 							+ ((1.0 - target[i][j]) * Math.log(1.0 - result[i][j])));
 				}

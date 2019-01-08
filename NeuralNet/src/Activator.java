@@ -142,7 +142,7 @@ class Relu extends Activator{
 		double[][] layerValue = copyArray(layer.layerValue);
 		for(int i=0; i < layerValue.length; i++) {
 			for(int j=0; j < layerValue[0].length; j++) {
-				if(layerValue[i][j] < 0) {
+				if(layerValue[i][j] <= 0) {
 					layerValue[i][j] = 0;
 				}
 			}
@@ -153,7 +153,7 @@ class Relu extends Activator{
 		double[][] layerValue = copyArray(layer.preActivatedValue);
 		for(int i=0; i < layerValue.length; i++) {
 			for(int j=0; j < layerValue[0].length; j++) {
-				if(layerValue[i][j] < 0) {
+				if(layerValue[i][j] <= 0) {
 					layerValue[i][j] = 0;
 				} else {
 					layerValue[i][j] = 1; 
@@ -227,13 +227,18 @@ class Linear extends Activator{
 	}
 }
 class Softmax extends Activator{
+	double[] max; 
+
 	public double[][] activate(Layer layer) {
 		double[][] layerValue = copyArray(layer.layerValue);
+		max = new double[layerValue.length];
+		max = getMax(layerValue); 
 		double[] sums = formatSums(layerValue); 
+		
 	
 		for(int i=0; i<layerValue.length; i++) {
 			for(int j=0; j<layerValue[0].length; j++) {
-				layerValue[i][j] = (Math.pow(Math.E, layerValue[i][j])) / sums[i]; 
+				layerValue[i][j] = (Math.pow(Math.E, (layerValue[i][j]-max[i]))) / sums[i]; 
 			}
 		}
 		return layerValue;
@@ -241,12 +246,27 @@ class Softmax extends Activator{
 	private double[] formatSums(double[][] layerValue){
 		double[] sums = new double[layerValue.length];
 		
-		for(int i=0; i < layerValue.length; i++) {
+		for(int i=0; i < layerValue.length; i++) { 
 			for(int j=0; j < layerValue[0].length; j++) {
-				sums[i] += Math.pow(Math.E, layerValue[i][j]);
+				sums[i] += Math.pow(Math.E, (layerValue[i][j]-max[i]));
 			}
+
 		}
 		return sums; 
+	}
+	
+	private double[] getMax(double[][] layerValue) {
+		double constant = 0; 
+		for(int i=0; i<layerValue.length; i++) {
+			constant = layerValue[i][0];
+			for(int j=1; j<layerValue[0].length; j++) {
+				if(layerValue[i][j] > constant) {
+					constant = layerValue[i][j];
+				}
+			}
+			max[i] = constant; 
+		}
+		return max; 
 	}
 	
 	public double[][] computeActivatedDerivative(Layer layer){

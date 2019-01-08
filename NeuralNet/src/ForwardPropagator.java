@@ -84,11 +84,11 @@ public class ForwardPropagator {
 	}
 	
 	private void setupConstants(List<Layer> layerList, List<double[][]> weightList) {
-		this.layerList = layerList; 		
+		ForwardPropagator.layerList = layerList; 		
 		inputLayer = (InputLayer) layerList.get(0); 
 		batchSize = inputLayer.batchSize; 
 		remainingBatchSize = inputLayer.remainingBatchSize;
-		this.weightList = weightList; 
+		ForwardPropagator.weightList = weightList; 
 	}
 	public double[][] appendBiasColumn(Layer layer) {
 		double[][] layerValue = copyArray(layer.layerValue);
@@ -188,7 +188,7 @@ class DensePropagator extends ForwardPropagator {
 		double[][] layerValue; 
 		layer.layerValue = appendBiasColumn(layer);
 		layerValue = nt.matrixMultiplication(layer.layerValue, weightList.get(layerCounter));
-		nextLayer.preActivatedValue = layerValue;
+		nextLayer.preActivatedValue = layerValue; 
 		nextLayer.layerValue = layerValue; 
 		nextLayer.layerValue = activate(nextLayer);
 		return nextLayer.layerValue;  
@@ -202,7 +202,7 @@ class TestPropagator extends ForwardPropagator {
 		double[][] testValue; 
 		if(counter == 0) layer.testData = appendBiasColumn(layer); counter++; 
 		testValue = nt.matrixMultiplication(layer.testData, weightList.get(0));  
-		nextLayer.layerValue = testValue; //it's here for a reason
+		nextLayer.layerValue = testValue; 
 		nextLayer.testData = activate(nextLayer);
 		return nextLayer.testData; 
 	}

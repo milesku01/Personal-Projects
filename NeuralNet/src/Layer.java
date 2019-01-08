@@ -10,14 +10,6 @@ public class Layer { // superclass
 	int layerSize; 
 	String activation; 
 	ForwardPropagator fp = new ForwardPropagator(); 
-	
-	public double[][] getLayerValue() {
-		return layerValue;
-	}
- 
-	public void setLayerValue(double[][] newValue) {
-		layerValue = newValue;
-	}
 }
 
 class InputLayer extends Layer {
@@ -41,18 +33,18 @@ class InputLayer extends Layer {
 	
 	public void initializeLayer(InputLayer inputLayer, Targets targets) { //add error handling
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
-		inputLayer.setLayerValue(fileReader.readInputIntoArray(numofSets, numofInput)); 
+		inputLayer.layerValue = (fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
 		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
-		inputLayer.setLayerValue(normalizer.normalizeInputs(inputLayer.layerValue, targets.targetSize)); 
+		inputLayer.layerValue = (normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize)); 
 		
 		if(numofSets > 140) {
 			trainTestSplit(inputLayer, targets.targetSize); 
 			initializeTestData(inputLayer, targets);
 		}
 		targets.determineTargets(inputLayer.layerValue, numofInput); 
-		inputLayer.setLayerValue(extractInputs(inputLayer.layerValue));
-		inputLayer.setLayerValue(fp.appendBiasColumn(inputLayer));
+		inputLayer.layerValue = (extractInputs(inputLayer.layerValue));
+		inputLayer.layerValue = (fp.appendBiasColumn(inputLayer));
 		
 	}
 	int trainingSize; 

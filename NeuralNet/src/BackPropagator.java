@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BackPropagator {
-	final double regularize = .001;
+	final double regularize = .01;
 	int objectTracker = 0; 
 	static int layerCounter; 
 	static int batchSize; 
@@ -56,12 +56,12 @@ public class BackPropagator {
 	}
 	
 	private void setupConstants(NetworkModel model, List<double[][]> weightList) {
-		this.layerList = model.layerList; 
+		BackPropagator.layerList = model.layerList; 
 		targets = model.targets;
 		inputLayer = (InputLayer) layerList.get(0); 
 		batchSize = inputLayer.batchSize; 
 		remainingBatchSize = inputLayer.remainingBatchSize;
-		this.weightList = weightList; 
+		BackPropagator.weightList = weightList; 
 		layerCounter = weightList.size(); 
 	}
 	
@@ -146,14 +146,25 @@ class OutputBackPropagator extends BackPropagator {
 	private double[][] computeDerivativeofError(double[][] targetBatch, Layer finalLayer) {
 		double[][] derivativeOfError = new double[targetBatch.length][targetBatch[0].length];
 		double[][] finalLayerValue = nt.copyArray(finalLayer.layerValue);
-
+		
 		if (finalLayer.activation.equals("SOFTMAX")) {
 			for (int i = 0; i < targetBatch.length; i++) {
 				for (int j = 0; j < targetBatch[0].length; j++) {
-					derivativeOfError[i][j] = -1 * (targetBatch[i][j] * (1 / (double) finalLayerValue[i][j]))
-							+ ((1.0 - targetBatch[i][j]) * (1.0 / (double) (1.0 - finalLayerValue[i][j])));
+				
+					
+					if(finalLayerValue[i][j] < 0.000000001) {
+						finalLayerValue[i][j] += .000000001;
+					}
+					if(finalLayerValue[i][j] > .999999999) {
+						finalLayerValue[i][j] -= .000000001;
+					}
+				
+				
+					derivativeOfError[i][j] = -1 * (targetBatch[i][j] * (1 / finalLayerValue[i][j]))
+							+ ((1.0 - targetBatch[i][j]) * (1.0 / (1.0 - finalLayerValue[i][j])));
 				}
-			}
+			} 
+			
 		} else {
 			for (int i = 0; i < targetBatch.length; i++) {
 				for (int j = 0; j < targetBatch[0].length; j++) {
