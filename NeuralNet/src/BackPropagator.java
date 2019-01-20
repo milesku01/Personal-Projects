@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BackPropagator {
-	final double regularize = .01;
+	final double regularize = .001;
 	int objectTracker = 0; 
 	static int layerCounter; 
 	static int batchSize; 
@@ -34,9 +34,9 @@ public class BackPropagator {
 		return gradient; 
 	}
 
-	public void constructBackwardPropagationObjects(NetworkModel model, List<double[][]> weightList) { //only occur once
+	public void constructBackwardPropagationObjects(NetworkModel model, Weights weights) { //only occur once
 		
-		setupConstants(model, weightList); 
+		setupConstants(model, weights); 
 		
 		for (int i = layerList.size() - 1; i >= 0; i--) { // minus one because returns last value
 			if (layerList.get(i) instanceof HiddenLayer) {
@@ -55,13 +55,13 @@ public class BackPropagator {
 		} 
 	}
 	
-	private void setupConstants(NetworkModel model, List<double[][]> weightList) {
+	private void setupConstants(NetworkModel model, Weights weights) {
 		BackPropagator.layerList = model.layerList; 
 		targets = model.targets;
 		inputLayer = (InputLayer) layerList.get(0); 
 		batchSize = inputLayer.batchSize; 
 		remainingBatchSize = inputLayer.remainingBatchSize;
-		BackPropagator.weightList = weightList; 
+		BackPropagator.weightList = weights.weightList; 
 		layerCounter = weightList.size(); 
 	}
 	

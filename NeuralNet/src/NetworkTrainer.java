@@ -10,6 +10,7 @@ public class NetworkTrainer {
 	List<Layer> layers;
 	
 	InputLayer inputLayer;
+	ConvolutionalLayer convLayer;
 	Targets targets;
 	List<double[][]> weightList;
 	Activator activator = new Activator();
@@ -25,21 +26,30 @@ public class NetworkTrainer {
 	public void train(NetworkModel model, Weights weights, int numofEpochs, String optimizerString) {
 		this.numofEpochs = numofEpochs;
 		layers = model.layerList;
+		
+
+		if(layers.get(0) instanceof InputLayer) {
+			inputLayer = (InputLayer) layers.get(0);
+			batchSize = inputLayer.batchSize;
+			numofBatches = calculateNumofBatches();
+			
+			if((layers.get(0).layerValue.length % batchSize) == 0) {
+				remainingBatchSize = batchSize; 
+			} else {
+				remainingBatchSize = (layers.get(0).layerValue.length % batchSize);
+			}
+			
+		} else if(layers.get(0) instanceof ConvolutionalLayer) {
+			convLayer = (ConvolutionalLayer) layers.get(0);
+		}
+		
 		activatorStrings = new String[layers.size() - 1];
-		inputLayer = (InputLayer) layers.get(0);
-		batchSize = inputLayer.batchSize;
 		weightList = weights.weightList;
 		targets = model.targets;
 		this.optimizerString = optimizerString;
-
-		if((layers.get(0).layerValue.length % batchSize) == 0) {
-			remainingBatchSize = batchSize; 
-		} else {
-			remainingBatchSize = (layers.get(0).layerValue.length % batchSize);
-		}
 		
 		getActivatorStrings();
-		numofBatches = calculateNumofBatches();
+		
 		
 		
 		int iterations = numofBatches * numofEpochs;
@@ -47,14 +57,19 @@ public class NetworkTrainer {
 		
 		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length];
 		
-		fp.constructForwardPropagationObjects(layers, weightList);
-		bp.constructBackwardPropagationObjects(model, weightList); 
+		fp.constructForwardPropagationObjects(layers, weights);
+	//	bp.constructBackwardPropagationObjects(model, weights); 
 
 		long startTime = System.nanoTime();
+		long startTime2;
+		long endTime2;
 
 		for (int i = 1; i <= iterations + 1; i++) {
+			startTime2 = System.nanoTime();
 			forwardPropagation();
-			if (i != iterations + 1)backPropagation();
+			endTime2 = System.nanoTime();
+			System.out.println("Forward " + getTrainingTime(startTime2, endTime2) + " sec");
+		//	if (i != iterations + 1)backPropagation();
 			formatOutput(i);
 		}
 
@@ -82,7 +97,6 @@ public class NetworkTrainer {
 	} 
 
 	public void forwardPropagation() {
-		
 		for(int i = 0; i < layers.size() - 1; i++) {
 			layers.get(i + 1).layerValue = fp.propagate(layers.get(i), layers.get(i + 1)); //nextLayer, previousLayer
 		}
@@ -134,34 +148,47 @@ public class NetworkTrainer {
 	
 
 	public void formatOutput(int i) {
-		if (i % numofBatches == 0) {
+	//	if (i % numofBatches == 0) {
 			System.out.println();
 
-			if (inputLayer.numofSets > 140) {
+			if (layers.get(0).globalNumofSets > 140) {
 				determineAccuracy();
 			}
 			
 			
 			 
 		//	System.out.println("Current batch " + java.util.Arrays.deepToString(layers.get(0).currentBatch));
-		//	 System.out.println("Layer 0 " + java.util.Arrays.deepToString(layers.get(0).layerValue));
-		//	  for (int j = 1; j < layers.size() - 1; j++) { System.out.println("Layer " +
-		//	  java.util.Arrays.deepToString(layers.get(j).layerValue)); }
-		//	  System.out.println("Last Layer " +
+			
+			 // for (int j = 0; j < layers.size()-1; j++) {
+				// System.out.println(layers.get(i).layerValue.length + " " + layers.get(i).layerValue[0].length);
+			  //}
+		//	System.out.println("Last Layer " +
 		//	  java.util.Arrays.deepToString(fullFinalLayer));
 			  
-		//	  System.out.println("Targets: " +
-		//	  java.util.Arrays.deepToString(targets.targets));
+			  System.out.println("Targets: " +
+			  java.util.Arrays.deepToString(targets.targets));
 			  //System.out.println(); 
 		//	  for (int j = 0; j < weightList.size(); j++) { 
 		//		  System.out.println("weight " + j + java.util.Arrays.deepToString(weightList.get(j))); 
 		//	  }
 		 
 		 
-			System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
+			//System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); // returns the final layerValue
 		
 		}
+//	}
+	
+	private void formatArray(double[][] layerValue) {
+		System.out.print("Layer ");
+		for(int i=0; i<5; i++) {
+			for(int j=0; j<5; j++) {
+				System.out.print(layerValue[i][j] + " ");
+			}
+		}
+		System.out.println();
 	}
+	
+	
 
 	private double computeAccuracy() {
 		int correct = 0; 

@@ -2,14 +2,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+
+
 public class Layer { // superclass
 	double[][] layerValue;
 	double[][] currentBatch;
 	double[][] preActivatedValue; 
 	double[][] testData; 
-	int layerSize; 
+	int layerSize;
+	static int globalNumofSets;
 	String activation; 
 	ForwardPropagator fp = new ForwardPropagator(); 
+	
 }
 
 class InputLayer extends Layer {
@@ -25,6 +29,7 @@ class InputLayer extends Layer {
 	public InputLayer(int numofSets, int numofInput, int batchSize, String fileName) {
 		layerSize = numofInput;
 		this.numofSets = numofSets; 
+		globalNumofSets = numofSets;
 		this.numofInput = numofInput;
 		this.batchSize = batchSize; 
 		this.fileName = fileName; 
@@ -47,6 +52,7 @@ class InputLayer extends Layer {
 		inputLayer.layerValue = (fp.appendBiasColumn(inputLayer));
 		
 	}
+	
 	int trainingSize; 
 	
 	private void trainTestSplit(InputLayer inputLayer, int targetSize) {
@@ -121,33 +127,132 @@ class HiddenLayer extends Layer {
 		this.numofNeuron = numofNeuron;
 		this.activation = activation; 
 	}
+	
 }
 
 class OutputLayer extends Layer {
 	int numofOutputNeuron = 0;
-	
+	String targetFile; 
+
 	public OutputLayer(int numofOutputNeuron, String activation) {
 		layerSize = numofOutputNeuron;
 		this.numofOutputNeuron = numofOutputNeuron;
 		this.activation = activation; 
 	}
-}
-
-class ConvolutionalLayer extends Layer{
-	public ConvolutionalLayer() {
-		
+	
+	public OutputLayer(int numofOutputNeuron, String activation, String targetFile) {
+		layerSize = numofOutputNeuron; 
+		this.numofOutputNeuron = numofOutputNeuron;
+		this.activation = activation;
+		this.targetFile = targetFile;
 	}
-}
-
-class PoolingLayer extends Layer{
-	public PoolingLayer() {
-		
+	
+	public void initializeTargets(Targets target) { //only called for covnet until cleaned
+		target.determineConvolutionalTargets(globalNumofSets, numofOutputNeuron, targetFile);
 	}
-}
-
-class TestLayer extends Layer {
 	
 }
+
+class ConvolutionalLayer extends Layer {
+	int filterSize; 
+	int numofFilters; 
+	int strideLength;
+	int numofSets; 
+	int imageHeight;
+	int imageWidth;
+	String padding; 
+	String folderName;
+	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\";
+	List<double[][][]> imageList =  null; 
+	List<double[][][]> trainingImages = null;
+	List<double[][][]> testingImages = null; 
+	FileReader fileReader;
+	
+	public ConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding) {
+		this.numofFilters = numofFilters;
+		this.filterSize = filterSize; 
+		this.strideLength = strideLength; 
+		this.padding = padding; 
+	}
+
+	public ConvolutionalLayer(int numofFilters, int filterSize,	int strideLength, String padding,
+			String folderName) { 
+		this.numofFilters = numofFilters;
+		this.folderName = folderName; 
+		this.filterSize = filterSize; 
+		this.strideLength = strideLength; 
+		this.padding = padding;	
+	}
+	
+	
+	public void initializeLayer(ConvolutionalLayer convLayer) { //add error handling
+		fileReader = new FileReader(strdFilePath + folderName);
+		convLayer.imageList = (fileReader.readImagesIntoList()); 
+		convLayer.imageHeight = convLayer.imageList.get(0)[0].length;
+		convLayer.imageWidth = convLayer.imageList.get(0)[0][0].length;
+		numofSets = convLayer.imageList.size();
+		globalNumofSets = numofSets; 
+		shuffleArray(convLayer); 
+		
+		if(imageList.size() > 140) {
+			trainTestSplit(convLayer); 
+			imageList.clear();
+		}
+		
+	}
+	
+	
+	
+	public void shuffleArray(ConvolutionalLayer conv) {
+		Collections.shuffle(conv.imageList);
+	}
+	
+	public void trainTestSplit(ConvolutionalLayer conv) {
+		int trainingSize = (int)(.7 * numofSets); 
+		int testingSize = numofSets-trainingSize;
+		int counter = 0;
+		
+		for(int i=0; i<trainingSize; i++) {
+			trainingImages.add(imageList.get(counter));
+			counter++;
+		} 
+		for(int i=0; i<testingSize; i++) {
+			testingImages.add(imageList.get(counter)); 
+		}
+	}
+	
+	
+}
+
+class PoolingLayer extends Layer {
+	int poolSize;
+	String poolType; 
+	public PoolingLayer(int poolSize, String poolType) {
+		this.poolSize = poolSize;
+		this.poolType = poolType;
+	}
+}
+
+
+class HiddenConvolutionalLayer extends Layer {
+	int filterSize; 
+	int numofFilters; 
+	int strideLength;
+	String padding; 
+	
+	public HiddenConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding) {
+		this.numofFilters = numofFilters;
+		this.filterSize = filterSize; 
+		this.strideLength = strideLength; 
+		this.padding = padding; 
+	}
+}
+
+class ReluLayer extends Layer {	}
+
+
+
+
 
 
 

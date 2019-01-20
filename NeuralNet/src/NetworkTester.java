@@ -8,20 +8,24 @@ public class NetworkTester {
 		Weights weights = new Weights(); 
 		NetworkTrainer trainer = new NetworkTrainer(); 
 	
-		model.buildInputLayer("LargeInputs", 10000, 500, 10000);
-		model.buildHiddenLayer(100, "RELU");
-		model.buildHiddenLayer(100, "TANH");
-		model.buildOutputLayer(2, "SOFTMAX"); 
+		model.buildConvolutionalLayer(1, 3, 1, "zero-padding", "Images");
+		model.buildReluLayer(); 
+		model.buildPoolingLayer(2, "MAX"); //String does nothing for now
+		
+		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
+		model.buildReluLayer(); 
+		model.buildPoolingLayer(2, "MAX");
+		
+		model.buildHiddenLayer("RELU");  //numofInput problem
+		model.buildOutputLayer(1, "LINEAR", "Targets"); 
 		
 		weights.generateInitialWeights(model);
-		trainer.train(model, weights, 11, "ADAM"); 
+		trainer.train(model, weights, 5, "ADAM"); 
 		
-	
-		//modelSaver.saveModel(model, weights); 
-	
+		//modelSaver.saveModel(model, weights);
 		
-		//modelEvaluator.predict("fileName", 2, 2); 
+		//modelEvaluator.predict("basketball", 15, 32.8, 117.9, 85.1, 12, 23.66, 114.8, 91.2); 
 		
-    	//modelEvaluator.predict("fileName", "testFile");
+    	//modelEvaluator.predict("save2", "testFile");
 	}
 }

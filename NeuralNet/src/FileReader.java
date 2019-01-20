@@ -19,6 +19,12 @@ public class FileReader {
 		return ListToArray(dimension1, dimension2); 
 	}
 	
+	public List<double[][][]> readImagesIntoList() {
+		ImageReader imageReader = new ImageReader(); 
+		return imageReader.readImageFile(fileName);
+	}
+
+	
 	public void initializeFileReader() { 
 		try {
 			File file = new File(fileName);
