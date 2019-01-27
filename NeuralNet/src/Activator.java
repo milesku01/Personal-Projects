@@ -96,14 +96,14 @@ class Sigmoid extends Activator{
 	}
 	private static double sigmoid(double x)
 	{
-	    return 1 / (1 + Math.exp(-x));
+	    return (1.0 / (double)(1.0 + Math.exp(-x)));
 	}
 	
 	public double[][] computeActivatedDerivative(Layer layer){
 		double[][] layerValue = copyArray(layer.preActivatedValue);
 		for(int i = 0; i < layerValue.length; i++) {
 			for (int j = 0; j < layerValue[0].length; j++) {
-				layerValue[i][j] = sigmoid(layerValue[i][j]) * (1-layerValue[i][j]);
+				layerValue[i][j] = sigmoid(layerValue[i][j]) * (1.0-sigmoid(layerValue[i][j]));
 			}
 		}
 		return layerValue; 

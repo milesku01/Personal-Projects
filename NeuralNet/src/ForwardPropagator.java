@@ -265,6 +265,7 @@ class ConvolutionalPropagator extends ForwardPropagator {
 		conv = (ConvolutionalLayer) layer;
 		getBatch(conv);
 		image = conv.currentImage;
+
 		filters = weights.filterList.get(0).threeDFilterArray;
 
 		int biasTerm = 1;

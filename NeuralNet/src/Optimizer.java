@@ -33,7 +33,7 @@ class Adam extends Optimizer {
 
 	double beta1 = .9;
 	double beta2 = .999;
-	double learningRate = .02;
+	double learningRate =.02;
 	final double offSet = .000000001;
 	int betaCounter = 1;
 

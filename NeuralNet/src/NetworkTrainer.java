@@ -72,7 +72,7 @@ public class NetworkTrainer {
 			System.out.println("Forward " + getTrainingTime(startTime2, endTime2) + " sec");
 			if (i != iterations + 1)
 				backPropagation();
-			formatOutput(i);
+			//formatOutput(i);
 		}
 
 		long endTime = System.nanoTime();
@@ -102,7 +102,7 @@ public class NetworkTrainer {
 		for (int i = 0; i < layers.size() - 1; i++) {
 			layers.get(i + 1).layerValue = fp.propagate(layers.get(i), layers.get(i + 1)); // nextLayer, previousLayer
 		}
-
+		System.out.println(java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
 	}
 
 	int targetPositionCounter = 0;
@@ -159,10 +159,10 @@ public class NetworkTrainer {
 		// System.out.println("Current batch " +
 		// java.util.Arrays.deepToString(layers.get(0).currentBatch));
 
-		// for (int j = 0; j < layers.size()-1; j++) {
-		// System.out.println(layers.get(i).layerValue.length + " " +
-		// layers.get(i).layerValue[0].length);
-		// }
+		 for (int j = 0; j < layers.size()-1; j++) {
+		 System.out.println(layers.get(i).layerValue.length + " " +
+		 layers.get(i).layerValue[0].length);
+		 }
 		 System.out.println("Last Layer " +
 		 java.util.Arrays.deepToString(fullFinalLayer));
 
@@ -294,6 +294,9 @@ public class NetworkTrainer {
 				}
 				weightListCounter++;
 			} else if (weightChanges.get(i) instanceof List) { // must change when adding other 2d filters
+				
+				//System.out.println("HERE"+ ((List<double[][][]>) weightChanges.get(0)).get(0)[0][0].length);
+				
 				for (int h = 0; h < ((List<double[][][]>) weightChanges.get(i)).size(); h++) {
 					for (int l = 0; l < ((List<double[][][]>) weightChanges.get(i)).get(h).length; l++) {
 						for (int j = 0; j < ((List<double[][][]>) weightChanges.get(i)).get(h)[0].length; j++) {

@@ -299,6 +299,7 @@ class OutputBackPropagator extends BackPropagator {
 			currentTargetBatch = batch;
 		}
 		System.out.println("Target Batch " + java.util.Arrays.deepToString(batch));
+		System.out.println();
 		return batch;
 	}
 
@@ -390,6 +391,7 @@ class ReluBackPropagator extends BackPropagator {
 	public Gradients computeGradients(Layer layer, Layer nextLayer) {
 		double[][] filter = nt.elementwiseMultiplication(gradients.runningTotal, computeDerivative(layer));
 		double[][][] image;
+		
 		ConvolutionalLayer conv = (ConvolutionalLayer) nextLayer;
 		int numofFilters = conv.numofFilters;
 
@@ -401,22 +403,23 @@ class ReluBackPropagator extends BackPropagator {
 
 		image = conv.currentImage;
 
-		int strideLength = conv.strideLength;
+		int strideLengthY = filter.length;
+		int strideLengthX = filter[0].length; 
 
 		List<double[][][]> outputList = new ArrayList<double[][][]>();
 
 		for (double[][] filter1 : filterList) { // loop through filters
-			double[][][] output = new double[image.length][(image[0].length - filter1.length)/strideLength + 1][(image[0][0].length - filter1[0].length)/strideLength + 1]; // TODO: add actual values
+			double[][][] output = new double[image.length][(image[0].length - filter1.length)/strideLengthY + 1][(image[0][0].length - filter1[0].length)/strideLengthX + 1]; // TODO: add actual values
 			for (int i = 0; i < image.length; i++) { // loop through rgb values
-				for (int j = 0; j < (image[0].length - filter1.length)/strideLength + 1; j += strideLength) {
-					for (int k = 0; k < (image[0][0].length - filter1[0].length)/strideLength + 1; k += strideLength) {
+				for (int j = 0; j < (image[0].length - filter1.length)/strideLengthY + 1; j += strideLengthY) {
+					for (int k = 0; k < (image[0][0].length - filter1[0].length)/strideLengthX + 1; k += strideLengthX) {
 						double total = 0;
 						for (int l = 0; l < filter1.length; l++) { // loop through filter
 							for (int m = 0; m < filter1[0].length; m++) { // loop through filter
 								total += filter1[l][m] * image[i][j + l][k + m];
 							}
 						}
-						output[i][j / strideLength][k / strideLength] = total;
+						output[i][j / strideLengthY][k / strideLengthX] = total;
 					}
 				}
 			}

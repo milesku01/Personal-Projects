@@ -8,23 +8,25 @@ public class NetworkTester {
 		Weights weights = new Weights(); 
 		NetworkTrainer trainer = new NetworkTrainer(); 
 	
-		/*
-		model.buildConvolutionalLayer(3, 3, 1, "zero-padding", "Images");
-		model.buildReluLayer(); 
-		model.buildPoolingLayer(2, "MAX"); //String does nothing for now
 		
-		model.buildHiddenLayer("RELU"); 
-		model.buildHiddenLayer(10, "RELU");
-		model.buildOutputLayer(4, "LINEAR", "Targets"); 
+		model.buildConvolutionalLayer(1, 13, 1, "zero-padding", "Images");
+		model.buildReluLayer(); 
+		//model.buildPoolingLayer(2, "MAX"); //String does nothing for now
+		//model.buildPoolingLayer(2, "MAX");
+		
+		model.buildHiddenLayer("TANH"); 
+		//model.buildHiddenLayer(10, "TANH");
+		model.buildOutputLayer(1, "SIGMOID", "Targets"); 
+		
+		
+		/*
+		model.buildInputLayer(2, 2, 1, "Inputs");
+		model.buildHiddenLayer(1, "TANH");
+		model.buildOutputLayer(1, "SIGMOID");
 		*/
 		
-		model.buildInputLayer(4, 2, 3, "Inputs");
-		model.buildHiddenLayer(10, "TANH");
-		model.buildHiddenLayer(10, "TANH");
-		model.buildOutputLayer(1, "LINEAR");
-		
 		weights.generateInitialWeights(model);
-		trainer.train(model, weights, 1000, "ADAM"); 
+		trainer.train(model, weights, 10000, "ADAM"); 
 		
 		//modelSaver.saveModel(model, weights);
 		
