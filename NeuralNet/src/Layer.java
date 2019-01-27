@@ -148,6 +148,7 @@ class OutputLayer extends Layer {
 	}
 	
 	public void initializeTargets(Targets target) { //only called for covnet until cleaned
+		target.targetSize = numofOutputNeuron;
 		target.determineConvolutionalTargets(globalNumofSets, numofOutputNeuron, targetFile);
 	}
 	
@@ -163,9 +164,10 @@ class ConvolutionalLayer extends Layer {
 	String padding; 
 	String folderName;
 	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\";
-	List<double[][][]> imageList =  null; 
-	List<double[][][]> trainingImages = null;
-	List<double[][][]> testingImages = null; 
+	double[][][] currentImage; 
+	List<double[][][]> imageList; 
+	List<double[][][]> trainingImages;
+	List<double[][][]> testingImages; 
 	FileReader fileReader;
 	
 	public ConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding) {
@@ -182,6 +184,7 @@ class ConvolutionalLayer extends Layer {
 		this.filterSize = filterSize; 
 		this.strideLength = strideLength; 
 		this.padding = padding;	
+		
 	}
 	
 	
@@ -197,6 +200,8 @@ class ConvolutionalLayer extends Layer {
 		if(imageList.size() > 140) {
 			trainTestSplit(convLayer); 
 			imageList.clear();
+		} else {
+			convLayer.trainingImages = imageList;
 		}
 		
 	}
@@ -213,11 +218,11 @@ class ConvolutionalLayer extends Layer {
 		int counter = 0;
 		
 		for(int i=0; i<trainingSize; i++) {
-			trainingImages.add(imageList.get(counter));
+			conv.trainingImages.add(imageList.get(counter));
 			counter++;
 		} 
 		for(int i=0; i<testingSize; i++) {
-			testingImages.add(imageList.get(counter)); 
+			conv.testingImages.add(imageList.get(counter)); 
 		}
 	}
 	
@@ -227,6 +232,7 @@ class ConvolutionalLayer extends Layer {
 class PoolingLayer extends Layer {
 	int poolSize;
 	String poolType; 
+	double[][] expandedLayer;
 	public PoolingLayer(int poolSize, String poolType) {
 		this.poolSize = poolSize;
 		this.poolType = poolType;
@@ -248,7 +254,11 @@ class HiddenConvolutionalLayer extends Layer {
 	}
 }
 
-class ReluLayer extends Layer {	}
+class ReluLayer extends Layer {	
+	public ReluLayer() {
+		activation = "RELU";
+	}
+}
 
 
 

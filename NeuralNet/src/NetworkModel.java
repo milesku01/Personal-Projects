@@ -5,7 +5,7 @@ public class NetworkModel {
 	public List<Layer> layerList = new ArrayList<Layer>();
 	public Targets targets = new Targets();
 
-	public void buildInputLayer(int batchSize, int numofSets, int numofInputs, String filePath) {
+	public void buildInputLayer(int numofSets, int numofInputs, int batchSize, String filePath) {
 		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, batchSize, filePath); // no activation
 		if (layerList.isEmpty())
 			inputLayer.initializeLayer(inputLayer, targets);
@@ -63,7 +63,7 @@ public class NetworkModel {
 		layerList.add(outputLayer);
 	}
 
-	public void buildConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding,String imageFile) {
+	public void buildConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding, String imageFile) {
 		ConvolutionalLayer convLayer = new ConvolutionalLayer(numofFilters, filterSize, strideLength, padding, imageFile);
 		convLayer.initializeLayer(convLayer);
 		layerList.add(convLayer);

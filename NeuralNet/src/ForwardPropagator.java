@@ -25,7 +25,6 @@ public class ForwardPropagator {
 
 		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer)
 				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
-			System.out.println("Called");
 			layerValue = flatten(layerValue);
 		}
 
@@ -211,17 +210,16 @@ class DensePropagator extends ForwardPropagator {
 
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		double[][] layerValue;
-		System.out.println(layer.layerValue.length + " here " + layer.layerValue[0].length);
+		//System.out.println(layer.preActivatedValue.length + " here " + layer.preActivatedValue[0].length);
 
 		layer.layerValue = appendBiasColumn(layer);
-		System.out.println(layerCounter);
 		layerValue = nt.matrixMultiplication(layer.layerValue, weightList.get(layerCounter));
 		layerCounter++;
 		nextLayer.preActivatedValue = layerValue;
 		nextLayer.layerValue = layerValue;
 		nextLayer.layerValue = activate(nextLayer);
 
-		System.out.println("OutputLayer " + java.util.Arrays.deepToString(nextLayer.layerValue));
+	//	System.out.println("OutputLayer " + java.util.Arrays.deepToString(nextLayer.layerValue));
 
 		return nextLayer.layerValue;
 	}
@@ -265,26 +263,17 @@ class ConvolutionalPropagator extends ForwardPropagator {
 
 	public double[][] propagate(Layer layer, Layer nextLayer) { // called for every convolutional layer
 		conv = (ConvolutionalLayer) layer;
-		image = getBatch(conv);
+		getBatch(conv);
+		image = conv.currentImage;
 		filters = weights.filterList.get(0).threeDFilterArray;
-
-		System.out.print("Filter ");
-		for (int k = 0; k < 1; k++) {
-			for (int i = 0; i < 1; i++) {
-				for (int j = 0; j < 1; j++) {
-					System.out.print(filters.get(0)[k][i][j] + " ");
-				}
-			}
-		}
-		System.out.println();
 
 		int biasTerm = 1;
 		int tracker = 0;
 		int colorChannels = image.length;
 		int filterSize = filters.get(0)[0].length;
 		int strideLength = conv.strideLength;
-		int numofXCycles = (image[0][0].length - filterSize) + 1;
-		int numofYCycles = (image[0].length - filterSize) + 1;
+		int numofXCycles = (image[0][0].length - filterSize)/strideLength + 1;
+		int numofYCycles = (image[0].length - filterSize)/strideLength + 1;
 		double convOutput = 0;
 
 		double[][] convOutputArraySum = new double[numofYCycles][numofXCycles];
@@ -314,31 +303,23 @@ class ConvolutionalPropagator extends ForwardPropagator {
 			tracker++;
 		}
 
+		nextLayer.preActivatedValue = convOutputArrayAugmented;
 		nextLayer.layerValue = convOutputArrayAugmented;
-
-		System.out.print("Layer 1 ");
-		for (int i = 0; i < 5; i++) {
-			for (int j = 0; j < 5; j++) {
-				System.out.print(convOutputArrayAugmented[i][j] + " ");
-			}
-		}
-		System.out.println();
 
 		return convOutputArrayAugmented;
 	}
 
 	int batchCounter = 0;
 
-	private double[][][] getBatch(ConvolutionalLayer conv) {
-		double[][][] image = conv.imageList.get(batchCounter);
+	private void getBatch(ConvolutionalLayer conv) {
+		conv.currentImage = conv.trainingImages.get(batchCounter);
 
-		if (!hasReachedEndofBatch(conv.imageList.size())) {
+		if (!hasReachedEndofBatch(conv.trainingImages.size())) {
 			batchCounter++;
 		} else {
 			batchCounter = 0;
 		}
 
-		return image;
 	}
 
 	private boolean hasReachedEndofBatch(int numofBatches) {
@@ -365,8 +346,8 @@ class HiddenConvolutionalPropagator extends ForwardPropagator {
 		int tracker = 0;
 		int filterSize = filters.get(0).length;
 		int strideLength = conv.strideLength;
-		int numofXCycles = (input[0].length - filterSize) + 1;
-		int numofYCycles = (input.length - filterSize) + 1;
+		int numofXCycles = (input[0].length - filterSize)/strideLength + 1;
+		int numofYCycles = (input.length - filterSize)/strideLength + 1;
 		double convOutput = 0;
 
 		double[][] convOutputArraySum = new double[numofYCycles][numofXCycles];
@@ -394,15 +375,7 @@ class HiddenConvolutionalPropagator extends ForwardPropagator {
 		}
 
 		nextLayer.layerValue = convOutputArrayAugmented;
-
-		System.out.print("Layer 1 ");
-		for (int i = 0; i < 5; i++) {
-			for (int j = 0; j < 5; j++) {
-				System.out.print(convOutputArrayAugmented[i][j] + " ");
-			}
-		}
-		System.out.println();
-
+		
 		return convOutputArrayAugmented;
 	}
 
@@ -431,6 +404,8 @@ class HiddenConvolutionalPropagator extends ForwardPropagator {
 class PoolingPropagator extends ForwardPropagator {
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		PoolingLayer pool = (PoolingLayer) layer;
+	
+		layer.preActivatedValue = pool.layerValue;
 
 		int strideLength = pool.poolSize;
 		int numofXCycles = pool.layerValue[0].length / strideLength;
@@ -438,10 +413,10 @@ class PoolingPropagator extends ForwardPropagator {
 
 		double[][] input = pool.layerValue;
 
-		System.out.println(input.length + " poolpre " + input[0].length);
-
 		double[][] poolArray = new double[pool.poolSize][pool.poolSize];
 		double[][] maxPoolOutput = new double[numofYCycles][numofXCycles];
+		
+		pool.expandedLayer = fullExpandedMaxArray(pool);
 
 		for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
 			for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
@@ -454,9 +429,8 @@ class PoolingPropagator extends ForwardPropagator {
 			}
 		}
 
+		nextLayer.preActivatedValue = maxPoolOutput;
 		nextLayer.layerValue = maxPoolOutput;
-
-		System.out.println(maxPoolOutput.length + " pool " + maxPoolOutput[0].length);
 
 		return maxPoolOutput;
 	}
@@ -473,6 +447,42 @@ class PoolingPropagator extends ForwardPropagator {
 		// System.out.println(max);
 		return max;
 	}
+
+	private double[][] fullExpandedMaxArray(PoolingLayer pool) {
+        double[][] input = pool.layerValue;
+        double max;
+        int maxX;
+        int maxY;
+   
+        for (int i = 0; i < pool.layerValue.length; i += pool.poolSize) {
+            for (int j = 0; j < pool.layerValue[0].length; j += pool.poolSize) {
+                max = 0;
+                maxX = 0;
+                maxY = 0;
+                for (int k = 0; k < pool.poolSize; k++) {
+                    for (int l = 0; l < pool.poolSize; l++) {
+                        if (input[i + k][j + l] > max) {
+                            max = input[i + k][j + l];
+                            maxX = i + k;
+                            maxY = j + l;
+                        }
+                    }
+                }
+                
+                for (int k = 0; k < pool.poolSize; k++) {
+                    for (int l = 0; l < pool.poolSize; l++) {
+                        if ((i + k != maxX) || (j + l != maxY)) {
+                            input[i + k][j + l] = 0;
+                        } else if ((i+k == maxX) || (j+l==maxY)) {
+                        	input[i + k][j + l] = 1;
+                        }
+                    }
+                }
+            }
+        }
+        return input;
+    }
+
 }
 
 class ReluPropagator extends ForwardPropagator {
@@ -480,15 +490,6 @@ class ReluPropagator extends ForwardPropagator {
 		layer.activation = "RELU";
 		nextLayer.preActivatedValue = layer.layerValue; // might be trouble w/ references
 		nextLayer.layerValue = activate(layer);
-
-		System.out.print("relu ");
-		for (int i = 0; i < 5; i++) {
-			for (int j = 0; j < 5; j++) {
-				System.out.print(nextLayer.layerValue[i][j] + " ");
-			}
-		}
-		System.out.println();
-
 		return nextLayer.layerValue;
 	}
 
