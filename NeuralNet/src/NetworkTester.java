@@ -26,7 +26,7 @@ public class NetworkTester {
 		*/
 		
 		weights.generateInitialWeights(model);
-		trainer.train(model, weights, 100000, "ADAM"); 
+		trainer.train(model, weights, 100, "ADAM"); 
 		
 		//modelSaver.saveModel(model, weights);
 		

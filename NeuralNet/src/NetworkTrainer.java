@@ -33,13 +33,7 @@ public class NetworkTrainer {
 			inputLayer = (InputLayer) layers.get(0);
 			batchSize = inputLayer.batchSize;
 			numofBatches = calculateNumofBatches();
-
-			if ((layers.get(0).layerValue.length % batchSize) == 0) {
-				remainingBatchSize = batchSize;
-			} else {
-				remainingBatchSize = (layers.get(0).layerValue.length % batchSize);
-			}
-
+			
 		} else if (layers.get(0) instanceof ConvolutionalLayer) {
 			convLayer = (ConvolutionalLayer) layers.get(0);
 			filterList = weights.filterList;
@@ -48,6 +42,12 @@ public class NetworkTrainer {
 			batchSize = 1;
 		}
 
+		if ((numofBatches % batchSize) == 0) {
+			remainingBatchSize = batchSize;
+		} else {
+			remainingBatchSize = (layers.get(0).layerValue.length % batchSize);
+		}
+		
 		activatorStrings = new String[layers.size() - 1];
 		weightList = weights.weightList;
 		targets = model.targets;
@@ -122,6 +122,7 @@ public class NetworkTrainer {
 		for (int i = 0; i < layers.size() - 1; i++) {
 			layers.get(i + 1).layerValue = fp.propagate(layers.get(i), layers.get(i + 1)); // nextLayer, previousLayer
 		}
+	//	System.out.println(java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue)); 
 	}
 
 	int targetPositionCounter = 0;
@@ -129,6 +130,7 @@ public class NetworkTrainer {
 	private void determineTargetForError() {
 
 		if (targetPositionCounter != (batchSize * (numofBatches - 1))) {
+			
 			for (int i = 0; i < batchSize; i++) {
 				for (int j = 0; j < targets.targetSize; j++) {
 					fullFinalLayer[i + targetPositionCounter][j] = layers.get(layers.size() - 1).layerValue[i][j];
@@ -143,7 +145,6 @@ public class NetworkTrainer {
 			}
 			targetPositionCounter = 0;
 		}
-
 	}
 
 	double[][] finalTestLayer;
@@ -215,6 +216,8 @@ public class NetworkTrainer {
 		double[][] result = copyArray(finalTestLayer);
 		double[][] target = copyArray(targets.testTargets);
 		String lastAct = activatorStrings[activatorStrings.length - 1];
+		
+		
 
 		if (lastAct.equals("SOFTMAX")) {
 			for (int i = 0; i < result.length; i++) {
@@ -242,6 +245,7 @@ public class NetworkTrainer {
 		double loss = 0;
 		double[][] result = copyArray(fullFinalLayer);
 		double[][] target = copyArray(targets.targets);
+		
 
 		if (finalLayer.activation.equals("SOFTMAX")) {
 			for (int i = 0; i < result.length; i++) {
