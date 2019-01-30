@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BackPropagator {
-	final double regularize = .001;
+	final double regularize = 0.001;
 	int objectTracker = 0;
 	static int layerCounter;
 	static int batchSize;
@@ -298,8 +298,7 @@ class OutputBackPropagator extends BackPropagator {
 			batchCounterTarget = 0;
 			currentTargetBatch = batch;
 		}
-		System.out.println("Target Batch " + java.util.Arrays.deepToString(batch));
-		System.out.println();
+		
 		return batch;
 	}
 
@@ -403,8 +402,8 @@ class ReluBackPropagator extends BackPropagator {
 
 		image = conv.currentImage;
 
-		int strideLengthY = filter.length;
-		int strideLengthX = filter[0].length; 
+		int strideLengthY = 1;
+		int strideLengthX = 1; 
 
 		List<double[][][]> outputList = new ArrayList<double[][][]>();
 
@@ -429,6 +428,8 @@ class ReluBackPropagator extends BackPropagator {
 		gradients = new Gradients();
 
 		gradients.threeDGradientList = outputList;
+		
+		//System.out.println(outputList.get(0)[0].length);
 
 		return gradients;
 	}

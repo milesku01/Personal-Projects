@@ -81,10 +81,6 @@ public class ImageReader {
 			 }
 			 counter = 0;
 		 }
-	    
-	    System.out.println(w);
-	    System.out.println(h);
-	    
 	    return rgbImage; 
 	}
 }

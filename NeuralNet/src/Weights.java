@@ -38,7 +38,7 @@ public class Weights {
 			else if(layerList.get(i) instanceof ConvolutionalLayer) {
 				ConvolutionalLayer conv = (ConvolutionalLayer)layerList.get(i);
 				Filters filter = new Filters(conv.numofFilters, conv.filterSize); 
-				filterList.add(produceFilterValues(filter)); 
+				filterList.add(produceFilterValues(filter, model)); 
 			} else if(layerList.get(i) instanceof HiddenConvolutionalLayer) {
 				HiddenConvolutionalLayer hConv = (HiddenConvolutionalLayer)layerList.get(i);
 				Filters filter = new Filters(hConv.numofFilters, hConv.filterSize);
@@ -59,8 +59,10 @@ public class Weights {
 		return addWeightBiases(weightArray); 
 	}
 	
-	private Filters produceFilterValues(Filters filter) {
-		double n = (3.0*filter.filterSize*filter.filterSize);
+	private Filters produceFilterValues(Filters filter, NetworkModel model) {
+		int w = ((ConvolutionalLayer)model.layerList.get(0)).imageWidth; 
+		int h = ((ConvolutionalLayer)model.layerList.get(0)).imageHeight; 
+		double n = (3.0*w*h);
 		List<double[][][]> filterValuesList = new ArrayList<double[][][]>(); 
 		double[][][] filterValues = null;
 		
@@ -69,7 +71,7 @@ public class Weights {
 			for(int j=0; j<3; j++) {
 				for(int k=0; k<filter.filterSize; k++) {
 					for(int l=0; l<filter.filterSize; l++) {
-						filterValues[j][k][l] = r.nextGaussian() * Math.sqrt(2.0/n); //between -2 and 2
+						filterValues[j][k][l] = r.nextGaussian() * Math.sqrt(2.0/n);
 					}
 				}
 			}

@@ -43,7 +43,7 @@ class InputLayer extends Layer {
 		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
 		inputLayer.layerValue = (normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize)); 
 		
-		if(numofSets > 140) {
+		if(numofSets > 90) {
 			trainTestSplit(inputLayer, targets.targetSize); 
 			initializeTestData(inputLayer, targets);
 		}
@@ -62,7 +62,7 @@ class InputLayer extends Layer {
 		
 		int testingSize = numofSets-trainingSize; 
 		
-		if(numofSets > 140) { //roughly 70% of 140 is 100
+		if(numofSets > 90) { //roughly 70% of 140 is 100
 			trainingData = new double[trainingSize][numofInput + targetSize]; 
 			testData = new double[testingSize][numofInput + targetSize]; 
 			
@@ -161,8 +161,11 @@ class ConvolutionalLayer extends Layer {
 	int numofSets; 
 	int imageHeight;
 	int imageWidth;
+	int batchSize;
+	int channelDepth; 
 	String padding; 
 	String folderName;
+	String textFile; 
 	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\";
 	double[][][] currentImage; 
 	List<double[][][]> imageList; 
@@ -177,14 +180,27 @@ class ConvolutionalLayer extends Layer {
 		this.padding = padding; 
 	}
 
-	public ConvolutionalLayer(int numofFilters, int filterSize,	int strideLength, String padding,
+	public ConvolutionalLayer(int numofFilters, int filterSize,	int strideLength, int batchSize, String padding,
 			String folderName) { 
 		this.numofFilters = numofFilters;
 		this.folderName = folderName; 
 		this.filterSize = filterSize; 
 		this.strideLength = strideLength; 
+		this.batchSize = batchSize; 
 		this.padding = padding;	
-		
+	}
+	
+	public ConvolutionalLayer(int height, int width, int channelDepth, int numofFilters, int filterSize, int strideLength,
+			int batchSize, String padding, String textFile) {
+		imageHeight = height;
+		imageWidth = width;
+		this.channelDepth = channelDepth;
+		this.numofFilters = numofFilters;
+		this.textFile = textFile; 
+		this.filterSize = filterSize; 
+		this.strideLength = strideLength; 
+		this.batchSize = batchSize; 
+		this.padding = padding;	
 	}
 	
 	
@@ -195,9 +211,9 @@ class ConvolutionalLayer extends Layer {
 		convLayer.imageWidth = convLayer.imageList.get(0)[0][0].length;
 		numofSets = convLayer.imageList.size();
 		globalNumofSets = numofSets; 
-		shuffleArray(convLayer); 
+		//shuffleArray(convLayer); 
 		
-		if(imageList.size() > 140) {
+		if(imageList.size() > 90) {
 			trainTestSplit(convLayer); 
 			imageList.clear();
 		} else {
@@ -206,6 +222,20 @@ class ConvolutionalLayer extends Layer {
 		
 	}
 	
+	public void initializeLayerText(ConvolutionalLayer convLayer) {
+		fileReader = new FileReader(strdFilePath + textFile + ".txt");
+		convLayer.imageList = (fileReader.readImageTextIntoList(channelDepth, imageHeight, imageWidth)); 
+		numofSets = convLayer.imageList.size();
+		globalNumofSets = numofSets; 
+		//shuffleArray(convLayer); 
+		if(imageList.size() > 90) {
+			trainTestSplit(convLayer); 
+			imageList.clear();
+		} else {
+			convLayer.trainingImages = imageList;
+		}
+		
+	}
 	
 	
 	public void shuffleArray(ConvolutionalLayer conv) {
@@ -216,6 +246,11 @@ class ConvolutionalLayer extends Layer {
 		int trainingSize = (int)(.7 * numofSets); 
 		int testingSize = numofSets-trainingSize;
 		int counter = 0;
+		
+		conv.trainingImages = new ArrayList<double[][][]>();
+		conv.testingImages = new ArrayList<double[][][]>();
+		
+		System.out.println(numofSets);
 		
 		for(int i=0; i<trainingSize; i++) {
 			conv.trainingImages.add(imageList.get(counter));

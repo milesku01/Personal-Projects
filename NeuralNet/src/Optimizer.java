@@ -6,7 +6,9 @@ public class Optimizer {
 	Optimizer optimizationObject;
 	List<Object> weightChange;
 	public boolean TorF = true;
-
+	public double learningRate = .01;
+	//public double learningRate = .01;
+	
 	private void createOptimizerObject(String optimizerString) {
 		if (optimizerString.equals("ADAM")) {
 			optimizationObject = new Adam();
@@ -27,13 +29,37 @@ public class Optimizer {
 		weightChange = optimizationObject.optimize(gradients, "");
 		return weightChange;
 	}
+
+	protected List<Object> initializeList(List<Gradients> list) {
+		double[][] twoArray;
+		double[][][] threeArray;
+		List<double[][][]> threeArrayList;
+		List<Object> newList = new ArrayList<Object>();
+
+		for (int i = 0; i < list.size(); i++) {
+			if (list.get(i).twoDGradient != null) {
+				twoArray = new double[list.get(i).twoDGradient.length][list.get(i).twoDGradient[0].length];
+				newList.add(twoArray);
+			} else if (list.get(i).twoDGradient == null) {
+				threeArrayList = new ArrayList<double[][][]>();
+				for (int j = 0; j < list.get(i).threeDGradientList.size(); j++) {
+					threeArray = new double[list.get(i).threeDGradientList.get(j).length][list.get(i).threeDGradientList
+							.get(j)[0].length][list.get(i).threeDGradientList.get(j)[0][0].length];
+					threeArrayList.add(threeArray);
+				}
+				newList.add(threeArrayList);
+			}
+
+		}
+
+		return newList;
+	}
 }
 
 class Adam extends Optimizer {
 
 	double beta1 = .9;
 	double beta2 = .999;
-	double learningRate =.02;
 	final double offSet = .000000001;
 	int betaCounter = 1;
 
@@ -69,31 +95,6 @@ class Adam extends Optimizer {
 		secondMomentEstimate = initializeList(gradients);
 		firstMomentEstimateCorrected = initializeList(gradients);
 		secondMomentEstimateCorrected = initializeList(gradients);
-	}
-
-	private List<Object> initializeList(List<Gradients> list) {
-		double[][] twoArray;
-		double[][][] threeArray;
-		List<double[][][]> threeArrayList;
-		List<Object> newList = new ArrayList<Object>();
-
-		for (int i = 0; i < list.size(); i++) {
-			if (list.get(i).twoDGradient != null) {
-				twoArray = new double[list.get(i).twoDGradient.length][list.get(i).twoDGradient[0].length];
-				newList.add(twoArray);
-			} else if (list.get(i).twoDGradient == null) {
-				threeArrayList = new ArrayList<double[][][]>();
-				for (int j = 0; j < list.get(i).threeDGradientList.size(); j++) {
-					threeArray = new double[list.get(i).threeDGradientList.get(j).length][list.get(i).threeDGradientList
-							.get(j)[0].length][list.get(i).threeDGradientList.get(j)[0][0].length];
-					threeArrayList.add(threeArray);
-				}
-				newList.add(threeArrayList);
-			}
-
-		}
-
-		return newList;
 	}
 
 	private void updateBiasedFirstMomentEstimate() {
@@ -229,13 +230,56 @@ class Adam extends Optimizer {
 						}
 					}
 				}
+				
+				//System.out.println(java.util.Arrays.deepToString(((List<double[][][]>)weightChange.get(0)).get(0)));
 			}
 		}
+		
+
 		betaCounter++;
 	}
 
 }
 
 class Basic extends Optimizer {
+
+	List<Gradients> gradientCopy;
+
+	public List<Object> optimize(List<Gradients> gradients, String optimizerString) {
+		Collections.reverse(gradients);
+		gradientCopy = gradients; // for public access
+
+		if (TorF == true) {
+			weightChange = initializeList(gradients);
+			TorF = false;
+		}
+		calculateParameterUpdate();
+		return weightChange;
+	}
+
+	private void calculateParameterUpdate() {
+		for (int k = 0; k < gradientCopy.size(); k++) {
+			if (gradientCopy.get(k).twoDGradient != null) {
+				for (int i = 0; i < gradientCopy.get(k).twoDGradient.length; i++) {
+					for (int j = 0; j < gradientCopy.get(k).twoDGradient[0].length; j++) {
+						((double[][]) weightChange.get(k))[i][j] = learningRate
+								* (gradientCopy.get(k).twoDGradient[i][j]);
+					}
+				}
+
+			} else if (gradientCopy.get(k).twoDGradient == null) {
+				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
+					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
+						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
+							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
+								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] = learningRate
+										* (gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 }

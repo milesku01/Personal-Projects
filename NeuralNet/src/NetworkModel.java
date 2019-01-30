@@ -55,7 +55,7 @@ public class NetworkModel {
 	public void buildOutputLayer(int numofNeurons, String activation) {
 		OutputLayer outputLayer = new OutputLayer(numofNeurons, activation);
 		layerList.add(outputLayer);
-	}
+	} 
 
 	public void buildOutputLayer(int numofNeurons, String activation, String targetFile) {
 		OutputLayer outputLayer = new OutputLayer(numofNeurons, activation, targetFile);
@@ -63,9 +63,16 @@ public class NetworkModel {
 		layerList.add(outputLayer);
 	}
 
-	public void buildConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding, String imageFile) {
-		ConvolutionalLayer convLayer = new ConvolutionalLayer(numofFilters, filterSize, strideLength, padding, imageFile);
+	public void buildConvolutionalLayer(int numofFilters, int filterSize, int strideLength, int batchSize, String padding, String imageFile) {
+		ConvolutionalLayer convLayer = new ConvolutionalLayer(numofFilters, filterSize, strideLength, batchSize, padding, imageFile);
 		convLayer.initializeLayer(convLayer);
+		layerList.add(convLayer);
+	}
+	
+	public void buildConvolutionalLayer(int height, int width, int channelDepth, int numofFilters,
+			int filterSize, int strideLength, int batchSize, String padding, String textFile) {
+		ConvolutionalLayer convLayer = new ConvolutionalLayer(height, width, channelDepth, numofFilters, filterSize, strideLength, batchSize, padding, textFile);
+		convLayer.initializeLayerText(convLayer);
 		layerList.add(convLayer);
 	}
 

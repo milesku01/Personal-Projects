@@ -19,6 +19,12 @@ public class FileReader {
 		return ListToArray(dimension1, dimension2); 
 	}
 	
+	public List<double[][][]> readImageTextIntoList(int dimension1, int dimension2, int dimension3) {
+		initializeFileReader(); 
+		readFileIntoList();
+		return ListToThreeDArray(dimension1, dimension2, dimension3); 
+	}
+	
 	public List<double[][][]> readImagesIntoList() {
 		ImageReader imageReader = new ImageReader(); 
 		return imageReader.readImageFile(fileName);
@@ -53,6 +59,26 @@ public class FileReader {
 			}
 		}
 		return array; 
+	}
+	
+	private List<double[][][]> ListToThreeDArray(int dimension1, int dimension2, int dimension3) {
+		int counter =0;
+		double[][][] array; 
+		List<double[][][]> arrayList = new ArrayList<double[][][]>();
+		
+		for(int l=0; l<(valuesFromFile.size()/(dimension1*dimension2*dimension3)); l++) {
+			array = new double[dimension1][dimension2][dimension3];
+			for(int i=0; i < dimension1; i++) {
+				for(int j=0; j < dimension2; j++) {
+					for(int k=0; k < dimension3; k++) {
+						array[i][j][k] = valuesFromFile.get(counter); 
+						counter++; 
+					}
+				}
+			}
+			arrayList.add(array);
+		}
+		return arrayList; 
 	}
 	
 	public int determineTargetSize(int dimension1, int dimension2) {

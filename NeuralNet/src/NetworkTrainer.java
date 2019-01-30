@@ -1,11 +1,11 @@
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class NetworkTrainer {
 	int batchSize = 0;
+	int convBatchSize = 0; 
 	int numofEpochs = 0;
 	static int remainingBatchSize;
 	List<Layer> layers;
@@ -44,6 +44,8 @@ public class NetworkTrainer {
 			convLayer = (ConvolutionalLayer) layers.get(0);
 			filterList = weights.filterList;
 			numofBatches = layers.get(0).globalNumofSets;
+			convBatchSize = convLayer.batchSize; 
+			batchSize = 1;
 		}
 
 		activatorStrings = new String[layers.size() - 1];
@@ -53,7 +55,13 @@ public class NetworkTrainer {
 
 		getActivatorStrings();
 
-		 int iterations = numofBatches * numofEpochs;
+		 int iterations = 1;
+		 if(layers.get(0) instanceof ConvolutionalLayer) {
+			 iterations = (numofBatches/convBatchSize) * numofEpochs;
+		 } else {
+			 iterations = numofBatches * numofEpochs;
+		 }
+		 
 		//int iterations = 10;
 
 		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length];
@@ -62,17 +70,29 @@ public class NetworkTrainer {
 		bp.constructBackwardPropagationObjects(model, weights);
 
 		long startTime = System.nanoTime();
-		long startTime2;
-		long endTime2;
-
+		long time1; 
+		long time2; 
 		for (int i = 1; i <= iterations + 1; i++) {
-			startTime2 = System.nanoTime();
-			forwardPropagation();
-			endTime2 = System.nanoTime();
-			System.out.println("Forward " + getTrainingTime(startTime2, endTime2) + " sec");
-			if (i != iterations + 1)
+			
+			if(layers.get(0) instanceof InputLayer) {
+				
+				forwardPropagation();
+
+				if (i != iterations + 1)
 				backPropagation();
-			//formatOutput(i);
+			}
+			else if(layers.get(0) instanceof ConvolutionalLayer) {
+				for(int j=0; j < convBatchSize; j++) {
+					forwardPropagation();
+					if (i != iterations + 1)convolutionalBackPropagation();
+				}
+				averageGradients();
+				weightChanges = optimizer.optimize(gradientCopy, optimizerString);
+				updateParameters();
+				cleanGradCopy();
+			}
+			
+			formatOutput(i);
 		}
 
 		long endTime = System.nanoTime();
@@ -102,7 +122,6 @@ public class NetworkTrainer {
 		for (int i = 0; i < layers.size() - 1; i++) {
 			layers.get(i + 1).layerValue = fp.propagate(layers.get(i), layers.get(i + 1)); // nextLayer, previousLayer
 		}
-		System.out.println(java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
 	}
 
 	int targetPositionCounter = 0;
@@ -140,44 +159,55 @@ public class NetworkTrainer {
 	}
 
 	public double[][] forwardPropTest() {
-		for (int i = 0; i < layers.size() - 1; i++) {
-			layers.get(i + 1).layerValue = fp.propagateTest(layers.get(i), layers.get(i + 1)); // nextLayer,
-																								// previousLayer
+		double[][] returnValue = null;
+		
+		if(layers.get(0) instanceof InputLayer) {
+			for (int i = 0; i < layers.size() - 1; i++) {
+				layers.get(i + 1).layerValue = fp.propagateTest(layers.get(i), layers.get(i + 1));
+			}
+			returnValue = layers.get(layers.size() - 1).layerValue;
+		} else if (layers.get(0) instanceof ConvolutionalLayer) {
+			returnValue = new double[((ConvolutionalLayer)layers.get(0)).testingImages.size()][targets.targetSize];
+			for(int i=0; i<((ConvolutionalLayer)layers.get(0)).testingImages.size(); i++) {
+				for (int j = 0; j < layers.size() - 1; j++) {
+					layers.get(j + 1).layerValue = fp.propagateTest(layers.get(j), layers.get(j + 1));																
+				}
+				for(int k=0; k<targets.targetSize; k++) {
+					returnValue[i][k] = layers.get(layers.size() - 1).layerValue[0][k];
+				}
+			}
 		}
 
-		return layers.get(layers.size() - 1).layerValue;
+		return returnValue;
 	}
 
 	public void formatOutput(int i) {
-		// if (i % numofBatches == 0) {
+		if (i % numofBatches == 0) {
 		System.out.println();
 
-		if (layers.get(0).globalNumofSets > 140) {
+		if (layers.get(0).globalNumofSets > 90) {
 			determineAccuracy();
 		}
 
 		// System.out.println("Current batch " +
 		// java.util.Arrays.deepToString(layers.get(0).currentBatch));
 
-		 for (int j = 0; j < layers.size()-1; j++) {
-		 System.out.println(layers.get(i).layerValue.length + " " +
-		 layers.get(i).layerValue[0].length);
-		 }
-		 System.out.println("Last Layer " +
-		 java.util.Arrays.deepToString(fullFinalLayer));
+		//for (int j = 0; j < layers.size() - 1; j++) {
+			//System.out.println(layers.get(i).layerValue.length + " " + layers.get(i).layerValue[0].length);
+		//}
+	//	System.out.println("Last Layer " + java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
 
-		//System.out.println("Targets: " + java.util.Arrays.deepToString(targets.targets));
+		// System.out.println("Targets: " +
+		// java.util.Arrays.deepToString(targets.targets));
 		// System.out.println();
 		// for (int j = 0; j < weightList.size(); j++) {
 		// System.out.println("weight " + j +
 		// java.util.Arrays.deepToString(weightList.get(j)));
 		// }
 
-		// System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); //
-		// returns the final layerValue
-
+		 System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); //
 	}
-//	}
+	}
 
 	private double computeAccuracy() {
 		int correct = 0;
@@ -240,7 +270,15 @@ public class NetworkTrainer {
 	}
 
 	private double regularizationTerm() {
+		double currentLength = 1; 
 		double weightSquaredSum = 0.0;
+		
+		if(layers.get(0) instanceof InputLayer) {
+			currentLength = inputLayer.currentBatch.length;
+		} else if (layers.get(0) instanceof ConvolutionalLayer) {
+			currentLength = 1; //I think this is true because of gradient averaging
+		}
+		
 		for (int i = 0; i < weightList.size(); i++) {
 			for (int j = 0; j < weightList.get(i).length; j++) {
 				for (int k = 0; k < weightList.get(i)[0].length; k++) {
@@ -248,7 +286,7 @@ public class NetworkTrainer {
 				}
 			}
 		}
-		weightSquaredSum *= bp.regularize / (2.0 * (double) inputLayer.currentBatch.length);
+		weightSquaredSum *= bp.regularize / (2.0 * (double) currentLength);
 		return weightSquaredSum;
 	}
 
@@ -267,6 +305,20 @@ public class NetworkTrainer {
 		updateParameters();
 		cleanGradients();
 	}
+	
+	boolean TorF = true; 
+	public void convolutionalBackPropagation() {
+		determineTargetForError();
+		computeGradients(); 
+		
+		if(TorF) {
+			initializeGradientCopy();
+			TorF = false; 
+		}
+		sumGradients(); 
+		cleanGradients(); 
+	}
+	
 
 	private void computeGradients() {
 		Gradients gradient = null;
@@ -275,15 +327,90 @@ public class NetworkTrainer {
 			gradients.add(gradient);
 		}
 	}
+	
+	private void sumGradients() {
+		for (int i = 0; i < gradients.size(); i++) {
+			if (gradients.get(i).twoDGradient != null) {
+				for (int j = 0; j < gradients.get(i).twoDGradient.length; j++) {
+					for (int k = 0; k < gradients.get(i).twoDGradient[0].length; k++) {
+						gradientCopy.get(i).twoDGradient[j][k] += gradients.get(i).twoDGradient[j][k];
+					}
+				}
+			} else if (gradients.get(i).twoDGradient == null) { // must change when adding other 2d filters
+				for (int h = 0; h < gradients.get(i).threeDGradientList.size(); h++) {
+					for (int l = 0; l < gradients.get(i).threeDGradientList.get(h).length; l++) {
+						for (int j = 0; j < gradients.get(i).threeDGradientList.get(h)[0].length; j++) {
+							for (int k = 0; k < gradients.get(i).threeDGradientList.get(h)[0][0].length; k++) {
+								gradientCopy.get(i).threeDGradientList.get(h)[l][j][k] += gradients.get(i).threeDGradientList.get(h)[l][j][k]; 
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	private void averageGradients() {
+		for (int i = 0; i < gradients.size(); i++) {
+			if (gradients.get(i).twoDGradient != null) {
+				for (int j = 0; j < gradients.get(i).twoDGradient.length; j++) {
+					for (int k = 0; k < gradients.get(i).twoDGradient[0].length; k++) {
+						gradientCopy.get(i).twoDGradient[j][k] /= convBatchSize;
+					}
+				}
+			} else if (gradients.get(i).twoDGradient == null) { // must change when adding other 2d filters
+				for (int h = 0; h < gradients.get(i).threeDGradientList.size(); h++) {
+					for (int l = 0; l < gradients.get(i).threeDGradientList.get(h).length; l++) {
+						for (int j = 0; j < gradients.get(i).threeDGradientList.get(h)[0].length; j++) {
+							for (int k = 0; k < gradients.get(i).threeDGradientList.get(h)[0][0].length; k++) {
+								gradientCopy.get(i).threeDGradientList.get(h)[l][j][k] /= convBatchSize; 
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 
 	List<Gradients> gradients = new ArrayList<Gradients>();
+	List<Gradients> gradientCopy = new ArrayList<Gradients>();
 
+	private void initializeGradientCopy() {
+		double[][] twoArray;
+		double[][][] threeArray;
+		List<double[][][]> threeArrayList;
+		Gradients newGradient;
+		
+		for(int i=0; i<gradients.size(); i++) {
+			newGradient = new Gradients();
+			if(gradients.get(i).twoDGradient != null) {
+				twoArray = new double[gradients.get(i).twoDGradient.length][gradients.get(i).twoDGradient[0].length]; 
+				newGradient.twoDGradient = twoArray;
+				gradientCopy.add(newGradient);
+			} else if(gradients.get(i).twoDGradient == null) {
+				threeArrayList = new ArrayList<double[][][]>();
+				for(int j=0; j<gradients.get(i).threeDGradientList.size(); j++) {
+					threeArray = new double[gradients.get(i).threeDGradientList.get(j).length][gradients.get(i).threeDGradientList.get(j)[0].length][gradients.get(i).threeDGradientList.get(j)[0][0].length];
+					threeArrayList.add(threeArray);
+				}
+				newGradient.threeDGradientList= threeArrayList;
+				gradientCopy.add(newGradient);
+			}
+		}
+	}
+		
 	private void cleanGradients() {
 		gradients.clear();
 	}
+	
+	private void cleanGradCopy() {
+		gradientCopy.clear();
+		TorF = true;
+	}
 
 	int weightListCounter = 0;
-	int filterListCounter = 0; //for later
+	int filterListCounter = 0; // for later
+
 	private void updateParameters() {
 		for (int i = 0; i < weightChanges.size(); i++) {
 			if (weightChanges.get(i) instanceof double[][]) {
@@ -294,21 +421,23 @@ public class NetworkTrainer {
 				}
 				weightListCounter++;
 			} else if (weightChanges.get(i) instanceof List) { // must change when adding other 2d filters
-				
-				//System.out.println("HERE"+ ((List<double[][][]>) weightChanges.get(0)).get(0)[0][0].length);
-				
+
+				// System.out.println("HERE"+ ((List<double[][][]>)
+				// weightChanges.get(0)).get(0)[0][0].length);
+
 				for (int h = 0; h < ((List<double[][][]>) weightChanges.get(i)).size(); h++) {
 					for (int l = 0; l < ((List<double[][][]>) weightChanges.get(i)).get(h).length; l++) {
 						for (int j = 0; j < ((List<double[][][]>) weightChanges.get(i)).get(h)[0].length; j++) {
 							for (int k = 0; k < ((List<double[][][]>) weightChanges.get(i)).get(h)[0][0].length; k++) {
-								filterList.get(0).threeDFilterArray.get(h)[l][j][k] -= ((List<double[][][]>) weightChanges.get(i)).get(h)[l][j][k];
+								filterList.get(0).threeDFilterArray
+										.get(h)[l][j][k] -= ((List<double[][][]>) weightChanges.get(i)).get(h)[l][j][k];
 							}
 						}
 					}
 				}
 			}
 		}
-		weightListCounter = 0;	
+		weightListCounter = 0;
 	}
 
 	double[][] matrixMultiplication(double[][] A, double[][] B) {

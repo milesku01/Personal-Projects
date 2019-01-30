@@ -43,6 +43,11 @@ public class ForwardPropagator {
 			layerCounter = 0;
 
 		layerValue = testPropagationObjects.get(testObjectTracker).propagate(layer, nextLayer);
+		
+		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer)
+				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
+			layerValue = flatten(layerValue);
+		}
 
 		if (testObjectTracker == (testPropagationObjects.size() - 1)) {
 			testObjectTracker = 0;
@@ -57,8 +62,9 @@ public class ForwardPropagator {
 	public void constructForwardPropagationObjects(List<Layer> layerList, Weights weights) { // only occur once
 
 		setupConstants(layerList, weights);
+		
 
-		if (layerList.get(0).globalNumofSets < 140) {
+		if (layerList.get(0).globalNumofSets > 90) {
 			forwardPropObj = new TestPropagator();
 			testPropagationObjects.add(forwardPropObj);
 		}
@@ -82,7 +88,7 @@ public class ForwardPropagator {
 
 			propagationObjects.add(forwardPropObj);
 
-			if (layerList.get(0).globalNumofSets > 140) {
+			if (layerList.get(0).globalNumofSets > 90) {
 				if (i > 0) {
 					testPropagationObjects.add(forwardPropObj);
 				}
@@ -210,7 +216,8 @@ class DensePropagator extends ForwardPropagator {
 
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		double[][] layerValue;
-		//System.out.println(layer.preActivatedValue.length + " here " + layer.preActivatedValue[0].length);
+		// System.out.println(layer.preActivatedValue.length + " here " +
+		// layer.preActivatedValue[0].length);
 
 		layer.layerValue = appendBiasColumn(layer);
 		layerValue = nt.matrixMultiplication(layer.layerValue, weightList.get(layerCounter));
@@ -219,7 +226,8 @@ class DensePropagator extends ForwardPropagator {
 		nextLayer.layerValue = layerValue;
 		nextLayer.layerValue = activate(nextLayer);
 
-	//	System.out.println("OutputLayer " + java.util.Arrays.deepToString(nextLayer.layerValue));
+		// System.out.println("OutputLayer " +
+		// java.util.Arrays.deepToString(nextLayer.layerValue));
 
 		return nextLayer.layerValue;
 	}
@@ -230,13 +238,82 @@ class TestPropagator extends ForwardPropagator {
 
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		double[][] testValue;
-		if (counter == 0)
-			layer.testData = appendBiasColumn(layer);
-		counter++;
-		testValue = nt.matrixMultiplication(layer.testData, weightList.get(0));
-		nextLayer.layerValue = testValue;
-		nextLayer.testData = activate(nextLayer);
+	
+		if(layer instanceof InputLayer) {
+			if (counter == 0)
+				layer.testData = appendBiasColumn(layer);
+			counter++;
+			testValue = nt.matrixMultiplication(layer.testData, weightList.get(0));
+			nextLayer.layerValue = testValue;
+			nextLayer.testData = activate(nextLayer);
+			
+		} else if (layer instanceof ConvolutionalLayer) { 
+			ConvolutionalLayer conv = (ConvolutionalLayer)layer;
+			getBatch(conv);
+			double[][][] image = conv.currentImage;
+		
+			List<double[][][]> filters = weights.filterList.get(0).threeDFilterArray;
+
+			int biasTerm = 1;
+			int tracker = 0;
+			int colorChannels = image.length;
+			int filterSize = filters.get(0)[0].length;
+			int strideLength = conv.strideLength;
+			int numofXCycles = (image[0][0].length - filterSize) / strideLength + 1;
+			int numofYCycles = (image[0].length - filterSize) / strideLength + 1;
+			double convOutput = 0;
+
+			double[][] convOutputArraySum = new double[numofYCycles][numofXCycles];
+			double[][] convOutputArrayAugmented = new double[numofYCycles * filters.size()][numofXCycles];
+
+			for (int h = 0; h < filters.size(); h++) {
+				for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
+					for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
+						for (int i = 0; i < colorChannels; i++) {
+							for (int j = 0; j < filterSize; j++) {
+								for (int k = 0; k < filterSize; k++) {
+									convOutput += image[i][j + cornerPosY][k + cornerPosX] * filters.get(h)[i][j][k];
+								}
+							}
+						}
+						convOutputArraySum[cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
+						convOutput = 0;
+					}
+				}
+
+				for (int i = 0; i < numofYCycles; i++) {
+					for (int j = 0; j < numofXCycles; j++) {
+						convOutputArrayAugmented[i + tracker * numofYCycles][j] = convOutputArraySum[i][j];
+					}
+				}
+
+				tracker++;
+			}
+			
+			nextLayer.testData = convOutputArrayAugmented;
+		}
 		return nextLayer.testData;
+	}
+	
+	int batchCounter = 0;
+
+	private void getBatch(ConvolutionalLayer conv) {
+		conv.currentImage = conv.testingImages.get(batchCounter);
+
+		if (!hasReachedEndofBatch(conv.testingImages.size())) {
+			batchCounter++;
+		} else {
+			batchCounter = 0;
+		}
+
+	}
+
+	private boolean hasReachedEndofBatch(int numofBatches) {
+		if (numofBatches - 1 == batchCounter) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public double[][] appendBiasColumn(Layer layer) {
@@ -273,8 +350,8 @@ class ConvolutionalPropagator extends ForwardPropagator {
 		int colorChannels = image.length;
 		int filterSize = filters.get(0)[0].length;
 		int strideLength = conv.strideLength;
-		int numofXCycles = (image[0][0].length - filterSize)/strideLength + 1;
-		int numofYCycles = (image[0].length - filterSize)/strideLength + 1;
+		int numofXCycles = (image[0][0].length - filterSize) / strideLength + 1;
+		int numofYCycles = (image[0].length - filterSize) / strideLength + 1;
 		double convOutput = 0;
 
 		double[][] convOutputArraySum = new double[numofYCycles][numofXCycles];
@@ -347,8 +424,8 @@ class HiddenConvolutionalPropagator extends ForwardPropagator {
 		int tracker = 0;
 		int filterSize = filters.get(0).length;
 		int strideLength = conv.strideLength;
-		int numofXCycles = (input[0].length - filterSize)/strideLength + 1;
-		int numofYCycles = (input.length - filterSize)/strideLength + 1;
+		int numofXCycles = (input[0].length - filterSize) / strideLength + 1;
+		int numofYCycles = (input.length - filterSize) / strideLength + 1;
 		double convOutput = 0;
 
 		double[][] convOutputArraySum = new double[numofYCycles][numofXCycles];
@@ -376,7 +453,7 @@ class HiddenConvolutionalPropagator extends ForwardPropagator {
 		}
 
 		nextLayer.layerValue = convOutputArrayAugmented;
-		
+
 		return convOutputArrayAugmented;
 	}
 
@@ -405,7 +482,7 @@ class HiddenConvolutionalPropagator extends ForwardPropagator {
 class PoolingPropagator extends ForwardPropagator {
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		PoolingLayer pool = (PoolingLayer) layer;
-	
+
 		layer.preActivatedValue = pool.layerValue;
 
 		int strideLength = pool.poolSize;
@@ -416,7 +493,7 @@ class PoolingPropagator extends ForwardPropagator {
 
 		double[][] poolArray = new double[pool.poolSize][pool.poolSize];
 		double[][] maxPoolOutput = new double[numofYCycles][numofXCycles];
-		
+
 		pool.expandedLayer = fullExpandedMaxArray(pool);
 
 		for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
@@ -445,44 +522,44 @@ class PoolingPropagator extends ForwardPropagator {
 				}
 			}
 		}
-		// System.out.println(max);
+
 		return max;
 	}
 
 	private double[][] fullExpandedMaxArray(PoolingLayer pool) {
-        double[][] input = pool.layerValue;
-        double max;
-        int maxX;
-        int maxY;
-   
-        for (int i = 0; i < pool.layerValue.length; i += pool.poolSize) {
-            for (int j = 0; j < pool.layerValue[0].length; j += pool.poolSize) {
-                max = 0;
-                maxX = 0;
-                maxY = 0;
-                for (int k = 0; k < pool.poolSize; k++) {
-                    for (int l = 0; l < pool.poolSize; l++) {
-                        if (input[i + k][j + l] > max) {
-                            max = input[i + k][j + l];
-                            maxX = i + k;
-                            maxY = j + l;
-                        }
-                    }
-                }
-                
-                for (int k = 0; k < pool.poolSize; k++) {
-                    for (int l = 0; l < pool.poolSize; l++) {
-                        if ((i + k != maxX) || (j + l != maxY)) {
-                            input[i + k][j + l] = 0;
-                        } else if ((i+k == maxX) || (j+l==maxY)) {
-                        	input[i + k][j + l] = 1;
-                        }
-                    }
-                }
-            }
-        }
-        return input;
-    }
+		double[][] input = copyArray(pool.layerValue);
+		double max;
+		int maxX;
+		int maxY;
+
+		for (int i = 0; i < pool.layerValue.length; i += pool.poolSize) {
+			for (int j = 0; j < pool.layerValue[0].length; j += pool.poolSize) {
+				max = 0;
+				maxX = 0;
+				maxY = 0;
+				for (int k = 0; k < pool.poolSize; k++) {
+					for (int l = 0; l < pool.poolSize; l++) {
+						if (input[i + k][j + l] > max) {
+							max = input[i + k][j + l];
+							maxX = i + k;
+							maxY = j + l;
+						}
+					}
+				}
+
+				for (int k = 0; k < pool.poolSize; k++) {
+					for (int l = 0; l < pool.poolSize; l++) {
+						if ((i + k != maxX) || (j + l != maxY)) {
+							input[i + k][j + l] = 0;
+						} else if ((i + k == maxX) || (j + l == maxY)) {
+							input[i + k][j + l] = 1;
+						}
+					}
+				}
+			}
+		}
+		return input;
+	}
 
 }
 

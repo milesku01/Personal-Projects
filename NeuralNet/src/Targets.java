@@ -44,7 +44,7 @@ public class Targets {
 		double[][] trainingData = new double[trainingSize][targetSize];
 		double[][] testData = new double[testingSize][targetSize];
 		
-		if(numofSets > 140) { //roughly 70% of 140 is 100
+		if(numofSets > 90) { //roughly 70% of 140 is 100
 			trainingData = new double[trainingSize][targetSize]; 
 			testData = new double[testingSize][targetSize]; 
 			
@@ -59,6 +59,7 @@ public class Targets {
 				}
 			}
 			
+			testTargets = testData;
 			targets = trainingData; 
 		}
 	}
