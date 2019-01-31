@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BackPropagator {
-	final double regularize = 0.001;
+	final double regularize = 0.0001;
 	int objectTracker = 0;
 	static int layerCounter;
 	static int batchSize;
@@ -298,63 +298,100 @@ class OutputBackPropagator extends BackPropagator {
 			batchCounterTarget = 0;
 			currentTargetBatch = batch;
 		}
-		
+
 		return batch;
 	}
 
 }
 
 class HiddenConvolutionalBackPropagator extends BackPropagator {
+	List<double[][]> filterList = new ArrayList<double[][]>();
+
 	public void computeHiddenGradients(Layer layer, Layer nextLayer) {
-		gradients = new Gradients();
-		// return gradients;
+		
+		HiddenConvolutionalLayer hidden = (HiddenConvolutionalLayer) layer;
+
+		double[][] dOut = hidden.fullyConvolvedDerivative;
+
+		filterList = copyList(hidden.filterList); // may need to copy
+
+		filterList = rotate90(rotate90(filterList));
+
+		dOut = pad(dOut, filterList.get(0).length);
+
+		int strideLengthY = 1;
+		int strideLengthX = 1;
+		int tracker = 0;
+
+		double[][] augmented = new double[((dOut.length - filterList.get(0).length) / strideLengthY + 1)
+				* filterList.size()][(dOut[0].length - filterList.get(0)[0].length) / strideLengthX + 1];
+
+		for (double[][] filter1 : filterList) { // loop through filters
+			double[][] output = new double[(dOut.length - filter1.length) / strideLengthY
+					+ 1][(dOut[0].length - filter1[0].length) / strideLengthX + 1]; // TODO: add actual values
+			for (int j = 0; j < (dOut.length - filter1.length) / strideLengthY + 1; j += strideLengthY) {
+				for (int k = 0; k < (dOut[0].length - filter1[0].length) / strideLengthX + 1; k += strideLengthX) {
+					double total = 0;
+					for (int l = 0; l < filter1.length; l++) { // loop through filter
+						for (int m = 0; m < filter1[0].length; m++) { // loop through filter
+							total += filter1[l][m] * dOut[j + l][k + m];
+						}
+					}
+					output[j / strideLengthY][k / strideLengthX] = total;
+				}
+			}
+
+			for (int i = 0; i < (dOut.length - filterList.get(0).length) / strideLengthY + 1; i++) {
+				for (int j = 0; j < augmented[0].length; j++) {
+					augmented[i + tracker * augmented.length][j] = output[i][j];
+				}
+			}
+			tracker++;
+		}
+
+		gradients.runningTotal = augmented; // okay because gradient is reset just before, thats why no multiplication
 	}
 
-	/*
-	 * public List<double[][][]> propagate(Layer layer, Layer nextLayer) {
-	 * ConvolutionalLayer
-	 * 
-	 * double[][] input = layer.layerValue; int tracker = 0; int strideLength =
-	 * conv.strideLength; int numofXCycles = (input[0].length -
-	 * filterSize)/strideLength + 1; int numofYCycles = (input.length -
-	 * filterSize)/strideLength + 1; double convOutput = 0;
-	 * 
-	 * double[][] convOutputArraySum = new double[numofYCycles][numofXCycles];
-	 * double[][] convOutputArrayAugmented = new double[numofYCycles *
-	 * filters.size()][numofXCycles];
-	 * 
-	 * for (int h = 0; h < filters.size(); h++) { for (int cornerPosY = 0;
-	 * cornerPosY < numofYCycles; cornerPosY += strideLength) { for (int cornerPosX
-	 * = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) { for (int j = 0;
-	 * j < filterSize; j++) { for (int k = 0; k < filterSize; k++) { convOutput +=
-	 * input[j + cornerPosY][k + cornerPosX] * filters.get(h)[j][k]; } }
-	 * convOutputArraySum[cornerPosY / strideLength][cornerPosX / strideLength] =
-	 * convOutput + biasTerm; convOutput = 0; } }
-	 * 
-	 * for (int i = 0; i < numofYCycles; i++) { for (int j = 0; j < numofXCycles;
-	 * j++) { convOutputArrayAugmented[i + tracker * numofYCycles][j] =
-	 * convOutputArraySum[i][j]; } } tracker++; }
-	 * 
-	 * nextLayer.layerValue = convOutputArrayAugmented;
-	 * 
-	 * System.out.print("Layer 1 "); for (int i = 0; i < 5; i++) { for (int j = 0; j
-	 * < 5; j++) { System.out.print(convOutputArrayAugmented[i][j] + " "); } }
-	 * System.out.println();
-	 * 
-	 * return convOutputArrayAugmented; }
-	 * 
-	 * 
-	 */
+	private double[][] pad(double[][] input, int padSize) {
+		int padding = padSize - 1;
 
-	private double[][] flipBoard(double[][] board) {
-		double[][] newBoard = new double[board.length][board.length];
-		for (int i = 0; i < board.length; i++) {
-			for (int j = 0; j < board.length; j++) {
-				newBoard[i][j] = board[(board.length - 1) - i][(board.length - 1) - j];
+		double[][] output = new double[input.length + 2 * padding][input[0].length + 2 * padding];
+
+		for (int i = 0; i < input.length; i++) {
+			for (int j = 0; j < input[0].length; j++) {
+				output[i + padding][j + padding] = input[i][j];
 			}
 		}
-		return newBoard;
+
+		return output;
 	}
+
+	private List<double[][]> rotate90(List<double[][]> mat) {
+		int M = mat.get(0).length;
+		int N = mat.get(0)[0].length;
+		double[][] ret;
+		List<double[][]> list = new ArrayList<double[][]>();
+
+		for (int i = 0; i < mat.size(); i++) {
+			ret = new double[N][M];
+			for (int r = 0; r < M; r++) {
+				for (int c = 0; c < N; c++) {
+					ret[c][M - 1 - r] = mat.get(i)[r][c];
+				}
+			}
+			list.add(ret);
+		}
+		return list;
+	}
+
+	private List<double[][]> copyList(List<double[][]> input) {
+		List<double[][]> copy = new ArrayList<double[][]>();
+		for (int i = 0; i < input.size(); i++) {
+			copy.add(nt.copyArray(input.get(i)));
+		}
+		return copy;
+	}
+
 }
 
 class PoolingBackPropagator extends BackPropagator {
@@ -362,7 +399,6 @@ class PoolingBackPropagator extends BackPropagator {
 		double[][] dPool = inflateArray((PoolingLayer) layer, gradients.runningTotal);
 		dPool = nt.elementwiseMultiplication(dPool, ((PoolingLayer) layer).expandedLayer);
 		gradients.runningTotal = dPool;
-		// return gradients;
 	}
 
 	private double[][] inflateArray(PoolingLayer layer, double[][] array) {
@@ -389,56 +425,99 @@ class ReluBackPropagator extends BackPropagator {
 
 	public Gradients computeGradients(Layer layer, Layer nextLayer) {
 		double[][] filter = nt.elementwiseMultiplication(gradients.runningTotal, computeDerivative(layer));
+		double[][] twoDImage;
 		double[][][] image;
-		
-		ConvolutionalLayer conv = (ConvolutionalLayer) nextLayer;
-		int numofFilters = conv.numofFilters;
 
-		filterList = (splitFilters(filter, numofFilters));
+		if (nextLayer instanceof ConvolutionalLayer) {
+			ConvolutionalLayer conv = (ConvolutionalLayer) nextLayer;
+			int numofFilters = conv.numofFilters;
 
-		filterList = rotate90(rotate90(filterList));
+			filterList = (splitFilters(filter, numofFilters));
 
-		conv = (ConvolutionalLayer) nextLayer;
+			// filterList = rotate90(rotate90(filterList)); doesn't seem to affect anything
 
-		image = conv.currentImage;
+			image = conv.currentImage;
 
-		int strideLengthY = 1;
-		int strideLengthX = 1; 
+			int strideLengthY = 1;
+			int strideLengthX = 1;
 
-		List<double[][][]> outputList = new ArrayList<double[][][]>();
+			List<double[][][]> outputList = new ArrayList<double[][][]>();
 
-		for (double[][] filter1 : filterList) { // loop through filters
-			double[][][] output = new double[image.length][(image[0].length - filter1.length)/strideLengthY + 1][(image[0][0].length - filter1[0].length)/strideLengthX + 1]; // TODO: add actual values
-			for (int i = 0; i < image.length; i++) { // loop through rgb values
-				for (int j = 0; j < (image[0].length - filter1.length)/strideLengthY + 1; j += strideLengthY) {
-					for (int k = 0; k < (image[0][0].length - filter1[0].length)/strideLengthX + 1; k += strideLengthX) {
+			for (double[][] filter1 : filterList) { // loop through filters
+				double[][][] output = new double[image.length][(image[0].length - filter1.length) / strideLengthY
+						+ 1][(image[0][0].length - filter1[0].length) / strideLengthX + 1]; // TODO: add actual values
+				for (int i = 0; i < image.length; i++) { // loop through rgb values
+					for (int j = 0; j < (image[0].length - filter1.length) / strideLengthY + 1; j += strideLengthY) {
+						for (int k = 0; k < (image[0][0].length - filter1[0].length) / strideLengthX
+								+ 1; k += strideLengthX) {
+							double total = 0;
+							for (int l = 0; l < filter1.length; l++) { // loop through filter
+								for (int m = 0; m < filter1[0].length; m++) { // loop through filter
+									total += filter1[l][m] * image[i][j + l][k + m];
+								}
+							}
+							output[i][j / strideLengthY][k / strideLengthX] = total;
+						}
+					}
+				}
+				outputList.add(output);
+			}
+
+			gradients = new Gradients();
+
+			gradients.threeDGradientList = outputList;
+
+		} else if (nextLayer instanceof HiddenConvolutionalLayer) {
+			HiddenConvolutionalLayer hiddenConv = (HiddenConvolutionalLayer) nextLayer;
+			int numofFilters = hiddenConv.numofFilters;
+
+			filterList = (splitFilters(filter, numofFilters));
+
+			// filterList = rotate90(rotate90(filterList)); doesn't seem to affect anything
+
+			hiddenConv.fullyConvolvedDerivative = nt.copyArray(filter);
+
+			twoDImage = hiddenConv.layerValue;
+
+			int strideLengthY = 1;
+			int strideLengthX = 1;
+
+			List<double[][]> outputList = new ArrayList<double[][]>();
+
+			for (double[][] filter1 : filterList) { // loop through filters
+				double[][] output = new double[(twoDImage.length - filter1.length) / strideLengthY
+						+ 1][(twoDImage[0].length - filter1[0].length) / strideLengthX + 1]; // TODO: add actual values
+				for (int j = 0; j < (twoDImage.length - filter1.length) / strideLengthY + 1; j += strideLengthY) {
+					for (int k = 0; k < (twoDImage[0].length - filter1[0].length) / strideLengthX
+							+ 1; k += strideLengthX) {
 						double total = 0;
 						for (int l = 0; l < filter1.length; l++) { // loop through filter
 							for (int m = 0; m < filter1[0].length; m++) { // loop through filter
-								total += filter1[l][m] * image[i][j + l][k + m];
+								total += filter1[l][m] * twoDImage[j + l][k + m];
 							}
 						}
-						output[i][j / strideLengthY][k / strideLengthX] = total;
+						output[j / strideLengthY][k / strideLengthX] = total;
 					}
 				}
+
+				outputList.add(output);
 			}
-			outputList.add(output);
+
+			gradients = new Gradients();
+
+			gradients.twoDGradientList = outputList;
 		}
 
-		gradients = new Gradients();
-
-		gradients.threeDGradientList = outputList;
-		
-		//System.out.println(outputList.get(0)[0].length);
+		// System.out.println(outputList.get(0)[0].length);
 
 		return gradients;
 	}
 
 	private List<double[][]> splitFilters(double[][] input, int numofFilters) {
 		int counter = 0;
-		int filterSizeY = input.length/numofFilters;
+		int filterSizeY = input.length / numofFilters;
 		int filterSizeX = input[0].length;
-		
+
 		double[][] array;
 		List<double[][]> list = new ArrayList<double[][]>();
 
@@ -474,10 +553,10 @@ class ReluBackPropagator extends BackPropagator {
 	}
 
 	public void computeHiddenGradients(Layer layer, Layer nextLayer) {
-		nextLayer.activation = "RELU"; //shouldn't have to worry
+		nextLayer.activation = "RELU"; // shouldn't have to worry
 		gradient = computeDerivative(nextLayer);
 
-		if (gradients.runningTotal == null) {
+		if (nextLayer instanceof ConvolutionalLayer || nextLayer instanceof HiddenConvolutionalLayer) {
 			gradients.runningTotal = gradient;
 		} else {
 			gradients.runningTotal = nt.elementwiseMultiplication(gradients.runningTotal, gradient);

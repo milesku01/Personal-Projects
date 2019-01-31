@@ -23,7 +23,7 @@ public class ForwardPropagator {
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		layerValue = propagationObjects.get(objectTracker).propagate(layer, nextLayer);
 
-		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer)
+		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer || layer instanceof HiddenConvolutionalLayer)
 				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
 			layerValue = flatten(layerValue);
 		}

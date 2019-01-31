@@ -43,6 +43,7 @@ public class Weights {
 				HiddenConvolutionalLayer hConv = (HiddenConvolutionalLayer)layerList.get(i);
 				Filters filter = new Filters(hConv.numofFilters, hConv.filterSize);
 				filterList.add(produceHiddenFilterValues(filter));
+				hConv.filterList  = filter.twoDFilterArray; //maybe fine passing reference
 			}
 			
 			nextLayer++; 

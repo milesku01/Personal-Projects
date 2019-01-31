@@ -44,7 +44,7 @@ public class NetworkModel {
 			}
 			if(layerList.get(i) instanceof HiddenConvolutionalLayer) {
 				HiddenConvolutionalLayer conv2 = (HiddenConvolutionalLayer) layerList.get(i);
-				numofNeuronHeight = numofFilters*((numofNeuronHeight-conv2.filterSize)/strideLength + 1);
+				numofNeuronHeight = conv2.numofFilters*((numofNeuronHeight-conv2.filterSize)/strideLength + 1);
 				numofNeuronWidth = (numofNeuronWidth-conv2.filterSize)/strideLength + 1; 
 			}
 			

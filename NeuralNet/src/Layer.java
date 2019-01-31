@@ -280,6 +280,8 @@ class HiddenConvolutionalLayer extends Layer {
 	int numofFilters; 
 	int strideLength;
 	String padding; 
+	double[][] fullyConvolvedDerivative; //change name
+	List<double[][]> filterList; 
 	
 	public HiddenConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding) {
 		this.numofFilters = numofFilters;

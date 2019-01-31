@@ -10,6 +10,7 @@ public class Gradients {
 	
 	double[][] runningTotal;
 	
+	List<double[][]> twoDGradientList = new ArrayList<double[][]>();
 	List<double[][][]> threeDGradientList = new ArrayList<double[][][]>(); 
 	
 	String gradientIdentifier;

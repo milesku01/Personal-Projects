@@ -9,24 +9,29 @@ public class NetworkTester {
 		NetworkTrainer trainer = new NetworkTrainer(); 
 	
 		
-		model.buildConvolutionalLayer(5, 5, 1, 5, 3, 1, 1, "zero-padding", "ImageText");
+		//model.buildConvolutionalLayer(3, 3, 1, 1, "zero-padding", "Images");
+		model.buildConvolutionalLayer(28, 28, 1, 2, 3, 1, 1, "zero-padding", "ImageText");
 		model.buildReluLayer(); 
-	//	model.buildPoolingLayer(2, "MAX"); //String does nothing for now
-		//model.buildPoolingLayer(2, "MAX");
+		//model.buildPoolingLayer(2, "MAX"); //String does nothing for now
+	//	model.buildPoolingLayer(2, "MAX");
+	//	model.buildPoolingLayer(2, "MAX");
+		
+		model.buildHiddenConvolutionalLayer(3, 3, 1, "zero-padding");
+		model.buildReluLayer();
 		
 		model.buildHiddenLayer("TANH"); 
-	//	model.buildHiddenLayer(5, "TANH");
-		model.buildOutputLayer(1, "LINEAR", "Targets"); 
+		//model.buildHiddenLayer(100, "TANH");
+		model.buildOutputLayer(10, "SOFTMAX", "Targets"); 
 		
 		
 		/*
 		model.buildInputLayer(2, 2, 1, "Inputs");
-		model.buildHiddenLayer(2, "TANH");
+		model.buildHiddenLayer(5, "TANH");
 		model.buildOutputLayer(1, "LINEAR");
 		*/
 		
 		weights.generateInitialWeights(model);
-		trainer.train(model, weights, 100, "ADAM"); 
+		trainer.train(model, weights, 1000, "ADAM"); 
 		
 		//modelSaver.saveModel(model, weights);
 		
@@ -35,3 +40,4 @@ public class NetworkTester {
     	//modelEvaluator.predict("save2", "testFile");
 	}
 }
+
