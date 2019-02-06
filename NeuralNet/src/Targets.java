@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
 public class Targets {
 	int numofOutputNeuron; 
@@ -33,6 +37,7 @@ public class Targets {
 	public void determineConvolutionalTargets(int numofSets, int targetSize, String targetFile) {
 		fr = new FileReader(strdFilePath + targetFile + ".txt");
 		targets = fr.readInputIntoArray(numofSets, targetSize);
+		shuffleTargets(targets); 
 		splitTargets(targets);
 	}
 	
@@ -60,8 +65,36 @@ public class Targets {
 			}
 			
 			testTargets = testData;
-			targets = trainingData; 
+			this.targets = trainingData; 
 		}
+	}
+	
+	private void shuffleTargets(double[][] targets) {
+
+	//	System.out.println(java.util.Arrays.deepToString(targets));
+		
+		double[] array; 
+		List<double[]> list = new ArrayList<double[]>();
+		
+		for(int i=0; i<targets.length; i++) {
+			array = new double[targets[0].length]; 
+			for(int j=0; j<targets[0].length; j++) {
+				array[j] = targets[i][j];
+			}
+			list.add(array);
+		}
+		
+		Collections.shuffle(list, new Random(1234));
+		
+		for(int i=0; i<targets.length; i++) {
+			for(int j=0; j<targets[0].length; j++) {
+				targets[i][j] = list.get(i)[j]; 
+			}
+		}
+		
+		System.out.println(java.util.Arrays.deepToString(targets));
+		
+		this.targets = targets; 
 	}
 	
 }

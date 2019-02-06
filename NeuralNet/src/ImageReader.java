@@ -14,7 +14,7 @@ public class ImageReader {
 		try{
 			File path = new File(fileName);
 			File[] files = path.listFiles();
-			imageCollection = new ArrayList<double[][][]>();
+			imageCollection = new ArrayList<double[][][]>(); 
 			
 			for (int i = 0; i < files.length; i++){
 			    if (files[i].isFile()){

@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 
 
@@ -13,6 +14,31 @@ public class Layer { // superclass
 	static int globalNumofSets;
 	String activation; 
 	ForwardPropagator fp = new ForwardPropagator(); 
+	
+	public int parseObjectTypeIntoInt(Layer layer) {
+		int output = 0;
+		if(layer instanceof InputLayer) {
+			output = 0;
+		} else if(layer instanceof HiddenLayer) {
+			output = 1;
+		} else if(layer instanceof ConvolutionalLayer) {
+			ConvolutionalLayer conv = (ConvolutionalLayer) layer; 
+			if(conv.type == "TEXT") {
+				output = 2; 
+			} else if(conv.type == "IMAGE") {
+				output = 7; 
+			}
+		} else if(layer instanceof HiddenConvolutionalLayer) {
+			output = 3;
+		} else if(layer instanceof PoolingLayer) {
+			output = 4;
+		} else if(layer instanceof ReluLayer) {
+			output = 5;
+		} else if(layer instanceof OutputLayer) {
+			output = 6; 
+		}
+		return output; 
+	}
 	
 }
 
@@ -164,6 +190,7 @@ class ConvolutionalLayer extends Layer {
 	int batchSize;
 	int channelDepth; 
 	String padding; 
+	String type; //text or images
 	String folderName;
 	String textFile; 
 	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\";
@@ -177,6 +204,7 @@ class ConvolutionalLayer extends Layer {
 		this.numofFilters = numofFilters;
 		this.filterSize = filterSize; 
 		this.strideLength = strideLength; 
+		batchSize = 1; //if need
 		this.padding = padding; 
 	}
 
@@ -188,6 +216,7 @@ class ConvolutionalLayer extends Layer {
 		this.strideLength = strideLength; 
 		this.batchSize = batchSize; 
 		this.padding = padding;	
+		type = "IMAGE";
 	}
 	
 	public ConvolutionalLayer(int height, int width, int channelDepth, int numofFilters, int filterSize, int strideLength,
@@ -201,17 +230,29 @@ class ConvolutionalLayer extends Layer {
 		this.strideLength = strideLength; 
 		this.batchSize = batchSize; 
 		this.padding = padding;	
+		type = "TEXT";
+	}
+	
+	public ConvolutionalLayer(int height, int width, int channelDepth, int numofFilters, int filterSize, int strideLength, String padding) {
+		imageHeight = height;
+		imageWidth = width;
+		this.channelDepth = channelDepth;
+		this.numofFilters = numofFilters;
+		this.filterSize = filterSize; 
+		this.strideLength = strideLength;
+		this.padding = padding;	
 	}
 	
 	
 	public void initializeLayer(ConvolutionalLayer convLayer) { //add error handling
 		fileReader = new FileReader(strdFilePath + folderName);
 		convLayer.imageList = (fileReader.readImagesIntoList()); 
+		convLayer.channelDepth = convLayer.imageList.get(0).length;
 		convLayer.imageHeight = convLayer.imageList.get(0)[0].length;
 		convLayer.imageWidth = convLayer.imageList.get(0)[0][0].length;
 		numofSets = convLayer.imageList.size();
 		globalNumofSets = numofSets; 
-		//shuffleArray(convLayer); 
+		shuffleArray(convLayer); 
 		
 		if(imageList.size() > 90) {
 			trainTestSplit(convLayer); 
@@ -224,10 +265,11 @@ class ConvolutionalLayer extends Layer {
 	
 	public void initializeLayerText(ConvolutionalLayer convLayer) {
 		fileReader = new FileReader(strdFilePath + textFile + ".txt");
+		convLayer.channelDepth =  channelDepth; 
 		convLayer.imageList = (fileReader.readImageTextIntoList(channelDepth, imageHeight, imageWidth)); 
 		numofSets = convLayer.imageList.size();
 		globalNumofSets = numofSets; 
-		//shuffleArray(convLayer); 
+	//	shuffleArray(convLayer); 
 		if(imageList.size() > 90) {
 			trainTestSplit(convLayer); 
 			imageList.clear();
@@ -239,7 +281,7 @@ class ConvolutionalLayer extends Layer {
 	
 	
 	public void shuffleArray(ConvolutionalLayer conv) {
-		Collections.shuffle(conv.imageList);
+		Collections.shuffle(conv.imageList, new Random(1234));
 	}
 	
 	public void trainTestSplit(ConvolutionalLayer conv) {
@@ -250,7 +292,6 @@ class ConvolutionalLayer extends Layer {
 		conv.trainingImages = new ArrayList<double[][][]>();
 		conv.testingImages = new ArrayList<double[][][]>();
 		
-		System.out.println(numofSets);
 		
 		for(int i=0; i<trainingSize; i++) {
 			conv.trainingImages.add(imageList.get(counter));

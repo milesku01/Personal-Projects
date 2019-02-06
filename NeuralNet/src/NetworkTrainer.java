@@ -33,19 +33,23 @@ public class NetworkTrainer {
 			inputLayer = (InputLayer) layers.get(0);
 			batchSize = inputLayer.batchSize;
 			numofBatches = calculateNumofBatches();
+			if(layers.get(0).layerValue.length % batchSize != 0) {
+				remainingBatchSize = layers.get(0).layerValue.length % batchSize;
+			} else {
+				remainingBatchSize = batchSize; 
+			}
 
 		} else if (layers.get(0) instanceof ConvolutionalLayer) {
 			convLayer = (ConvolutionalLayer) layers.get(0);
 			filterList = weights.filterList;
 			numofBatches = layers.get(0).globalNumofSets;
+			
+			if(numofBatches > 90) {
+				numofBatches *= .7; 
+			} 
 			convBatchSize = convLayer.batchSize;
 			batchSize = 1;
-		}
-
-		if ((numofBatches % batchSize) == 0) {
-			remainingBatchSize = batchSize;
-		} else {
-			remainingBatchSize = (layers.get(0).layerValue.length % batchSize);
+			remainingBatchSize = 1;
 		}
 
 		activatorStrings = new String[layers.size() - 1];
@@ -64,6 +68,7 @@ public class NetworkTrainer {
 
 		// int iterations = 10;
 
+		System.out.println("  " + targets.targets.length);
 		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length];
 
 		fp.constructForwardPropagationObjects(layers, weights);
@@ -105,7 +110,7 @@ public class NetworkTrainer {
 		}
 	}
 
-	private String getTrainingTime(long startTime, long endTime) {
+	public String getTrainingTime(long startTime, long endTime) {
 		Double n = (double) (endTime - startTime) / (double) 1000000000;
 		DecimalFormat df = new DecimalFormat("#.####");
 		df.setRoundingMode(RoundingMode.CEILING);
@@ -117,17 +122,28 @@ public class NetworkTrainer {
 		double rawBatchNum = Math.ceil((double) layers.get(0).layerValue.length / (double) batchSize);
 		return (int) rawBatchNum;
 	}
+	
+	public void printArray(double[][] d) {
+		for(int i=0; i<d.length; i++) {
+			for(int j=0; j<d[0].length; j++) {
+				System.out.print(Math.round(d[i][j] * 1000) / 1000.0 + " ");
+			}
+		}
+		System.out.println();
+	}
 
 	public void forwardPropagation() {
 		for (int i = 0; i < layers.size() - 1; i++) {
 			layers.get(i + 1).layerValue = fp.propagate(layers.get(i), layers.get(i + 1)); // nextLayer, previousLayer
 		}
-		// System.out.println(java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
+		
+		System.out.print("OutputArray ");
+		printArray(layers.get(layers.size()-1).layerValue); 
 	}
 
 	int targetPositionCounter = 0;
 
-	private void determineTargetForError() {
+	private void determineTargetForError() { 
 
 		if (targetPositionCounter != (batchSize * (numofBatches - 1))) {
 
@@ -167,8 +183,11 @@ public class NetworkTrainer {
 				layers.get(i + 1).layerValue = fp.propagateTest(layers.get(i), layers.get(i + 1));
 			}
 			returnValue = layers.get(layers.size() - 1).layerValue;
+			
 		} else if (layers.get(0) instanceof ConvolutionalLayer) {
+			System.out.println(((ConvolutionalLayer) layers.get(0)).testingImages.size());
 			returnValue = new double[((ConvolutionalLayer) layers.get(0)).testingImages.size()][targets.targetSize];
+			
 			for (int i = 0; i < ((ConvolutionalLayer) layers.get(0)).testingImages.size(); i++) {
 				for (int j = 0; j < layers.size() - 1; j++) {
 					layers.get(j + 1).layerValue = fp.propagateTest(layers.get(j), layers.get(j + 1));
@@ -183,7 +202,7 @@ public class NetworkTrainer {
 	}
 
 	public void formatOutput(int i) {
-		if (i % numofBatches == 0) {
+	//	if (i % numofBatches == 0) {
 			System.out.println();
 
 			if (layers.get(0).globalNumofSets > 90) {
@@ -202,14 +221,14 @@ public class NetworkTrainer {
 
 			// System.out.println("Targets: " +
 			// java.util.Arrays.deepToString(targets.targets));
-			// System.out.println();
+			//System.out.println();
 			// for (int j = 0; j < weightList.size(); j++) {
 			// System.out.println("weight " + j +
 			// java.util.Arrays.deepToString(weightList.get(j)));
 			// }
 
 			System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); //
-		}
+		//}
 	}
 
 	private double computeAccuracy() {
@@ -261,8 +280,10 @@ public class NetworkTrainer {
 						result[i][j] -= .000000001;
 					}
 
-					loss += ((target[i][j] * Math.log(result[i][j]))
-							+ ((1.0 - target[i][j]) * Math.log(1.0 - result[i][j])));
+				//	loss += ((target[i][j] * Math.log(result[i][j]))
+					//		+ ((1.0 - target[i][j]) * Math.log(1.0 - result[i][j])));
+					
+					loss += (target[i][j]*Math.log(result[i][j]));
 				}
 			}
 			loss *= (-1.0 / (double) result.length);

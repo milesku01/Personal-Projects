@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BackPropagator {
-	final double regularize = 0.0001;
+	final double regularize = 0.001;
 	int objectTracker = 0;
 	static int layerCounter;
 	static int batchSize;
@@ -298,7 +298,10 @@ class OutputBackPropagator extends BackPropagator {
 			batchCounterTarget = 0;
 			currentTargetBatch = batch;
 		}
-
+		
+		System.out.print("TARGETBATCH ");
+		nt.printArray(batch);
+		
 		return batch;
 	}
 

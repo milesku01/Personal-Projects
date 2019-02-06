@@ -4,10 +4,10 @@ import java.util.List;
 public class ForwardPropagator {
 	int objectTracker = 0;
 	static int layerCounter = 0;
+	static int filterCounter = 0;
 	int testObjectTracker = 0;
 	static int batchSize = 1;
 	static int remainingBatchSize = 0;
-	static int hiddenConvolutionalSize = 0;
 	double[][] layerValue;
 	double[][] currentBatch;
 	ForwardPropagator forwardPropObj;
@@ -31,6 +31,7 @@ public class ForwardPropagator {
 		if (objectTracker == (propagationObjects.size() - 1)) {
 			objectTracker = 0;
 			layerCounter = 0;
+			filterCounter = 0; 
 		} else {
 			objectTracker++;
 		}
@@ -39,8 +40,10 @@ public class ForwardPropagator {
 	}
 
 	public double[][] propagateTest(Layer layer, Layer nextLayer) {
-		if (testObjectTracker == 0)
+		if (testObjectTracker == 0) {
 			layerCounter = 0;
+			filterCounter = 0; 
+		}
 
 		layerValue = testPropagationObjects.get(testObjectTracker).propagate(layer, nextLayer);
 		
@@ -52,6 +55,7 @@ public class ForwardPropagator {
 		if (testObjectTracker == (testPropagationObjects.size() - 1)) {
 			testObjectTracker = 0;
 			layerCounter = 0;
+			filterCounter = 0; 
 		} else {
 			testObjectTracker++;
 		}
@@ -83,7 +87,6 @@ public class ForwardPropagator {
 				forwardPropObj = new ReluPropagator();
 			} else if (layerList.get(i) instanceof HiddenConvolutionalLayer) {
 				forwardPropObj = new HiddenConvolutionalPropagator();
-				hiddenConvolutionalSize++;
 			}
 
 			propagationObjects.add(forwardPropObj);
@@ -94,7 +97,6 @@ public class ForwardPropagator {
 				}
 			}
 		}
-		System.out.println(propagationObjects.size());
 	}
 
 	private void setupConstants(List<Layer> layerList, Weights weights) {
@@ -252,7 +254,7 @@ class TestPropagator extends ForwardPropagator {
 			getBatch(conv);
 			double[][][] image = conv.currentImage;
 		
-			List<double[][][]> filters = weights.filterList.get(0).threeDFilterArray;
+			List<double[][][]> filters = weights.filterList.get(filterCounter).threeDFilterArray;
 
 			int biasTerm = 1;
 			int tracker = 0;
@@ -290,6 +292,7 @@ class TestPropagator extends ForwardPropagator {
 				tracker++;
 			}
 			
+			filterCounter++;
 			nextLayer.testData = convOutputArrayAugmented;
 		}
 		return nextLayer.testData;
@@ -343,7 +346,7 @@ class ConvolutionalPropagator extends ForwardPropagator {
 		getBatch(conv);
 		image = conv.currentImage;
 
-		filters = weights.filterList.get(0).threeDFilterArray;
+		filters = weights.filterList.get(filterCounter).threeDFilterArray;
 
 		int biasTerm = 1;
 		int tracker = 0;
@@ -380,6 +383,8 @@ class ConvolutionalPropagator extends ForwardPropagator {
 
 			tracker++;
 		}
+		
+		filterCounter++;
 
 		nextLayer.preActivatedValue = convOutputArrayAugmented;
 		nextLayer.layerValue = convOutputArrayAugmented;
@@ -418,7 +423,9 @@ class HiddenConvolutionalPropagator extends ForwardPropagator {
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		conv = (HiddenConvolutionalLayer) layer;
 		input = layer.layerValue;
-		filters = weights.filterList.get(getFilterBatch()).twoDFilterArray;
+	
+		
+		filters = weights.filterList.get(filterCounter).twoDFilterArray;
 
 		int biasTerm = 1;
 		int tracker = 0;
@@ -451,31 +458,15 @@ class HiddenConvolutionalPropagator extends ForwardPropagator {
 			}
 			tracker++;
 		}
+		
+		filterCounter++; 
 
 		nextLayer.layerValue = convOutputArrayAugmented;
 
 		return convOutputArrayAugmented;
 	}
 
-	int batchCounter = 0;
-
-	private int getFilterBatch() {
-		if (!hasReachedEndofBatch(hiddenConvolutionalSize)) {
-			batchCounter++;
-		} else {
-			batchCounter = 1;
-		}
-
-		return batchCounter;
-	}
-
-	private boolean hasReachedEndofBatch(int numofBatches) {
-		if (numofBatches == batchCounter) {
-			return true;
-		} else {
-			return false;
-		}
-	}
+	
 
 }
 
