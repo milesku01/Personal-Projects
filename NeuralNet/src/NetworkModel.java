@@ -2,6 +2,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NetworkModel {
+	static int weightListCount = 0;
+	static int filterCount = 0; 
+	static int inferedDepth = 0;
+
 	public List<Layer> layerList = new ArrayList<Layer>();
 	public Targets targets = new Targets();
 
@@ -9,17 +13,20 @@ public class NetworkModel {
 		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, batchSize, filePath); // no activation
 		if (layerList.isEmpty())
 			inputLayer.initializeLayer(inputLayer, targets);
+		weightListCount++; 
 		layerList.add(inputLayer);
 
 	}
 
 	public void buildHiddenLayer(int numofNeurons, String activation) {
 		HiddenLayer hiddenLayer = new HiddenLayer(numofNeurons, activation);
+		weightListCount++;
 		layerList.add(hiddenLayer);
 	}
 
 	public void buildHiddenLayer(String activation) {
 		HiddenLayer hiddenLayer = new HiddenLayer(getInferedNumOfNeurons(layerList.size()), activation);
+		weightListCount++; 
 		layerList.add(hiddenLayer);
 	}
 
@@ -66,6 +73,8 @@ public class NetworkModel {
 	public void buildConvolutionalLayer(int numofFilters, int filterSize, int strideLength, int batchSize, String padding, String imageFile) {
 		ConvolutionalLayer convLayer = new ConvolutionalLayer(numofFilters, filterSize, strideLength, batchSize, padding, imageFile);
 		convLayer.initializeLayer(convLayer);
+		inferedDepth = 3;
+		filterCount++;  
 		layerList.add(convLayer);
 	}
 	
@@ -73,11 +82,14 @@ public class NetworkModel {
 			int filterSize, int strideLength, int batchSize, String padding, String textFile) {
 		ConvolutionalLayer convLayer = new ConvolutionalLayer(height, width, channelDepth, numofFilters, filterSize, strideLength, batchSize, padding, textFile);
 		convLayer.initializeLayerText(convLayer);
+		inferedDepth = channelDepth; 
+		filterCount++; 
 		layerList.add(convLayer);
 	}
 
 	public void buildHiddenConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding) {
 		HiddenConvolutionalLayer hiddenConvLayer = new HiddenConvolutionalLayer(numofFilters, filterSize, strideLength, padding); 
+		filterCount++; 
 		layerList.add(hiddenConvLayer);
 	}
 

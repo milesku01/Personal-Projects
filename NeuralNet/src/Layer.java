@@ -10,6 +10,8 @@ public class Layer { // superclass
 	double[][] currentBatch;
 	double[][] preActivatedValue; 
 	double[][] testData; 
+	double[][][] convValue;
+	double[][][] preActivatedConvValue; 
 	int layerSize;
 	static int globalNumofSets;
 	String activation; 
@@ -113,7 +115,7 @@ class InputLayer extends Layer {
 	}
 	
 	private double[][] shuffleArray(double[][] inputLayer) {
-		List<double[]> list = new ArrayList<double[]>();
+		List<double[]> list = new ArrayList<double[]>(inputLayer.length);
 		double[] array = null; 
 		
 		for(int i=0; i<inputLayer.length; i++) {
@@ -123,7 +125,9 @@ class InputLayer extends Layer {
 			}
 			list.add(array);
 		}
+		
 		Collections.shuffle(list);
+		
 		for(int i=0; i<inputLayer.length; i++) {
 			for(int j=0; j<inputLayer[0].length; j++) {
 				inputLayer[i][j] = list.get(i)[j];
@@ -199,6 +203,7 @@ class ConvolutionalLayer extends Layer {
 	List<double[][][]> trainingImages;
 	List<double[][][]> testingImages; 
 	FileReader fileReader;
+	Normalizer normalizer = new Normalizer(); 
 	
 	public ConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding) {
 		this.numofFilters = numofFilters;
@@ -254,6 +259,8 @@ class ConvolutionalLayer extends Layer {
 		globalNumofSets = numofSets; 
 		shuffleArray(convLayer); 
 		
+		imageList = normalizer.normalizeImagesZscore(imageList);
+		
 		if(imageList.size() > 90) {
 			trainTestSplit(convLayer); 
 			imageList.clear();
@@ -269,7 +276,10 @@ class ConvolutionalLayer extends Layer {
 		convLayer.imageList = (fileReader.readImageTextIntoList(channelDepth, imageHeight, imageWidth)); 
 		numofSets = convLayer.imageList.size();
 		globalNumofSets = numofSets; 
-	//	shuffleArray(convLayer); 
+		shuffleArray(convLayer); 
+		
+		imageList = normalizer.normalizeImagesZscore(imageList);
+		
 		if(imageList.size() > 90) {
 			trainTestSplit(convLayer); 
 			imageList.clear();
@@ -281,7 +291,7 @@ class ConvolutionalLayer extends Layer {
 	
 	
 	public void shuffleArray(ConvolutionalLayer conv) {
-		Collections.shuffle(conv.imageList, new Random(1234));
+		Collections.shuffle(conv.imageList, new Random(5793));
 	}
 	
 	public void trainTestSplit(ConvolutionalLayer conv) {
@@ -289,8 +299,8 @@ class ConvolutionalLayer extends Layer {
 		int testingSize = numofSets-trainingSize;
 		int counter = 0;
 		
-		conv.trainingImages = new ArrayList<double[][][]>();
-		conv.testingImages = new ArrayList<double[][][]>();
+		conv.trainingImages = new ArrayList<double[][][]>(trainingSize);
+		conv.testingImages = new ArrayList<double[][][]>(testingSize);
 		
 		
 		for(int i=0; i<trainingSize; i++) {
@@ -308,7 +318,7 @@ class ConvolutionalLayer extends Layer {
 class PoolingLayer extends Layer {
 	int poolSize;
 	String poolType; 
-	double[][] expandedLayer;
+	double[][][] expandedLayer;
 	public PoolingLayer(int poolSize, String poolType) {
 		this.poolSize = poolSize;
 		this.poolType = poolType;
@@ -318,11 +328,12 @@ class PoolingLayer extends Layer {
 
 class HiddenConvolutionalLayer extends Layer {
 	int filterSize; 
+	int channelDepth; 
 	int numofFilters; 
 	int strideLength;
 	String padding; 
-	double[][] fullyConvolvedDerivative; //change name
-	List<double[][]> filterList; 
+	double[][][] fullyConvolvedDerivative; //change name
+	List<double[][][]> filterList; 
 	
 	public HiddenConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding) {
 		this.numofFilters = numofFilters;

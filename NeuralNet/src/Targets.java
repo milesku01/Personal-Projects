@@ -84,7 +84,7 @@ public class Targets {
 			list.add(array);
 		}
 		
-		Collections.shuffle(list, new Random(1234));
+		Collections.shuffle(list, new Random(5793));
 		
 		for(int i=0; i<targets.length; i++) {
 			for(int j=0; j<targets[0].length; j++) {

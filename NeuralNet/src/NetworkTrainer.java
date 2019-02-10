@@ -20,7 +20,7 @@ public class NetworkTrainer {
 	ForwardPropagator fp = new ForwardPropagator();
 	BackPropagator bp = new BackPropagator();
 	Layer layer = new Layer();
-	double[][] fullFinalLayer;
+	double[][] batchPart;
 	static int numofBatches;
 	String optimizerString;
 	String[] activatorStrings;
@@ -68,15 +68,13 @@ public class NetworkTrainer {
 
 		// int iterations = 10;
 
-		System.out.println("  " + targets.targets.length);
-		fullFinalLayer = new double[targets.targets.length][targets.targets[0].length];
-
 		fp.constructForwardPropagationObjects(layers, weights);
 		bp.constructBackwardPropagationObjects(model, weights);
 
 		long startTime = System.nanoTime();
-		long time1;
-		long time2;
+		long start; 
+		long end; 
+		
 		for (int i = 1; i <= iterations + 1; i++) {
 
 			if (layers.get(0) instanceof InputLayer) {
@@ -86,8 +84,10 @@ public class NetworkTrainer {
 				if (i != iterations + 1)
 					backPropagation();
 			} else if (layers.get(0) instanceof ConvolutionalLayer) {
+				
 				for (int j = 0; j < convBatchSize; j++) {
 					forwardPropagation();
+					
 					if (i != iterations + 1)
 						convolutionalBackPropagation();
 				}
@@ -98,6 +98,10 @@ public class NetworkTrainer {
 			}
 
 			formatOutput(i);
+		}
+		
+		if(layers.get(0).globalNumofSets > 90) {
+			determineAccuracy();
 		}
 
 		long endTime = System.nanoTime();
@@ -126,7 +130,7 @@ public class NetworkTrainer {
 	public void printArray(double[][] d) {
 		for(int i=0; i<d.length; i++) {
 			for(int j=0; j<d[0].length; j++) {
-				System.out.print(Math.round(d[i][j] * 1000) / 1000.0 + " ");
+				System.out.print(Math.round(d[i][j] * 10000) / 10000.0 + " ");
 			}
 		}
 		System.out.println();
@@ -134,7 +138,11 @@ public class NetworkTrainer {
 
 	public void forwardPropagation() {
 		for (int i = 0; i < layers.size() - 1; i++) {
-			layers.get(i + 1).layerValue = fp.propagate(layers.get(i), layers.get(i + 1)); // nextLayer, previousLayer
+			if(layers.get(i) instanceof InputLayer || layers.get(i) instanceof HiddenLayer) {
+				layers.get(i + 1).layerValue = fp.propagate(layers.get(i), layers.get(i + 1)); // nextLayer, previousLayer
+			} else {	
+				layers.get(i + 1).convValue = fp.propagateConv(layers.get(i), layers.get(i + 1)); // nextLayer, previousLayer
+			}
 		}
 		
 		System.out.print("OutputArray ");
@@ -142,21 +150,29 @@ public class NetworkTrainer {
 	}
 
 	int targetPositionCounter = 0;
+	double[][] targetPart; 
 
 	private void determineTargetForError() { 
 
 		if (targetPositionCounter != (batchSize * (numofBatches - 1))) {
+			batchPart = new double[batchSize][targets.targetSize]; 
+			targetPart = new double[batchSize][targets.targetSize]; 
 
 			for (int i = 0; i < batchSize; i++) {
 				for (int j = 0; j < targets.targetSize; j++) {
-					fullFinalLayer[i + targetPositionCounter][j] = layers.get(layers.size() - 1).layerValue[i][j];
+					batchPart[i][j] = layers.get(layers.size() - 1).layerValue[i][j];
+					targetPart[i][j] = targets.targets[i+targetPositionCounter][j];
 				}
 			}
 			targetPositionCounter += batchSize;
 		} else {
+			batchPart = new double[remainingBatchSize][targets.targetSize];
+			targetPart = new double[batchSize][targets.targetSize]; 
+			
 			for (int i = 0; i < remainingBatchSize; i++) {
 				for (int j = 0; j < targets.targetSize; j++) {
-					fullFinalLayer[i + targetPositionCounter][j] = layers.get(layers.size() - 1).layerValue[i][j];
+					batchPart[i][j] = layers.get(layers.size() - 1).layerValue[i][j];
+					targetPart[i][j] = targets.targets[i+targetPositionCounter][j];
 				}
 			}
 			targetPositionCounter = 0;
@@ -204,11 +220,7 @@ public class NetworkTrainer {
 	public void formatOutput(int i) {
 	//	if (i % numofBatches == 0) {
 			System.out.println();
-
-			if (layers.get(0).globalNumofSets > 90) {
-				 determineAccuracy();
-			}
-
+			
 			// System.out.println("Current batch " +
 			// java.util.Arrays.deepToString(layers.get(0).currentBatch));
 
@@ -267,8 +279,8 @@ public class NetworkTrainer {
 
 	public double reportLoss(Layer finalLayer) {
 		double loss = 0;
-		double[][] result = copyArray(fullFinalLayer);
-		double[][] target = copyArray(targets.targets);
+		double[][] result = copyArray(batchPart);
+		double[][] target = copyArray(targetPart);
 
 		if (finalLayer.activation.equals("SOFTMAX")) {
 			for (int i = 0; i < result.length; i++) {
@@ -289,7 +301,9 @@ public class NetworkTrainer {
 			loss *= (-1.0 / (double) result.length);
 		} else {
 			for (int i = 0; i < result.length; i++) {
-				loss += Math.pow((target[i][0] - result[i][0]), 2);
+				for(int j=0; j<result[0].length; j++) {
+					loss += Math.pow((target[i][j] - result[i][j]), 2);
+				}
 			}
 			loss *= ((1 / (double) result.length) * (1.0 / 2.0));
 		}

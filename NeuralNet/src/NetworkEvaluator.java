@@ -66,8 +66,6 @@ public class NetworkEvaluator {
 		weights.weightList = weightList;
 		weights.filterList = filterList;
 		
-		System.out.println(filterList.get(0).threeDFilterArray.get(0).length);
-		
 		nt.fp.constructForwardPropagationObjects(layerListObjects, weights);
 		
 		forwardPropagationConv(); 
@@ -217,6 +215,7 @@ public class NetworkEvaluator {
 				listOfValues.remove(0);
 				ConvolutionalLayer convLayer = new ConvolutionalLayer(inputHeight, inputWidth, inputChannels,
 						numofFilters, filterSize, strideLength, padding);
+				convLayer.type = "TEXT";
 				layerListObjects.add(convLayer);
 				
 			} else if (layerTypes[i] == 3) { //hiddenConv
@@ -261,6 +260,7 @@ public class NetworkEvaluator {
 				listOfValues.remove(0);
 				ConvolutionalLayer conv = new ConvolutionalLayer(numofFilters, filterSize, strideLength, padding);
 				conv.channelDepth = 3; //may need to change
+				conv.type = "IMAGE";
 				
 				layerListObjects.add(conv);
 			}
@@ -273,30 +273,37 @@ public class NetworkEvaluator {
 				Filters filter = new Filters(conv.numofFilters, conv.filterSize);
 				double[][][] array = new double[conv.channelDepth][conv.filterSize][conv.filterSize];
 
-				for (int j = 0; j < array.length; j++) {
-					for (int k = 0; k < array[0].length; k++) {
-						for (int l = 0; l < array[0][0].length; l++) {
-							array[j][k][l] = listOfValues.get(0);
-							listOfValues.remove(0);
+				for(int h=0; h < conv.numofFilters; h++) {
+					for (int j = 0; j < array.length; j++) {
+						for (int k = 0; k < array[0].length; k++) {
+							for (int l = 0; l < array[0][0].length; l++) {
+								array[j][k][l] = listOfValues.get(0);
+								listOfValues.remove(0);
+							}
 						}
 					}
+					filter.threeDFilterArray.add(array);
 				}
-				filter.threeDFilterArray.add(array);
-				filterList.add(filter);
+			filterList.add(filter);
 
 			} else if (layerListObjects.get(i) instanceof HiddenConvolutionalLayer) {
 				HiddenConvolutionalLayer hidden = (HiddenConvolutionalLayer) layerListObjects.get(i);
 				Filters filter = new Filters(hidden.numofFilters, hidden.filterSize);
 				double[][] array = new double[hidden.filterSize][hidden.filterSize];
-
-				for (int j = 0; j < array.length; j++) {
-					for (int k = 0; k < array[0].length; k++) {
-						array[j][k] = listOfValues.get(0);
-						listOfValues.remove(0);
+				
+				for(int l=0; l<hidden.numofFilters; l++) {
+					for (int j = 0; j < array.length; j++) {
+						for (int k = 0; k < array[0].length; k++) {
+							array[j][k] = listOfValues.get(0);
+							listOfValues.remove(0);
+						}
 					}
+				
+					filter.twoDFilterArray.add(array);
 				}
-				filter.twoDFilterArray.add(array);
+				
 				filterList.add(filter);
+				
 			} else if (layerListObjects.get(i) instanceof HiddenLayer) {
 				HiddenLayer hidden = (HiddenLayer) layerListObjects.get(i);
 
@@ -323,7 +330,8 @@ public class NetworkEvaluator {
 				}
 			}
 		}
-
+		System.out.println("List size " + listOfValues.size());
+		
 	}
 
 	public void acquireTestValues(String testPath) {
@@ -348,31 +356,22 @@ public class NetworkEvaluator {
 	public void acquireConvTestValues(String testPath) {
 		
 		try {
-			File path = new File(testFilePath + testPath);
-			File[] files = path.listFiles();
-			
 			ConvolutionalLayer conv = (ConvolutionalLayer) layerListObjects.get(0);
 			
-
-			if (files[0].getName().endsWith(".txt")) {
+			System.out.println(conv.type);
+	
+			if (conv.type == "TEXT") {
 				fr = new FileReader(testFilePath + testPath + ".txt");
 				imageList = (fr.readImageTextIntoList(conv.channelDepth, conv.imageHeight, conv.imageWidth));
 
-			} else if (files[0].getName().endsWith(".jpg") || files[0].getName().endsWith(".png")) {
+			} else if (conv.type == "IMAGE") {
 				fr = new FileReader(testFilePath + testPath);
 				imageList = (fr.readImagesIntoList());
 			}
 
 		} catch (Exception e) {
-			System.out.println("ERROR");
+			System.out.println(e.getMessage());
 		}
-/*
-		fr = new FileReader(testFilePath + testPath + ".txt");
-		fr.initializeFileReader(); // initializes scanner
-		fr.readFileIntoList();
-		listOfValues = fr.valuesFromFile;
-*/
-		// int numofSets
 	}
 
 	public double[][] appendBiasColumn(double[][] layer) {

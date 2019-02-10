@@ -10,9 +10,10 @@ public class ForwardPropagator {
 	static int remainingBatchSize = 0;
 	double[][] layerValue;
 	double[][] currentBatch;
+	double[][][] convValue;
 	ForwardPropagator forwardPropObj;
-	List<ForwardPropagator> propagationObjects = new ArrayList<ForwardPropagator>();
-	List<ForwardPropagator> testPropagationObjects = new ArrayList<ForwardPropagator>();
+	List<ForwardPropagator> propagationObjects;
+	List<ForwardPropagator> testPropagationObjects;
 	static List<Layer> layerList = new ArrayList<Layer>();
 	static List<double[][]> weightList = new ArrayList<double[][]>();
 	static InputLayer inputLayer;
@@ -23,15 +24,16 @@ public class ForwardPropagator {
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		layerValue = propagationObjects.get(objectTracker).propagate(layer, nextLayer);
 
-		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer || layer instanceof HiddenConvolutionalLayer)
-				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
-			layerValue = flatten(layerValue);
-		}
+		// if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer ||
+		// layer instanceof ReluLayer || layer instanceof HiddenConvolutionalLayer)
+		// && (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
+		// layerValue = flatten(layerValue);
+		// }
 
 		if (objectTracker == (propagationObjects.size() - 1)) {
 			objectTracker = 0;
 			layerCounter = 0;
-			filterCounter = 0; 
+			filterCounter = 0;
 		} else {
 			objectTracker++;
 		}
@@ -39,23 +41,44 @@ public class ForwardPropagator {
 		return layerValue;
 	}
 
+	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
+		convValue = propagationObjects.get(objectTracker).propagateConv(layer, nextLayer);
+
+		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer
+				|| layer instanceof HiddenConvolutionalLayer)
+				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
+			layerValue = flatten(convValue);
+		}
+
+		if (objectTracker == (propagationObjects.size() - 1)) {
+			objectTracker = 0;
+			layerCounter = 0;
+			filterCounter = 0;
+		} else {
+			objectTracker++;
+		}
+
+		return convValue;
+
+	}
+
 	public double[][] propagateTest(Layer layer, Layer nextLayer) {
 		if (testObjectTracker == 0) {
 			layerCounter = 0;
-			filterCounter = 0; 
+			filterCounter = 0;
 		}
 
 		layerValue = testPropagationObjects.get(testObjectTracker).propagate(layer, nextLayer);
-		
-		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer)
-				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
-			layerValue = flatten(layerValue);
-		}
+
+//		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer)
+//				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
+//			layerValue = flatten(layerValue);
+//		}
 
 		if (testObjectTracker == (testPropagationObjects.size() - 1)) {
 			testObjectTracker = 0;
 			layerCounter = 0;
-			filterCounter = 0; 
+			filterCounter = 0;
 		} else {
 			testObjectTracker++;
 		}
@@ -63,10 +86,13 @@ public class ForwardPropagator {
 		return layerValue;
 	}
 
+	public double[][][] propagateConvTest(Layer layer, Layer nextLayer) {
+		return null;
+	}
+
 	public void constructForwardPropagationObjects(List<Layer> layerList, Weights weights) { // only occur once
 
 		setupConstants(layerList, weights);
-		
 
 		if (layerList.get(0).globalNumofSets > 90) {
 			forwardPropObj = new TestPropagator();
@@ -108,6 +134,9 @@ public class ForwardPropagator {
 			remainingBatchSize = inputLayer.remainingBatchSize;
 		}
 		ForwardPropagator.weightList = weights.weightList;
+		propagationObjects = new ArrayList<ForwardPropagator>(layerList.size());
+		testPropagationObjects = new ArrayList<ForwardPropagator>(layerList.size());
+
 	}
 
 	public double[][] appendBiasColumn(Layer layer) {
@@ -141,14 +170,29 @@ public class ForwardPropagator {
 		return copy;
 	}
 
-	public double[][] flatten(double[][] input) {
-		int counter = 0;
-		double[][] output = new double[1][input.length * input[0].length];
+	public double[][][] copyThreeDArray(double[][][] input) {
+		double[][][] copy = new double[input.length][input[0].length][input[0][0].length];
 
 		for (int i = 0; i < input.length; i++) {
 			for (int j = 0; j < input[0].length; j++) {
-				output[0][counter] = input[i][j];
-				counter++;
+				for (int k = 0; k < input[0][0].length; k++) {
+					copy[i][j][k] = input[i][j][k];
+				}
+			}
+		}
+		return copy;
+	}
+
+	public double[][] flatten(double[][][] input) {
+		int counter = 0;
+		double[][] output = new double[1][input.length * input[0].length * input[0][0].length];
+
+		for (int i = 0; i < input.length; i++) {
+			for (int j = 0; j < input[0].length; j++) {
+				for (int k = 0; k < input[0][0].length; k++) {
+					output[0][counter] = input[i][j][k];
+					counter++;
+				}
 			}
 		}
 		return output;
@@ -240,23 +284,23 @@ class TestPropagator extends ForwardPropagator {
 
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		double[][] testValue;
-	
-		if(layer instanceof InputLayer) {
+
+		if (layer instanceof InputLayer) {
 			if (counter == 0)
 				layer.testData = appendBiasColumn(layer);
 			counter++;
 			testValue = nt.matrixMultiplication(layer.testData, weightList.get(0));
 			nextLayer.layerValue = testValue;
 			nextLayer.testData = activate(nextLayer);
-			
-		} else if (layer instanceof ConvolutionalLayer) { 
-			ConvolutionalLayer conv = (ConvolutionalLayer)layer;
+
+		} else if (layer instanceof ConvolutionalLayer) {
+			ConvolutionalLayer conv = (ConvolutionalLayer) layer;
 			getBatch(conv);
 			double[][][] image = conv.currentImage;
-		
+
 			List<double[][][]> filters = weights.filterList.get(filterCounter).threeDFilterArray;
 
-			int biasTerm = 1;
+			double biasTerm = .01;
 			int tracker = 0;
 			int colorChannels = image.length;
 			int filterSize = filters.get(0)[0].length;
@@ -278,7 +322,8 @@ class TestPropagator extends ForwardPropagator {
 								}
 							}
 						}
-						convOutputArraySum[cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
+						convOutputArraySum[cornerPosY / strideLength][cornerPosX / strideLength] = convOutput
+								+ biasTerm;
 						convOutput = 0;
 					}
 				}
@@ -291,13 +336,13 @@ class TestPropagator extends ForwardPropagator {
 
 				tracker++;
 			}
-			
+
 			filterCounter++;
 			nextLayer.testData = convOutputArrayAugmented;
 		}
 		return nextLayer.testData;
 	}
-	
+
 	int batchCounter = 0;
 
 	private void getBatch(ConvolutionalLayer conv) {
@@ -341,7 +386,8 @@ class ConvolutionalPropagator extends ForwardPropagator {
 	double[][][] image;
 	List<double[][][]> filters;
 
-	public double[][] propagate(Layer layer, Layer nextLayer) { // called for every convolutional layer
+	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
+
 		conv = (ConvolutionalLayer) layer;
 		getBatch(conv);
 		image = conv.currentImage;
@@ -349,7 +395,6 @@ class ConvolutionalPropagator extends ForwardPropagator {
 		filters = weights.filterList.get(filterCounter).threeDFilterArray;
 
 		int biasTerm = 1;
-		int tracker = 0;
 		int colorChannels = image.length;
 		int filterSize = filters.get(0)[0].length;
 		int strideLength = conv.strideLength;
@@ -357,12 +402,13 @@ class ConvolutionalPropagator extends ForwardPropagator {
 		int numofYCycles = (image[0].length - filterSize) / strideLength + 1;
 		double convOutput = 0;
 
-		double[][] convOutputArraySum = new double[numofYCycles][numofXCycles];
-		double[][] convOutputArrayAugmented = new double[numofYCycles * filters.size()][numofXCycles];
+		double[][][] convOutputArraySum = new double[filters.size()][numofYCycles][numofXCycles];
 
 		for (int h = 0; h < filters.size(); h++) {
+
 			for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
 				for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
+
 					for (int i = 0; i < colorChannels; i++) {
 						for (int j = 0; j < filterSize; j++) {
 							for (int k = 0; k < filterSize; k++) {
@@ -370,26 +416,18 @@ class ConvolutionalPropagator extends ForwardPropagator {
 							}
 						}
 					}
-					convOutputArraySum[cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
+					convOutputArraySum[h][cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
 					convOutput = 0;
 				}
 			}
-
-			for (int i = 0; i < numofYCycles; i++) {
-				for (int j = 0; j < numofXCycles; j++) {
-					convOutputArrayAugmented[i + tracker * numofYCycles][j] = convOutputArraySum[i][j];
-				}
-			}
-
-			tracker++;
 		}
-		
+
 		filterCounter++;
 
-		nextLayer.preActivatedValue = convOutputArrayAugmented;
-		nextLayer.layerValue = convOutputArrayAugmented;
+		nextLayer.preActivatedConvValue = convOutputArraySum;
+		nextLayer.convValue = convOutputArraySum;
 
-		return convOutputArrayAugmented;
+		return convOutputArraySum;
 	}
 
 	int batchCounter = 0;
@@ -417,99 +455,99 @@ class ConvolutionalPropagator extends ForwardPropagator {
 
 class HiddenConvolutionalPropagator extends ForwardPropagator {
 	HiddenConvolutionalLayer conv;
-	double[][] input;
-	List<double[][]> filters;
+	double[][][] input;
+	List<double[][][]> filters;
 
-	public double[][] propagate(Layer layer, Layer nextLayer) {
+	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
 		conv = (HiddenConvolutionalLayer) layer;
-		input = layer.layerValue;
-	
-		
-		filters = weights.filterList.get(filterCounter).twoDFilterArray;
+		input = layer.convValue;
+
+		filters = weights.filterList.get(filterCounter).threeDFilterArray;
 
 		int biasTerm = 1;
-		int tracker = 0;
-		int filterSize = filters.get(0).length;
+		int filterSize = filters.get(0)[0].length;
 		int strideLength = conv.strideLength;
-		int numofXCycles = (input[0].length - filterSize) / strideLength + 1;
-		int numofYCycles = (input.length - filterSize) / strideLength + 1;
+		int numofXCycles = (input[0][0].length - filterSize) / strideLength + 1;
+		int numofYCycles = (input[0].length - filterSize) / strideLength + 1;
 		double convOutput = 0;
 
-		double[][] convOutputArraySum = new double[numofYCycles][numofXCycles];
-		double[][] convOutputArrayAugmented = new double[numofYCycles * filters.size()][numofXCycles];
+		double[][][] convOutputArraySum = new double[filters.size()][numofYCycles][numofXCycles];
 
 		for (int h = 0; h < filters.size(); h++) {
 			for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
 				for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
-					for (int j = 0; j < filterSize; j++) {
-						for (int k = 0; k < filterSize; k++) {
-							convOutput += input[j + cornerPosY][k + cornerPosX] * filters.get(h)[j][k];
+					for (int l = 0; l < input.length; l++) {
+						for (int j = 0; j < filterSize; j++) {
+							for (int k = 0; k < filterSize; k++) {
+								convOutput += input[l][j + cornerPosY][k + cornerPosX] * filters.get(h)[l][j][k];
+							}
 						}
 					}
-					convOutputArraySum[cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
+					convOutputArraySum[h][cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
 					convOutput = 0;
 				}
 			}
 
-			for (int i = 0; i < numofYCycles; i++) {
-				for (int j = 0; j < numofXCycles; j++) {
-					convOutputArrayAugmented[i + tracker * numofYCycles][j] = convOutputArraySum[i][j];
-				}
-			}
-			tracker++;
 		}
-		
-		filterCounter++; 
 
-		nextLayer.layerValue = convOutputArrayAugmented;
+		filterCounter++;
 
-		return convOutputArrayAugmented;
+		nextLayer.convValue = convOutputArraySum;
+
+		return convOutputArraySum;
 	}
-
-	
 
 }
 
 class PoolingPropagator extends ForwardPropagator {
-	public double[][] propagate(Layer layer, Layer nextLayer) {
+	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
 		PoolingLayer pool = (PoolingLayer) layer;
 
-		layer.preActivatedValue = pool.layerValue;
+		layer.preActivatedConvValue = pool.convValue;
 
 		int strideLength = pool.poolSize;
-		int numofXCycles = pool.layerValue[0].length / strideLength;
-		int numofYCycles = pool.layerValue.length / strideLength;
+		int numofXCycles = pool.convValue[0][0].length / strideLength;
+		int numofYCycles = pool.convValue[0].length / strideLength;
 
-		double[][] input = pool.layerValue;
+		double[][][] input = pool.convValue;
 
-		double[][] poolArray = new double[pool.poolSize][pool.poolSize];
-		double[][] maxPoolOutput = new double[numofYCycles][numofXCycles];
+		double[][][] poolArray = new double[pool.convValue.length][pool.poolSize][pool.poolSize];
+		double[][][] maxPoolOutput = new double[pool.convValue.length][numofYCycles][numofXCycles];
 
 		pool.expandedLayer = fullExpandedMaxArray(pool);
 
-		for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
-			for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
-				for (int i = 0; i < pool.poolSize; i++) {
-					for (int j = 0; j < pool.poolSize; j++) {
-						poolArray[i][j] = input[i + cornerPosY][j + cornerPosX];
+		
+		for (int k=0; k < pool.convValue.length; k++) {
+		
+			for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
+				for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
+				
+				
+					for (int i = 0; i < pool.poolSize; i++) {
+						for (int j = 0; j < pool.poolSize; j++) {
+							poolArray[k][i][j] = input[k][i + cornerPosY][j + cornerPosX];
+						}
 					}
+				
+					maxPoolOutput[k][cornerPosY / strideLength][cornerPosX / strideLength] = getMaxValue(poolArray);
 				}
-				maxPoolOutput[cornerPosY / strideLength][cornerPosX / strideLength] = getMaxValue(poolArray);
 			}
-		}
+		}	
 
-		nextLayer.preActivatedValue = maxPoolOutput;
-		nextLayer.layerValue = maxPoolOutput;
+		nextLayer.preActivatedConvValue = maxPoolOutput;
+		nextLayer.convValue = maxPoolOutput;
 
 		return maxPoolOutput;
 	}
 
-	private double getMaxValue(double[][] subSample) {
-		double max = subSample[0][0];
+	private double getMaxValue(double[][][] subSample) {
+		double max = subSample[0][0][0];
 		for (int i = 0; i < subSample.length; i++) {
 			for (int j = 0; j < subSample[0].length; j++) {
-				if (subSample[i][j] > max) {
-					max = subSample[i][j];
+				for(int k=0; k < subSample[0][0].length; k++) {
+					if (subSample[i][j][k] > max) {
+						max = subSample[i][j][k];
+					}
 				}
 			}
 		}
@@ -517,49 +555,70 @@ class PoolingPropagator extends ForwardPropagator {
 		return max;
 	}
 
-	private double[][] fullExpandedMaxArray(PoolingLayer pool) {
-		double[][] input = copyArray(pool.layerValue);
+	private double[][][] fullExpandedMaxArray(PoolingLayer pool) {
+		double[][][] input = copyThreeDArray(pool.convValue);
 		double max;
 		int maxX;
 		int maxY;
 
-		for (int i = 0; i < pool.layerValue.length; i += pool.poolSize) {
+		for (int i = 0; i < pool.layerValue.length; i++) {
 			for (int j = 0; j < pool.layerValue[0].length; j += pool.poolSize) {
-				max = 0;
-				maxX = 0;
-				maxY = 0;
-				for (int k = 0; k < pool.poolSize; k++) {
-					for (int l = 0; l < pool.poolSize; l++) {
-						if (input[i + k][j + l] > max) {
-							max = input[i + k][j + l];
-							maxX = i + k;
-							maxY = j + l;
-						}
-					}
-				}
+				for (int m = 0; m < pool.convValue[0][0].length; m += pool.poolSize) {
+					max = 0;
+					maxX = 0;
+					maxY = 0;
 
-				for (int k = 0; k < pool.poolSize; k++) {
-					for (int l = 0; l < pool.poolSize; l++) {
-						if ((i + k != maxX) || (j + l != maxY)) {
-							input[i + k][j + l] = 0;
-						} else if ((i + k == maxX) || (j + l == maxY)) {
-							input[i + k][j + l] = 1;
+					for (int k = 0; k < pool.poolSize; k++) {
+						for (int l = 0; l < pool.poolSize; l++) {
+							if (input[i][j + k][m + l] > max) {
+								max = input[i][j + k][m + l];
+								maxX = j + k;
+								maxY = m + l;
+							}
 						}
 					}
+
+					for (int k = 0; k < pool.poolSize; k++) {
+						for (int l = 0; l < pool.poolSize; l++) {
+							if ((j + k != maxX) || (m + l != maxY)) {
+								input[i][j + k][m + l] = 0;
+							} else if ((j + k == maxX) || (m + l == maxY)) {
+								input[i][j + k][m + l] = 1;
+							}
+						}
+					}
+
 				}
 			}
 		}
+
 		return input;
 	}
 
 }
 
 class ReluPropagator extends ForwardPropagator {
-	public double[][] propagate(Layer layer, Layer nextLayer) {
+	
+	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
 		layer.activation = "RELU";
-		nextLayer.preActivatedValue = layer.layerValue; // might be trouble w/ references
-		nextLayer.layerValue = activate(layer);
-		return nextLayer.layerValue;
+		nextLayer.preActivatedConvValue = layer.convValue; // might be trouble w/ references
+		nextLayer.convValue = activateRelu(layer);
+		return nextLayer.convValue;
+	}
+	
+	private double[][][] activateRelu(Layer layer) {
+		double[][][] output = copyThreeDArray(layer.preActivatedConvValue); 
+		
+		for(int i=0; i<output.length; i++) {
+			for(int j=0; j<output[0].length; j++) {
+				for(int k=0; k<output[0][0].length; k++) {
+					if(output[i][j][k] < 0) {
+						output[i][j][k] = 0;
+					}
+				}
+			}
+		}
+		return output; 
 	}
 
 }

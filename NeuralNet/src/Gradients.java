@@ -8,9 +8,9 @@ public class Gradients {
 	double[][] dRelu;
 	double[][] dPool;
 	
-	double[][] runningTotal;
+	double[][][] runningTotal;
 	
-	List<double[][]> twoDGradientList = new ArrayList<double[][]>();
+	//List<double[][]> twoDGradientList = new ArrayList<double[][]>();
 	List<double[][][]> threeDGradientList = new ArrayList<double[][][]>(); 
 	
 	String gradientIdentifier;

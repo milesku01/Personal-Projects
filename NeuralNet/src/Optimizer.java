@@ -6,7 +6,7 @@ public class Optimizer {
 	Optimizer optimizationObject;
 	List<Object> weightChange;
 	public boolean TorF = true;
-	public double learningRate = .00002;
+	public double learningRate = .0001;
 	//public double learningRate = .01;
 	
 	private void createOptimizerObject(String optimizerString) {
@@ -34,14 +34,15 @@ public class Optimizer {
 		double[][] twoArray;
 		double[][][] threeArray;
 		List<double[][][]> threeArrayList;
-		List<Object> newList = new ArrayList<Object>();
+		List<Object> newList = new ArrayList<Object>(list.size());
 
 		for (int i = 0; i < list.size(); i++) {
 			if (list.get(i).twoDGradient != null) {
 				twoArray = new double[list.get(i).twoDGradient.length][list.get(i).twoDGradient[0].length];
 				newList.add(twoArray);
 			} else if (list.get(i).twoDGradient == null) {
-				threeArrayList = new ArrayList<double[][][]>();
+				threeArrayList = new ArrayList<double[][][]>(list.get(i).threeDGradientList.size());
+				
 				for (int j = 0; j < list.get(i).threeDGradientList.size(); j++) {
 					threeArray = new double[list.get(i).threeDGradientList.get(j).length][list.get(i).threeDGradientList
 							.get(j)[0].length][list.get(i).threeDGradientList.get(j)[0][0].length];
@@ -83,8 +84,10 @@ class Adam extends Optimizer {
 		updateBiasedSecondMomentEstimate();
 		computeBiasCorrectedFirstMoment();
 		computeBiasCorrectedSecondMoment();
+		
 		calculateParameterUpdate();
-
+		
+		gradientCopy.clear();
 		gradients.clear();
 
 		return weightChange;
@@ -99,6 +102,7 @@ class Adam extends Optimizer {
 
 	private void updateBiasedFirstMomentEstimate() {
 		for (int k = 0; k < gradientCopy.size(); k++) {
+			
 			if (gradientCopy.get(k).twoDGradient != null) {
 				for (int i = 0; i < gradientCopy.get(k).twoDGradient.length; i++) {
 					for (int j = 0; j < gradientCopy.get(k).twoDGradient[0].length; j++) {
@@ -107,7 +111,7 @@ class Adam extends Optimizer {
 								+ ((1.0 - beta1) * (gradientCopy.get(k).twoDGradient[i][j]));
 					}
 				}
-
+				
 			} else if (gradientCopy.get(k).twoDGradient == null) {
 				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
 					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {

@@ -13,7 +13,7 @@ public class FileReader {
 	String fileName = "";
 	Scanner scan;
 	BufferedReader read;
-	List<Double> valuesFromFile = new ArrayList<Double>();
+	ArrayList<Double> valuesFromFile = new ArrayList<Double>();
 
 	public FileReader(String fileName) {
 		this.fileName = fileName;
@@ -53,7 +53,6 @@ public class FileReader {
 		try {
 			read = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -61,9 +60,13 @@ public class FileReader {
 	public void readFileIntoList() {
 
 		long start = System.nanoTime();
+		
 		while (scan.hasNextDouble()) {
 			valuesFromFile.add(scan.nextDouble());
 		}
+		
+		scan.close();
+		
 		long end = System.nanoTime();
 
 		System.out.println("time" + (double) (end - start) / 1000000000);
@@ -86,6 +89,10 @@ public class FileReader {
 
 				}
 			}
+			valuesFromFile.trimToSize();
+			
+			read.close();
+			
 		} catch (NumberFormatException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -94,6 +101,7 @@ public class FileReader {
 			e.printStackTrace();
 		}
 
+		
 		long end = System.nanoTime();
 
 		System.out.println((double) (end - start) / 1000000000);

@@ -218,8 +218,11 @@ public class ModelSaver {
 
 				}
 				
+				int hiddenCounter = 0;
+				
 				for(int i=0; i<list.size(); i++) {
 					if (list.get(i) instanceof ConvolutionalLayer) {
+						hiddenCounter = 0;
 						for (int j = 0; j < weights.filterList.get(0).threeDFilterArray.size(); j++) {
 							for (int k = 0; k < weights.filterList.get(0).threeDFilterArray.get(j).length; k++) {
 								for (int l = 0; l < weights.filterList.get(0).threeDFilterArray.get(j)[0].length; l++) {
@@ -237,12 +240,14 @@ public class ModelSaver {
 							}
 						}
 						bos.write(System.lineSeparator().getBytes());
+						hiddenCounter++; 
+						
 					} else if (list.get(i) instanceof HiddenConvolutionalLayer) {
-						for (int j = 0; j < weights.filterList.get(0).twoDFilterArray.size(); j++) {
-							for (int k = 0; k < weights.filterList.get(0).twoDFilterArray.get(j).length; k++) {
-								for (int l = 0; l < weights.filterList.get(0).twoDFilterArray.get(j)[0].length; l++) {
+						for (int j = 0; j < weights.filterList.get(hiddenCounter).twoDFilterArray.size(); j++) {
+							for (int k = 0; k < weights.filterList.get(hiddenCounter).twoDFilterArray.get(j).length; k++) {
+								for (int l = 0; l < weights.filterList.get(hiddenCounter).twoDFilterArray.get(j)[0].length; l++) {
 									bos.write((space + "").getBytes());
-									bos.write((weights.filterList.get(0).twoDFilterArray.get(j)[k][l] + "").getBytes());
+									bos.write((weights.filterList.get(hiddenCounter).twoDFilterArray.get(j)[k][l] + "").getBytes());
 									if (counter % 30 == 0) {
 										bos.write(System.lineSeparator().getBytes());
 									}
@@ -251,6 +256,7 @@ public class ModelSaver {
 							}
 						}
 						bos.write(System.lineSeparator().getBytes());
+						hiddenCounter++; 
 					} else if (list.get(i) instanceof HiddenLayer) {
 						for (int l = 0; l < weights.weightList.size(); l++) {
 							for (int j = 0; j < weights.weightList.get(l).length; j++) {

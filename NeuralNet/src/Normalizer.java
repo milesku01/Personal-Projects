@@ -1,7 +1,13 @@
- public class Normalizer {
+import java.util.ArrayList;
+import java.util.List;
+
+public class Normalizer {
 
 	double[] meanArray;
 	double[] strdDev;
+	
+	double[] imageMean; 
+	double[] imageStrdDev; 
 
 	public double[][] normalizeInputs(double[][] inputs, double[] mean, double[] strdDev) {
 		inputs = jiggleInputs(inputs);
@@ -15,19 +21,7 @@
 
 	public double[][] normalizeInputsZscore(double[][] inputs, int targetSize) {
 		calculateStrdDev(inputs);
-		
-		/*
-		for(int i=0; i<strdDev.length; i++) {
-			System.out.println("MEAN " + meanArray[i]);
-			System.out.println("STRDDEV " + strdDev[i]);
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} */
-		
+
 		for (int i = 0; i < inputs[0].length - targetSize; i++) {
 			if(meanArray[i] != 0.0 && strdDev[i] != 0.0) {
 				for (int j = 0; j < inputs.length; j++) {
@@ -37,6 +31,26 @@
 		}
 		return inputs;
 	}
+	
+	public List<double[][][]> normalizeImagesZscore(List<double[][][]> inputs) {
+		calculateImageMean(inputs);
+		calculateImageStrdDev(inputs);
+		
+		for(int i=0; i<inputs.size(); i++) {
+			for(int j=0; j<inputs.get(i).length; j++) {
+				if(imageMean[j] != 0.0 && imageStrdDev[j] != 0.0) {
+					for(int k=0; k<inputs.get(i)[0].length; k++) {
+						for(int l=0; l<inputs.get(i)[0][0].length; l++) {
+							inputs.get(i)[j][k][l] = ((inputs.get(i)[j][k][l] - imageMean[j]) / imageStrdDev[j]);
+						}
+					}
+				}
+			}
+		}
+		
+		return inputs;
+	}
+	
 	
 	public double[][] normalizeInputsTanh(double[][] inputs, int targetSize) {
 		calculateStrdDev(inputs);
@@ -105,7 +119,7 @@
 
 		for (int i = 0; i < inputs[0].length; i++) {
 			for (int j = 0; j < inputs.length; j++) {
-				strdDev[i] = Math.pow(inputs[j][i] - meanArray[i], 2);
+				strdDev[i] += Math.pow(inputs[j][i] - meanArray[i], 2); //changed
 			}
 		}
 		for (int i = 0; i < inputs[0].length; i++) {
@@ -115,6 +129,29 @@
 		for (int i = 0; i < inputs[0].length; i++) {
 			strdDev[i] = Math.sqrt(strdDev[i]);
 		}
+	}
+	
+	private void calculateImageStrdDev(List<double[][][]> inputs) {
+		imageStrdDev =  new double[inputs.get(0).length];
+		
+		for(int i=0; i<inputs.size(); i++) {
+			for(int j=0; j<inputs.get(i).length; j++) {
+				for(int k=0; k<inputs.get(i)[0].length; k++) {
+					for(int l=0; l<inputs.get(i)[0][0].length; l++) {
+						imageStrdDev[j] += Math.pow(inputs.get(i)[j][k][l] - imageMean[j], 2);
+					}
+				} //changed
+			}	
+		}
+		
+		for (int i = 0; i < inputs.get(0).length; i++) {
+			imageStrdDev[i] = imageStrdDev[i] / (inputs.size() * inputs.get(0)[0].length * inputs.get(0)[0][0].length);
+		}
+		
+		for (int i = 0; i < inputs.get(0).length; i++) {
+			imageStrdDev[i] = Math.sqrt(imageStrdDev[i]);
+		}
+		
 	}
 
 	public void calculateMean(double[][] inputs) {
@@ -129,6 +166,29 @@
 			meanArray[i] = (runningTotal / (double) inputs.length);
 			runningTotal = 0.0;
 		}
+	}
+	
+	private void calculateImageMean(List<double[][][]> inputs) {
+		double runningTotal = 0.0; 
+		imageMean = new double[inputs.get(0).length];
+		
+		for(int i=0; i<inputs.size(); i++) {
+			for(int j=0; j<inputs.get(i).length; j++) {
+				for(int k=0; k<inputs.get(i)[0].length; k++) {
+					for(int l=0; l<inputs.get(i)[0][0].length; l++) {
+						runningTotal += inputs.get(i)[j][k][l]; 
+					}
+				}
+				imageMean[j] += runningTotal; 
+				runningTotal = 0;
+			}	
+		}
+		
+			
+		for(int i=0; i<inputs.get(i).length; i++) { 
+			imageMean[i] /= (inputs.size() * inputs.get(0)[0].length * inputs.get(0)[0][0].length); 
+		}
+		
 	}
 
 	public double[][] jiggleInputs(double[][] inputs) {
