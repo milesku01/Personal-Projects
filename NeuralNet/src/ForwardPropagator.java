@@ -47,7 +47,7 @@ public class ForwardPropagator {
 		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer
 				|| layer instanceof HiddenConvolutionalLayer)
 				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
-			layerValue = flatten(convValue);
+			nextLayer.layerValue = flatten(convValue);
 		}
 
 		if (objectTracker == (propagationObjects.size() - 1)) {
@@ -492,6 +492,7 @@ class HiddenConvolutionalPropagator extends ForwardPropagator {
 
 		filterCounter++;
 
+		nextLayer.preActivatedConvValue = convOutputArraySum; 
 		nextLayer.convValue = convOutputArraySum;
 
 		return convOutputArraySum;
@@ -561,8 +562,8 @@ class PoolingPropagator extends ForwardPropagator {
 		int maxX;
 		int maxY;
 
-		for (int i = 0; i < pool.layerValue.length; i++) {
-			for (int j = 0; j < pool.layerValue[0].length; j += pool.poolSize) {
+		for (int i = 0; i < pool.convValue.length; i++) {
+			for (int j = 0; j < pool.convValue[0].length; j += pool.poolSize) {
 				for (int m = 0; m < pool.convValue[0][0].length; m += pool.poolSize) {
 					max = 0;
 					maxX = 0;

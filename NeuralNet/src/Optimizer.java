@@ -6,7 +6,7 @@ public class Optimizer {
 	Optimizer optimizationObject;
 	List<Object> weightChange;
 	public boolean TorF = true;
-	public double learningRate = .0001;
+	public double learningRate = .01;
 	//public double learningRate = .01;
 	
 	private void createOptimizerObject(String optimizerString) {
@@ -87,7 +87,7 @@ class Adam extends Optimizer {
 		
 		calculateParameterUpdate();
 		
-		gradientCopy.clear();
+	//	gradientCopy.clear();
 		gradients.clear();
 
 		return weightChange;

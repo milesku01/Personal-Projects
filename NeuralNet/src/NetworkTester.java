@@ -10,22 +10,42 @@ public class NetworkTester {
 	
 		
 		
-		model.buildConvolutionalLayer(2, 3, 1, 1, "zero-padding", "Orange Ball Photos all");
-	//	model.buildConvolutionalLayer(5, 5, 1, 4, 3, 1, 1, "zero-padding", "ImageText2");
+		model.buildConvolutionalLayer(1, 3, 1, 1, "zero-padding", "Orange Ball Photos all");
+	//	model.buildConvolutionalLayer(3, 5, 1, 4, 3, 1, 1, "zero-padding", "ImageText2");
 		model.buildReluLayer(); 
-	//	model.buildPoolingLayer(2, "MAX"); 
+		model.buildPoolingLayer(2, "MAX"); 
 		
-		model.buildHiddenConvolutionalLayer(2, 3, 1, "zero-padding");
+		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
 		model.buildReluLayer();
-	//	model.buildPoolingLayer(2, "MAX"); //String does nothing for now
+	//	model.buildPoolingLayer(2, "MAX");
+		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
+		model.buildReluLayer();
+		
+		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
+		model.buildReluLayer();
+		
+		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
+		model.buildReluLayer();
+		
+		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
+		model.buildReluLayer();
+		
+		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
+		model.buildReluLayer();
+		
+		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
+		model.buildReluLayer();
+		
+		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
+		model.buildReluLayer();
 		
 	//	model.buildPoolingLayer(2, "MAX");
 		
-		model.buildHiddenLayer("TANH"); 
+		model.buildHiddenLayer("RELU"); 
 	//	model.buildHiddenLayer(1, "TANH");
-	//	model.buildHiddenLayer(2, "TANH");
+		model.buildHiddenLayer(10, "TANH");
 		
-		model.buildOutputLayer(1, "SIGMOID", "BallTargets"); 
+		model.buildOutputLayer(1, "LINEAR", "BallTargets"); 
 	
 		
 		

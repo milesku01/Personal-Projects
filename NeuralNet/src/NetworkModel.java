@@ -33,6 +33,7 @@ public class NetworkModel {
 	private int getInferedNumOfNeurons(int layerListSize) {
 		int numofNeuronWidth = 0;
 		int numofNeuronHeight = 0;
+		int numofNeuronDepth = 0; 
 		ConvolutionalLayer conv = (ConvolutionalLayer) layerList.get(0);
 
 		int imageHeight = conv.imageHeight;
@@ -41,8 +42,9 @@ public class NetworkModel {
 		int filterSize = conv.filterSize;
 		int strideLength = conv.strideLength;
 
-		numofNeuronHeight = numofFilters * (((imageHeight - filterSize) / strideLength) + 1);
+		numofNeuronHeight = (((imageHeight - filterSize) / strideLength) + 1);
 		numofNeuronWidth = ((imageWidth - filterSize) / strideLength) + 1;
+		numofNeuronDepth = numofFilters; 
 		
 		for(int i=1; i<layerListSize; i++ ) {
 			if(layerList.get(i) instanceof PoolingLayer) {
@@ -51,12 +53,13 @@ public class NetworkModel {
 			}
 			if(layerList.get(i) instanceof HiddenConvolutionalLayer) {
 				HiddenConvolutionalLayer conv2 = (HiddenConvolutionalLayer) layerList.get(i);
-				numofNeuronHeight = conv2.numofFilters*((numofNeuronHeight-conv2.filterSize)/strideLength + 1);
+				numofNeuronHeight = ((numofNeuronHeight-conv2.filterSize)/strideLength + 1);
 				numofNeuronWidth = (numofNeuronWidth-conv2.filterSize)/strideLength + 1; 
+				numofNeuronDepth = conv2.numofFilters;
 			}
 			
 		}
-		return (numofNeuronHeight*numofNeuronWidth);
+		return (numofNeuronHeight*numofNeuronWidth*numofNeuronDepth);
 	}
 
 	public void buildOutputLayer(int numofNeurons, String activation) {
@@ -73,7 +76,7 @@ public class NetworkModel {
 	public void buildConvolutionalLayer(int numofFilters, int filterSize, int strideLength, int batchSize, String padding, String imageFile) {
 		ConvolutionalLayer convLayer = new ConvolutionalLayer(numofFilters, filterSize, strideLength, batchSize, padding, imageFile);
 		convLayer.initializeLayer(convLayer);
-		inferedDepth = 3;
+		inferedDepth = numofFilters;
 		filterCount++;  
 		layerList.add(convLayer);
 	}
@@ -82,26 +85,31 @@ public class NetworkModel {
 			int filterSize, int strideLength, int batchSize, String padding, String textFile) {
 		ConvolutionalLayer convLayer = new ConvolutionalLayer(height, width, channelDepth, numofFilters, filterSize, strideLength, batchSize, padding, textFile);
 		convLayer.initializeLayerText(convLayer);
-		inferedDepth = channelDepth; 
+		inferedDepth = numofFilters;
 		filterCount++; 
 		layerList.add(convLayer);
 	}
 
 	public void buildHiddenConvolutionalLayer(int numofFilters, int filterSize, int strideLength, String padding) {
 		HiddenConvolutionalLayer hiddenConvLayer = new HiddenConvolutionalLayer(numofFilters, filterSize, strideLength, padding); 
+		hiddenConvLayer.channelDepth = inferedDepth; 
+		inferedDepth = numofFilters; 
 		filterCount++; 
 		layerList.add(hiddenConvLayer);
 	}
 
 	public void buildPoolingLayer(int poolSize, String poolType) {
 		PoolingLayer poolLayer = new PoolingLayer(poolSize, poolType);
+		poolLayer.channelDepth = inferedDepth;
 		layerList.add(poolLayer);
 	}
 
 	public void buildReluLayer() {
 		ReluLayer reluLayer = new ReluLayer();
+		reluLayer.channelDepth = inferedDepth; 
 		layerList.add(reluLayer);
 	}
 
 
 }
+;

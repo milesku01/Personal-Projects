@@ -131,28 +131,27 @@ public class BackPropagator {
 		return copy;
 	}
 
-	public double[][][] threeDElementMultiplication (double[][][] input, double[][][] input2) {
-		
-		if (input.length != input2.length || input[0].length != input2[0].length || input[0][0].length != input2[0][0].length) {
-			throw new IllegalArgumentException(
-					"Dimensions did not match" + input.length + " " + input2[0].length + " " + input.length + " " + input2[0].length + " " + input[0][0].length +
-					" " + input2[0][0].length);
+	public double[][][] threeDElementMultiplication(double[][][] input, double[][][] input2) {
+
+		if (input.length != input2.length || input[0].length != input2[0].length
+				|| input[0][0].length != input2[0][0].length) {
+			throw new IllegalArgumentException("Dimensions did not match" + input.length + " " + input2.length + " "
+					+ input[0].length + " " + input2[0].length + " " + input[0][0].length + " " + input2[0][0].length);
 		}
-		
+
 		double[][][] output = new double[input.length][input[0].length][input[0][0].length];
-		
-		for(int i=0; i<input.length; i++) {
-			for(int j=0; j<input[0].length; j++) {
-				for(int k=0; k<input[0][0].length; k++) {
+
+		for (int i = 0; i < input.length; i++) {
+			for (int j = 0; j < input[0].length; j++) {
+				for (int k = 0; k < input[0][0].length; k++) {
 					output[i][j][k] = input[i][j][k] * input2[i][j][k];
 				}
 			}
 		}
-		return output; 
-		
+		return output;
+
 	}
-	
-	
+
 }
 
 class DenseBackPropagator extends BackPropagator {
@@ -193,7 +192,6 @@ class DenseBackPropagator extends BackPropagator {
 	public void computeHiddenGradients(Layer layer, Layer nextLayer) {
 		double[][][] reformattedArray;
 		double[][][] preFlattendArray = copyThreeDArray(layer.preActivatedConvValue);
-		
 
 		gradients = new Gradients();
 
@@ -216,11 +214,11 @@ class DenseBackPropagator extends BackPropagator {
 		double[][][] reformattedArray = new double[preFlattendArray.length][preFlattendArray[0].length][preFlattendArray[0][0].length];
 		for (int i = 0; i < preFlattendArray.length; i++) {
 			for (int j = 0; j < preFlattendArray[0].length; j++) {
-				for(int k=0; k< preFlattendArray[0][0].length; k++) {
+				for (int k = 0; k < preFlattendArray[0][0].length; k++) {
 					reformattedArray[i][j][k] = previousPartialGradient[0][counter];
 					counter++;
 				}
-			}	
+			}
 		}
 		return reformattedArray;
 	}
@@ -334,21 +332,21 @@ class OutputBackPropagator extends BackPropagator {
 			batchCounterTarget = 0;
 			currentTargetBatch = batch;
 		}
-		
+
 		System.out.print("TARGETBATCH ");
 		nt.printArray(batch);
-		
+
 		return batch;
 	}
 
 }
 
 class HiddenConvolutionalBackPropagator extends BackPropagator {
-	
+
 	List<double[][][]> filterList;
 
 	public void computeHiddenGradients(Layer layer, Layer nextLayer) {
-		
+
 		HiddenConvolutionalLayer hidden = (HiddenConvolutionalLayer) layer;
 
 		double[][][] dOut = hidden.fullyConvolvedDerivative;
@@ -362,13 +360,15 @@ class HiddenConvolutionalBackPropagator extends BackPropagator {
 		int strideLengthY = 1;
 		int strideLengthX = 1;
 		double total = 0;
-		
-		double[][][] output = new double[nextLayer.convValue.length][nextLayer.convValue[0].length][nextLayer.convValue[0][0].length]; 
-		
-		for(int i=0; i < filterList.get(0).length; i++) {
-			for(int j=0; j < filterList.size(); j++) { 
-				for (int k = 0; k < (dOut[0].length - filterList.get(j)[0].length) / strideLengthY + 1; k += strideLengthY) {
-					for (int l = 0; l < (dOut[0][0].length - filterList.get(j)[0][0].length) / strideLengthX + 1; l += strideLengthX) {
+
+		double[][][] output = new double[nextLayer.convValue.length][nextLayer.convValue[0].length][nextLayer.convValue[0][0].length];
+
+		for (int i = 0; i < filterList.get(0).length; i++) {
+			for (int j = 0; j < filterList.size(); j++) {
+				for (int k = 0; k < (dOut[0].length - filterList.get(j)[0].length) / strideLengthY
+						+ 1; k += strideLengthY) {
+					for (int l = 0; l < (dOut[0][0].length - filterList.get(j)[0][0].length) / strideLengthX
+							+ 1; l += strideLengthX) {
 						total = 0;
 						for (int m = 0; l < filterList.get(j)[0].length; l++) { // loop through filter
 							for (int n = 0; m < filterList.get(j)[0][0].length; m++) { // loop through filter
@@ -377,12 +377,12 @@ class HiddenConvolutionalBackPropagator extends BackPropagator {
 						}
 						output[i][k / strideLengthY][l / strideLengthX] += total;
 					}
-				}	
+				}
 			}
 		}
-	
+
 		gradients.runningTotal = output; // okay because gradient is reset just before, thats why no multiplication
-		
+
 	}
 
 	private double[][][] pad(double[][][] input, int padSize) {
@@ -390,7 +390,7 @@ class HiddenConvolutionalBackPropagator extends BackPropagator {
 
 		double[][][] output = new double[input.length][input.length + 2 * padding][input[0].length + 2 * padding];
 
-		for(int k=0; k<input.length; k++) {
+		for (int k = 0; k < input.length; k++) {
 			for (int i = 0; i < input.length; i++) {
 				for (int j = 0; j < input[0].length; j++) {
 					output[k][i + padding][j + padding] = input[k][i][j];
@@ -409,13 +409,13 @@ class HiddenConvolutionalBackPropagator extends BackPropagator {
 
 		for (int i = 0; i < mat.size(); i++) {
 			ret = new double[mat.get(0).length][N][M];
-			for(int j=0; j<mat.get(0).length; j++) {
+			for (int j = 0; j < mat.get(0).length; j++) {
 				for (int r = 0; r < M; r++) {
 					for (int c = 0; c < N; c++) {
 						ret[j][c][M - 1 - r] = mat.get(i)[j][r][c];
 					}
 				}
-		}
+			}
 			list.add(ret);
 		}
 		return list;
@@ -440,18 +440,18 @@ class PoolingBackPropagator extends BackPropagator {
 
 	private double[][][] inflateArray(PoolingLayer layer, double[][][] array) {
 		int squareSize = layer.poolSize;
-		int totalSizeY = squareSize * array.length;
-		int totalSizeX = squareSize * array[0].length;
-		
+		int totalSizeY = squareSize * array[0].length;
+		int totalSizeX = squareSize * array[0][0].length;
+
 		double[][][] newArray = new double[layer.convValue.length][totalSizeY][totalSizeX];
 
-		for(int m = 0; m < layer.convValue.length; m++) {
+		for (int m = 0; m < layer.convValue.length; m++) {
 			for (int i = 0; i < totalSizeY; i += squareSize) {
 				for (int j = 0; j < totalSizeX; j += squareSize) {
-				
+
 					for (int k = 0; k < squareSize; k++) {
 						for (int l = 0; l < squareSize; l++) {
-				
+
 							newArray[m][i + k][j + l] = array[m][i / squareSize][j / squareSize];
 						}
 					}
@@ -471,11 +471,11 @@ class ReluBackPropagator extends BackPropagator {
 		double[][][] image;
 
 		if (nextLayer instanceof ConvolutionalLayer) {
+
 			ConvolutionalLayer conv = (ConvolutionalLayer) nextLayer;
-			int numofFilters = conv.numofFilters;
 
 			image = conv.currentImage;
-			
+
 			filterList = (splitFilters(filter));
 
 			int strideLengthY = 1;
@@ -484,11 +484,13 @@ class ReluBackPropagator extends BackPropagator {
 			List<double[][][]> outputList = new ArrayList<double[][][]>(filterList.size());
 
 			for (double[][] filter1 : filterList) { // loop through filters
-				
-				double[][][] output = new double[image.length][(image[0].length - filter1.length) / strideLengthY+ 1][(image[0][0].length - filter1[0].length) / strideLengthX + 1]; // TODO: add actual values
+
+				double[][][] output = new double[image.length][(image[0].length - filter1.length) / strideLengthY
+						+ 1][(image[0][0].length - filter1[0].length) / strideLengthX + 1]; // TODO: add actual values
 				for (int i = 0; i < image.length; i++) { // loop through rgb values
 					for (int j = 0; j < (image[0].length - filter1.length) / strideLengthY + 1; j += strideLengthY) {
-						for (int k = 0; k < (image[0][0].length - filter1[0].length) / strideLengthX + 1; k += strideLengthX) {
+						for (int k = 0; k < (image[0][0].length - filter1[0].length) / strideLengthX
+								+ 1; k += strideLengthX) {
 							double total = 0;
 							for (int l = 0; l < filter1.length; l++) { // loop through filter
 								for (int m = 0; m < filter1[0].length; m++) { // loop through filter
@@ -507,10 +509,10 @@ class ReluBackPropagator extends BackPropagator {
 			gradients.threeDGradientList = outputList;
 
 		} else if (nextLayer instanceof HiddenConvolutionalLayer) {
-			
+
 			HiddenConvolutionalLayer hiddenConv = (HiddenConvolutionalLayer) nextLayer;
 
-			filterList = splitFilters(filter); 
+			filterList = splitFilters(filter);
 
 			// filterList = rotate90(rotate90(filterList)); doesn't seem to affect anything
 
@@ -524,11 +526,17 @@ class ReluBackPropagator extends BackPropagator {
 			List<double[][][]> outputList = new ArrayList<double[][][]>(filterList.size());
 
 			for (double[][] filter1 : filterList) { // loop through filters
-				
-				double[][][] output = new double[threeDImage.length][(threeDImage[0].length - filter1.length) / strideLengthY+ 1][(threeDImage[0][0].length - filter1[0].length) / strideLengthX + 1]; // TODO: add actual values
+
+				double[][][] output = new double[threeDImage.length][(threeDImage[0].length - filter1.length)
+						/ strideLengthY + 1][(threeDImage[0][0].length - filter1[0].length) / strideLengthX + 1]; // TODO:
+																													// add
+																													// actual
+																													// values
 				for (int i = 0; i < threeDImage.length; i++) { // loop through rgb values
-					for (int j = 0; j < (threeDImage[0].length - filter1.length) / strideLengthY + 1; j += strideLengthY) {
-						for (int k = 0; k < (threeDImage[0][0].length - filter1[0].length) / strideLengthX + 1; k += strideLengthX) {
+					for (int j = 0; j < (threeDImage[0].length - filter1.length) / strideLengthY
+							+ 1; j += strideLengthY) {
+						for (int k = 0; k < (threeDImage[0][0].length - filter1[0].length) / strideLengthX
+								+ 1; k += strideLengthX) {
 							double total = 0;
 							for (int l = 0; l < filter1.length; l++) { // loop through filter
 								for (int m = 0; m < filter1[0].length; m++) { // loop through filter
@@ -550,53 +558,51 @@ class ReluBackPropagator extends BackPropagator {
 		// System.out.println(outputList.get(0)[0].length);
 
 		return gradients;
-	} 
+	}
 
- /*	public void computeHiddenGradients(Layer layer, Layer nextLayer) {
-		nextLayer.activation = "RELU"; // shouldn't have to worry
-		gradient = computeDerivative(nextLayer);/
+	public void computeHiddenGradients(Layer layer, Layer nextLayer) {
+		nextLayer.activation = "RELU"; // shouldn't have to worry gradient =
+		
 
 		if (nextLayer instanceof ConvolutionalLayer || nextLayer instanceof HiddenConvolutionalLayer) {
-			gradients.runningTotal = gradient;
+			gradients.runningTotal = computeReluDerivative(nextLayer);
 		} else {
-			gradients.runningTotal = nt.elementwiseMultiplication(gradients.runningTotal, gradient);
+			gradients.runningTotal = threeDElementMultiplication(gradients.runningTotal, computeReluDerivative(nextLayer));
 		}
 
 	}
- */
-	
+
 	private double[][][] computeReluDerivative(Layer layer) {
 		double[][][] layerValue = copyThreeDArray(layer.preActivatedConvValue);
-	
-		for(int i=0; i < layerValue.length; i++) {
-			for(int j=0; j < layerValue[0].length; j++) {
-				for(int k=0; k<layerValue[0][0].length; k++) {
-				
-					if(layerValue[i][j][k] <= 0) {
-					layerValue[i][j][k] = 0;
-				} else {
-					layerValue[i][j][k] = 1; 
-				}
+
+		for (int i = 0; i < layerValue.length; i++) {
+			for (int j = 0; j < layerValue[0].length; j++) {
+				for (int k = 0; k < layerValue[0][0].length; k++) {
+
+					if (layerValue[i][j][k] < 0) {
+						layerValue[i][j][k] = 0;
+					} else {
+						layerValue[i][j][k] = 1;
+					}
 				}
 			}
 		}
-		return layerValue; 
+		return layerValue;
 	}
-	
+
 	private List<double[][]> splitFilters(double[][][] filter) {
 		double[][] part = new double[filter[0].length][filter[0][0].length];
-		List<double[][]> list = new ArrayList<double[][]>(filter.length); 
-		
-		for(int i=0; i<filter.length; i++) {
-			for(int j=0; j<filter[0].length; j++) {
-				for(int k=0; k<filter[0][0].length; k++) {
+		List<double[][]> list = new ArrayList<double[][]>(filter.length);
+
+		for (int i = 0; i < filter.length; i++) {
+			for (int j = 0; j < filter[0].length; j++) {
+				for (int k = 0; k < filter[0][0].length; k++) {
 					part[j][k] = filter[i][j][k];
 				}
 			}
-			list.add(part); 
+			list.add(part);
 		}
-		return list; 
+		return list;
 	}
-	
 
 }

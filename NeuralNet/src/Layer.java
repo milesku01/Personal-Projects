@@ -317,6 +317,7 @@ class ConvolutionalLayer extends Layer {
 
 class PoolingLayer extends Layer {
 	int poolSize;
+	int channelDepth;
 	String poolType; 
 	double[][][] expandedLayer;
 	public PoolingLayer(int poolSize, String poolType) {
@@ -344,6 +345,7 @@ class HiddenConvolutionalLayer extends Layer {
 }
 
 class ReluLayer extends Layer {	
+	int channelDepth;
 	public ReluLayer() {
 		activation = "RELU";
 	}
