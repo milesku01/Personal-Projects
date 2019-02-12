@@ -36,6 +36,7 @@ public class Weights {
 		filterList = new ArrayList<Filters>(model.filterCount);
 		
 		for(int i=0; i < layerList.size() - 1; i++) { //finishes before the output layer is multiplied
+		
 			if(layerList.get(i) instanceof InputLayer || layerList.get(i) instanceof HiddenLayer) {
 				weightList.add(produceWeightObject(layerList.get(i), layerList.get(nextLayer))); 
 			}

@@ -201,12 +201,15 @@ public class NetworkTrainer {
 			returnValue = layers.get(layers.size() - 1).layerValue;
 			
 		} else if (layers.get(0) instanceof ConvolutionalLayer) {
-			System.out.println(((ConvolutionalLayer) layers.get(0)).testingImages.size());
 			returnValue = new double[((ConvolutionalLayer) layers.get(0)).testingImages.size()][targets.targetSize];
 			
 			for (int i = 0; i < ((ConvolutionalLayer) layers.get(0)).testingImages.size(); i++) {
 				for (int j = 0; j < layers.size() - 1; j++) {
-					layers.get(j + 1).layerValue = fp.propagateTest(layers.get(j), layers.get(j + 1));
+					if(layers.get(j) instanceof InputLayer || layers.get(j) instanceof HiddenLayer) {
+						layers.get(j + 1).layerValue = fp.propagateTest(layers.get(j), layers.get(j + 1));
+					} else {
+						layers.get(j + 1).convValue = fp.propagateConvTest(layers.get(j), layers.get(j + 1));
+					}
 				}
 				for (int k = 0; k < targets.targetSize; k++) {
 					returnValue[i][k] = layers.get(layers.size() - 1).layerValue[0][k];

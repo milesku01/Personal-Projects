@@ -10,6 +10,7 @@ public class Layer { // superclass
 	double[][] currentBatch;
 	double[][] preActivatedValue; 
 	double[][] testData; 
+	double[][][] testConvData;
 	double[][][] convValue;
 	double[][][] preActivatedConvValue; 
 	int layerSize;

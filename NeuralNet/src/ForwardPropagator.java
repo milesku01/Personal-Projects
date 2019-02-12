@@ -85,9 +85,30 @@ public class ForwardPropagator {
 
 		return layerValue;
 	}
-
+	
 	public double[][][] propagateConvTest(Layer layer, Layer nextLayer) {
-		return null;
+		if (testObjectTracker == 0) {
+			layerCounter = 0;
+			filterCounter = 0;
+		}
+		
+		convValue = testPropagationObjects.get(testObjectTracker).propagateConv(layer, nextLayer);
+
+		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer
+				|| layer instanceof HiddenConvolutionalLayer)
+				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
+			nextLayer.layerValue = flatten(convValue);
+		}
+		
+		if (testObjectTracker == (testPropagationObjects.size() - 1)) {
+			testObjectTracker = 0;
+			layerCounter = 0;
+			filterCounter = 0;
+		} else {
+			testObjectTracker++;
+		}
+		
+		return convValue; 
 	}
 
 	public void constructForwardPropagationObjects(List<Layer> layerList, Weights weights) { // only occur once
@@ -293,54 +314,8 @@ class TestPropagator extends ForwardPropagator {
 			nextLayer.layerValue = testValue;
 			nextLayer.testData = activate(nextLayer);
 
-		} else if (layer instanceof ConvolutionalLayer) {
-			ConvolutionalLayer conv = (ConvolutionalLayer) layer;
-			getBatch(conv);
-			double[][][] image = conv.currentImage;
-
-			List<double[][][]> filters = weights.filterList.get(filterCounter).threeDFilterArray;
-
-			double biasTerm = .01;
-			int tracker = 0;
-			int colorChannels = image.length;
-			int filterSize = filters.get(0)[0].length;
-			int strideLength = conv.strideLength;
-			int numofXCycles = (image[0][0].length - filterSize) / strideLength + 1;
-			int numofYCycles = (image[0].length - filterSize) / strideLength + 1;
-			double convOutput = 0;
-
-			double[][] convOutputArraySum = new double[numofYCycles][numofXCycles];
-			double[][] convOutputArrayAugmented = new double[numofYCycles * filters.size()][numofXCycles];
-
-			for (int h = 0; h < filters.size(); h++) {
-				for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
-					for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
-						for (int i = 0; i < colorChannels; i++) {
-							for (int j = 0; j < filterSize; j++) {
-								for (int k = 0; k < filterSize; k++) {
-									convOutput += image[i][j + cornerPosY][k + cornerPosX] * filters.get(h)[i][j][k];
-								}
-							}
-						}
-						convOutputArraySum[cornerPosY / strideLength][cornerPosX / strideLength] = convOutput
-								+ biasTerm;
-						convOutput = 0;
-					}
-				}
-
-				for (int i = 0; i < numofYCycles; i++) {
-					for (int j = 0; j < numofXCycles; j++) {
-						convOutputArrayAugmented[i + tracker * numofYCycles][j] = convOutputArraySum[i][j];
-					}
-				}
-
-				tracker++;
-			}
-
-			filterCounter++;
-			nextLayer.testData = convOutputArrayAugmented;
-		}
-		return nextLayer.testData;
+		} 
+		return nextLayer.testData; 
 	}
 
 	int batchCounter = 0;
@@ -379,6 +354,51 @@ class TestPropagator extends ForwardPropagator {
 		return inputsWithBiases;
 	}
 
+	
+	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
+		
+		ConvolutionalLayer conv = (ConvolutionalLayer) layer;
+		getBatch(conv);
+		double[][][] image = conv.currentImage;
+
+		List<double[][][]> filters = weights.filterList.get(filterCounter).threeDFilterArray;
+
+		int biasTerm = 1;
+		int colorChannels = image.length;
+		int filterSize = filters.get(0)[0].length;
+		int strideLength = conv.strideLength;
+		int numofXCycles = (image[0][0].length - filterSize) / strideLength + 1;
+		int numofYCycles = (image[0].length - filterSize) / strideLength + 1;
+		double convOutput = 0;
+
+		double[][][] convOutputArraySum = new double[filters.size()][numofYCycles][numofXCycles];
+
+		for (int h = 0; h < filters.size(); h++) {
+
+			for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
+				for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
+
+					for (int i = 0; i < colorChannels; i++) {
+						for (int j = 0; j < filterSize; j++) {
+							for (int k = 0; k < filterSize; k++) {
+								convOutput += image[i][j + cornerPosY][k + cornerPosX] * filters.get(h)[i][j][k];
+							}
+						}
+					}
+					convOutputArraySum[h][cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
+					convOutput = 0;
+				}
+			}
+		}
+
+		filterCounter++;
+
+		nextLayer.testConvData = convOutputArraySum;
+	
+		return nextLayer.testConvData;
+	}
+	
+	
 }
 
 class ConvolutionalPropagator extends ForwardPropagator {
