@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BackPropagator {
-	final double regularize = 0.0001;
+	final double regularize = 0.001;
 	int objectTracker = 0;
 	static int layerCounter;
 	static int batchSize;
@@ -365,10 +365,8 @@ class HiddenConvolutionalBackPropagator extends BackPropagator {
 
 		for (int i = 0; i < filterList.get(0).length; i++) {
 			for (int j = 0; j < filterList.size(); j++) {
-				for (int k = 0; k < (dOut[0].length - filterList.get(j)[0].length) / strideLengthY
-						+ 1; k += strideLengthY) {
-					for (int l = 0; l < (dOut[0][0].length - filterList.get(j)[0][0].length) / strideLengthX
-							+ 1; l += strideLengthX) {
+				for (int k = 0; k < (dOut[0].length - filterList.get(j)[0].length) / strideLengthY + 1; k += strideLengthY) {
+					for (int l = 0; l < (dOut[0][0].length - filterList.get(j)[0][0].length) / strideLengthX + 1; l += strideLengthX) {
 						total = 0;
 						for (int m = 0; l < filterList.get(j)[0].length; l++) { // loop through filter
 							for (int n = 0; m < filterList.get(j)[0][0].length; m++) { // loop through filter
@@ -463,10 +461,12 @@ class PoolingBackPropagator extends BackPropagator {
 }
 
 class ReluBackPropagator extends BackPropagator {
+	
 	List<double[][]> filterList;
 
 	public Gradients computeGradients(Layer layer, Layer nextLayer) {
 		double[][][] filter = threeDElementMultiplication(gradients.runningTotal, computeReluDerivative(layer));
+		
 		double[][][] threeDImage;
 		double[][][] image;
 
@@ -477,6 +477,8 @@ class ReluBackPropagator extends BackPropagator {
 			image = conv.currentImage;
 
 			filterList = (splitFilters(filter));
+			
+			//filterList = rotate90(rotate90(filterList)); 
 
 			int strideLengthY = 1;
 			int strideLengthX = 1;
@@ -514,7 +516,7 @@ class ReluBackPropagator extends BackPropagator {
 
 			filterList = splitFilters(filter);
 
-			// filterList = rotate90(rotate90(filterList)); doesn't seem to affect anything
+		//	filterList = rotate90(rotate90(filterList)); // doesn't seem to affect anything
 
 			hiddenConv.fullyConvolvedDerivative = copyThreeDArray(filter);
 
@@ -533,10 +535,8 @@ class ReluBackPropagator extends BackPropagator {
 																													// actual
 																													// values
 				for (int i = 0; i < threeDImage.length; i++) { // loop through rgb values
-					for (int j = 0; j < (threeDImage[0].length - filter1.length) / strideLengthY
-							+ 1; j += strideLengthY) {
-						for (int k = 0; k < (threeDImage[0][0].length - filter1[0].length) / strideLengthX
-								+ 1; k += strideLengthX) {
+					for (int j = 0; j < (threeDImage[0].length - filter1.length) / strideLengthY + 1; j += strideLengthY) {
+						for (int k = 0; k < (threeDImage[0][0].length - filter1[0].length) / strideLengthX + 1; k += strideLengthX) {
 							double total = 0;
 							for (int l = 0; l < filter1.length; l++) { // loop through filter
 								for (int m = 0; m < filter1[0].length; m++) { // loop through filter
@@ -605,4 +605,24 @@ class ReluBackPropagator extends BackPropagator {
 		return list;
 	}
 
+	private List<double[][]> rotate90(List<double[][]> mat) {
+		int M = mat.get(0).length;
+		int N = mat.get(0)[0].length;
+		double[][] ret;
+		List<double[][]> list = new ArrayList<double[][]>(mat.size());
+
+		for (int i = 0; i < mat.size(); i++) {
+			ret = new double[N][M];
+			
+				for (int r = 0; r < M; r++) {
+					for (int c = 0; c < N; c++) {
+						ret[c][M - 1 - r] = mat.get(i)[r][c];
+					}
+				}
+			
+			list.add(ret);
+		}
+		return list;
+	}
+	
 }

@@ -6,7 +6,7 @@ public class Optimizer {
 	Optimizer optimizationObject;
 	List<Object> weightChange;
 	public boolean TorF = true;
-	public double learningRate = .0001;
+	public double learningRate = .000001;
 	//public double learningRate = .001;
 	
 	private void createOptimizerObject(String optimizerString) {
@@ -14,8 +14,8 @@ public class Optimizer {
 			optimizationObject = new Adam();
 		} else if (optimizerString.equals("BASIC")) {
 			optimizationObject = new Basic();
-		} else if (optimizerString.equals("ADAMCORRECTED")) {
-			optimizationObject = new AdamCorrected();
+		} else if (optimizerString.equals("MOMENTUM")) {
+			optimizationObject = new Momentum();
 		} else {
 			optimizationObject = new Basic(); // defaults to basic
 		}
@@ -102,8 +102,7 @@ class Adam extends Optimizer {
 	}
 
 	private void updateBiasedFirstMomentEstimate() {
-		for (int k = 0; k < gradientCopy.size(); k++) {
-			
+		for (int k = 0; k < gradientCopy.size(); k++) {	
 			if (gradientCopy.get(k).twoDGradient != null) {
 				for (int i = 0; i < gradientCopy.get(k).twoDGradient.length; i++) {
 					for (int j = 0; j < gradientCopy.get(k).twoDGradient[0].length; j++) {
@@ -290,16 +289,9 @@ class Basic extends Optimizer {
 
 }
 
-class AdamCorrected extends Optimizer {
-	double beta1 = .9;
-	double beta2 = .999;
-	final double offSet = .000000001;
-	int betaCounter = 1;
-
-	List<Object> firstMomentEstimate;
-	List<Object> secondMomentEstimate;
-	List<Object> firstMomentEstimateCorrected;
-	List<Object> secondMomentEstimateCorrected;
+class Momentum extends Optimizer {
+	
+	double beta = .9; 
 	List<Gradients> gradientCopy;
 
 	public List<Object> optimize(List<Gradients> gradients, String optimizerString) {
@@ -308,118 +300,39 @@ class AdamCorrected extends Optimizer {
 
 		if (TorF == true) {
 			weightChange = initializeList(gradients);
-			initializeMomentLists(gradients);
 			TorF = false;
 		}
 
-		updateBiasedFirstMomentEstimate();
-		updateBiasedSecondMomentEstimate();
-		computeBiasCorrectedFirstMoment();
-		computeBiasCorrectedSecondMoment();
-		
 		calculateParameterUpdate();
 		
-	//	gradientCopy.clear();
 		gradients.clear();
 
 		return weightChange;
 	}
-
-	private void initializeMomentLists(List<Gradients> gradients) {
-		firstMomentEstimate = initializeList(gradients);
-		secondMomentEstimate = initializeList(gradients);
-		firstMomentEstimateCorrected = initializeList(gradients);
-		secondMomentEstimateCorrected = initializeList(gradients);
-	}
-
-	private void updateBiasedFirstMomentEstimate() {
-		for (int k = 0; k < gradientCopy.size(); k++) {
-			
-			if (gradientCopy.get(k).twoDGradient != null) {
-				for (int i = 0; i < gradientCopy.get(k).twoDGradient.length; i++) {
-					for (int j = 0; j < gradientCopy.get(k).twoDGradient[0].length; j++) {
-						((double[][]) firstMomentEstimate.get(k))[i][j] = (beta1
-								* ((double[][]) firstMomentEstimate.get(k))[i][j])
-								+ ((1.0 - beta1) * (gradientCopy.get(k).twoDGradient[i][j]));
-					}
-				}
-				
-			} 
-		}
-	}
-
-	private void updateBiasedSecondMomentEstimate() {
-		for (int k = 0; k < gradientCopy.size(); k++) {
-			if (gradientCopy.get(k).twoDGradient != null) {
-				for (int i = 0; i < gradientCopy.get(k).twoDGradient.length; i++) {
-					for (int j = 0; j < gradientCopy.get(k).twoDGradient[0].length; j++) {
-						((double[][]) secondMomentEstimate.get(k))[i][j] = (beta2
-								* ((double[][]) secondMomentEstimate.get(k))[i][j])
-								+ ((1.0 - beta2) * gradientCopy.get(k).twoDGradient[i][j]
-										* gradientCopy.get(k).twoDGradient[i][j]);
-					}
-				}
-			} 
-		}
-
-	}
-
-	private void computeBiasCorrectedFirstMoment() {
-		for (int k = 0; k < gradientCopy.size(); k++) {
-			if (gradientCopy.get(k).twoDGradient != null) {
-				for (int i = 0; i < gradientCopy.get(k).twoDGradient.length; i++) {
-					for (int j = 0; j < gradientCopy.get(k).twoDGradient[0].length; j++) {
-						((double[][]) firstMomentEstimateCorrected
-								.get(k))[i][j] = ((double[][]) firstMomentEstimate.get(k))[i][j]
-										/ (1.0 - Math.pow(beta1, betaCounter));
-					}
-				}
-
-			} 
-		}
-	}
-
-	private void computeBiasCorrectedSecondMoment() {
-		for (int k = 0; k < gradientCopy.size(); k++) {
-			if (gradientCopy.get(k).twoDGradient != null) {
-				for (int i = 0; i < gradientCopy.get(k).twoDGradient.length; i++) {
-					for (int j = 0; j < gradientCopy.get(k).twoDGradient[0].length; j++) {
-						((double[][]) secondMomentEstimateCorrected
-								.get(k))[i][j] = ((double[][]) secondMomentEstimate.get(k))[i][j]
-										/ (1.0 - Math.pow(beta2, betaCounter));
-					}
-				}
-			} 
-		}
-	}
-
+	
 	private void calculateParameterUpdate() {
 		for (int k = 0; k < gradientCopy.size(); k++) {
 			if (gradientCopy.get(k).twoDGradient != null) {
 				for (int i = 0; i < gradientCopy.get(k).twoDGradient.length; i++) {
 					for (int j = 0; j < gradientCopy.get(k).twoDGradient[0].length; j++) {
-						((double[][]) weightChange.get(k))[i][j] = ((learningRate
-								* ((double[][]) firstMomentEstimateCorrected.get(k))[i][j])
-								/ (Math.sqrt(((double[][]) secondMomentEstimateCorrected.get(k))[i][j]) + offSet));
+						((double[][]) weightChange.get(k))[i][j] = beta*((double[][])weightChange.get(k))[i][j] + learningRate	* (gradientCopy.get(k).twoDGradient[i][j]);
 					}
 				}
+
 			} else if (gradientCopy.get(k).twoDGradient == null) {
 				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
 					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
 						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
 							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] = learningRate
-										* (gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]);
+								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] = beta*((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] + learningRate*(gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]);
 							}
 						}
 					}
 				}
 			}
 		}
-		
-
-		betaCounter++;
 	}
+	
 }
 
 

@@ -308,9 +308,11 @@ class ConvolutionalLayer extends Layer {
 			conv.trainingImages.add(imageList.get(counter));
 			counter++;
 		} 
-		for(int i=0; i<testingSize; i++) {
+		for(int i=0; i < testingSize; i++) {
 			conv.testingImages.add(imageList.get(counter)); 
+			counter++;
 		}
+		
 	}
 	
 	

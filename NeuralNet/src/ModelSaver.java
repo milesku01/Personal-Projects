@@ -76,12 +76,12 @@ public class ModelSaver {
 		String space = " ";
 
 		List<Layer> list = model.layerList;
-		InputLayer inputLayer = null; 
-		
-		if(model.layerList.get(0) instanceof InputLayer) {
+		InputLayer inputLayer = null;
+
+		if (model.layerList.get(0) instanceof InputLayer) {
 			inputLayer = (InputLayer) model.layerList.get(0); // check if reference problem
 		}
-		
+
 		try {
 
 			BufferedOutputStream bos = new BufferedOutputStream(
@@ -135,46 +135,61 @@ public class ModelSaver {
 
 			} else if (list.get(0) instanceof ConvolutionalLayer) {
 				ConvolutionalLayer conv = (ConvolutionalLayer) list.get(0);
-			if(conv.type == "TEXT") {
+
+				bos.write((space + "").getBytes());
+				bos.write((conv.normalizer.imageMean.length + "").getBytes());
+			
 				
-				bos.write((space + "").getBytes());
-				bos.write((conv.imageHeight + "").getBytes());
-
-				bos.write((space + "").getBytes());
-				bos.write((conv.imageWidth + "").getBytes());
-
-				bos.write((space + "").getBytes());
-				bos.write((conv.channelDepth + "").getBytes());
-
-				bos.write((space + "").getBytes());
-				bos.write((conv.numofFilters + "").getBytes());
-
-				bos.write((space + "").getBytes());
-				bos.write((conv.filterSize + "").getBytes());
-
-				bos.write((space + "").getBytes());
-				bos.write((conv.strideLength + "").getBytes());
-
-				bos.write((space + "").getBytes());
-				bos.write((0 + "").getBytes()); // used for padding, because only zero type for now
-		
-			} else if(conv.type == "IMAGE") {
+				for(int i=0; i<conv.normalizer.imageMean.length; i++) {
+					bos.write((space + "").getBytes());
+					bos.write((conv.normalizer.imageMean[i] + "").getBytes());
+				}	
 				
-				bos.write((space + "").getBytes());
-				bos.write((conv.numofFilters + "").getBytes());
+				for(int i=0; i<conv.normalizer.imageMean.length; i++) {
+					bos.write((space + "").getBytes());
+					bos.write((conv.normalizer.imageStrdDev[i] + "").getBytes());
+				}
+				
+				if (conv.type == "TEXT") {
 
-				bos.write((space + "").getBytes());
-				bos.write((conv.filterSize + "").getBytes());
+					bos.write((space + "").getBytes());
+					bos.write((conv.imageHeight + "").getBytes());
 
-				bos.write((space + "").getBytes());
-				bos.write((conv.strideLength + "").getBytes());
+					bos.write((space + "").getBytes());
+					bos.write((conv.imageWidth + "").getBytes());
 
-				bos.write((space + "").getBytes());
-				bos.write((0 + "").getBytes()); // used for padding, because only zero type for now
-			}
+					bos.write((space + "").getBytes());
+					bos.write((conv.channelDepth + "").getBytes());
+
+					bos.write((space + "").getBytes());
+					bos.write((conv.numofFilters + "").getBytes());
+
+					bos.write((space + "").getBytes());
+					bos.write((conv.filterSize + "").getBytes());
+
+					bos.write((space + "").getBytes());
+					bos.write((conv.strideLength + "").getBytes());
+
+					bos.write((space + "").getBytes());
+					bos.write((0 + "").getBytes()); // used for padding, because only zero type for now
+
+				} else if (conv.type == "IMAGE") {
+
+					bos.write((space + "").getBytes());
+					bos.write((conv.numofFilters + "").getBytes());
+
+					bos.write((space + "").getBytes());
+					bos.write((conv.filterSize + "").getBytes());
+
+					bos.write((space + "").getBytes());
+					bos.write((conv.strideLength + "").getBytes());
+
+					bos.write((space + "").getBytes());
+					bos.write((0 + "").getBytes()); // used for padding, because only zero type for now
+				}
 
 				for (int i = 1; i < list.size(); i++) {
-				
+
 					if (list.get(i) instanceof PoolingLayer) {
 						PoolingLayer pool = (PoolingLayer) list.get(i);
 						bos.write((space + "").getBytes());
@@ -192,35 +207,35 @@ public class ModelSaver {
 
 						bos.write((space + "").getBytes());
 						bos.write((0 + "").getBytes()); // for padding
-						
+
 					} else if (list.get(i) instanceof HiddenLayer) {
 						HiddenLayer hidden = (HiddenLayer) list.get(i);
 						bos.write((space + "").getBytes());
 						bos.write((hidden.layerSize + "").getBytes());
 
 						activationInt = activator.convertActivationString(list.get(i).activation);
-					
+
 						bos.write((space + "").getBytes());
 						bos.write((activationInt + "").getBytes());
-					
+
 					} else if (list.get(i) instanceof OutputLayer) {
-						
+
 						OutputLayer out = (OutputLayer) list.get(i);
-						
+
 						bos.write((space + "").getBytes());
 						bos.write((out.layerSize + "").getBytes());
 
 						activationInt = activator.convertActivationString(list.get(i).activation);
-						
+
 						bos.write((space + "").getBytes());
 						bos.write((activationInt + "").getBytes());
 					}
 
 				}
-				
+
 				int hiddenCounter = 0;
-				
-				for(int i=0; i<list.size(); i++) {
+
+				for (int i = 0; i < list.size(); i++) {
 					if (list.get(i) instanceof ConvolutionalLayer) {
 						hiddenCounter = 0;
 						for (int j = 0; j < weights.filterList.get(0).threeDFilterArray.size(); j++) {
@@ -240,14 +255,17 @@ public class ModelSaver {
 							}
 						}
 						bos.write(System.lineSeparator().getBytes());
-						hiddenCounter++; 
-						
+						hiddenCounter++;
+
 					} else if (list.get(i) instanceof HiddenConvolutionalLayer) {
 						for (int j = 0; j < weights.filterList.get(hiddenCounter).twoDFilterArray.size(); j++) {
-							for (int k = 0; k < weights.filterList.get(hiddenCounter).twoDFilterArray.get(j).length; k++) {
-								for (int l = 0; l < weights.filterList.get(hiddenCounter).twoDFilterArray.get(j)[0].length; l++) {
+							for (int k = 0; k < weights.filterList.get(hiddenCounter).twoDFilterArray
+									.get(j).length; k++) {
+								for (int l = 0; l < weights.filterList.get(hiddenCounter).twoDFilterArray
+										.get(j)[0].length; l++) {
 									bos.write((space + "").getBytes());
-									bos.write((weights.filterList.get(hiddenCounter).twoDFilterArray.get(j)[k][l] + "").getBytes());
+									bos.write((weights.filterList.get(hiddenCounter).twoDFilterArray.get(j)[k][l] + "")
+											.getBytes());
 									if (counter % 30 == 0) {
 										bos.write(System.lineSeparator().getBytes());
 									}
@@ -256,7 +274,8 @@ public class ModelSaver {
 							}
 						}
 						bos.write(System.lineSeparator().getBytes());
-						hiddenCounter++; 
+						hiddenCounter++;
+						
 					} else if (list.get(i) instanceof HiddenLayer) {
 						for (int l = 0; l < weights.weightList.size(); l++) {
 							for (int j = 0; j < weights.weightList.get(l).length; j++) {

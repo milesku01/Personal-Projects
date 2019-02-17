@@ -77,7 +77,7 @@ public class Weights {
 		int d = ((ConvolutionalLayer)model.layerList.get(0)).channelDepth; 
 		double n = (d*w*h);
 		
-		List<double[][][]> filterValuesList = new ArrayList<double[][][]>(1); 
+		List<double[][][]> filterValuesList = new ArrayList<double[][][]>(filter.numofFilters); 
 		double[][][] filterValues = null;
 		
 		for(int i=0; i<filter.numofFilters; i++) {

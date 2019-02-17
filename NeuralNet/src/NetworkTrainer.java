@@ -66,7 +66,7 @@ public class NetworkTrainer {
 			iterations = numofBatches * numofEpochs;
 		}
 
-		// int iterations = 10;
+		//iterations = 1000;
 
 		fp.constructForwardPropagationObjects(layers, weights);
 		bp.constructBackwardPropagationObjects(model, weights);
@@ -135,6 +135,17 @@ public class NetworkTrainer {
 		}
 		System.out.println();
 	}
+	
+	public void print3DArray(double[][][] d) {
+		for(int i=0; i<d.length; i++) {
+			for(int j=0; j<d[0].length; j++) {
+				for(int k=0; k<d[0][0].length; k++) {
+					System.out.print(Math.round(d[i][j][k] * 10000) / 10000.0 + " ");
+				}
+			}
+		}
+		System.out.println();
+	}
 
 	public void forwardPropagation() {
 		for (int i = 0; i < layers.size() - 1; i++) {
@@ -145,8 +156,8 @@ public class NetworkTrainer {
 			}
 		}
 		
-		System.out.print("OutputArray ");
-		printArray(layers.get(layers.size()-1).layerValue); 
+		//System.out.print("OutputArray ");
+		//printArray(layers.get(layers.size()-1).layerValue); 
 	}
 
 	int targetPositionCounter = 0;
@@ -205,6 +216,7 @@ public class NetworkTrainer {
 			
 			for (int i = 0; i < ((ConvolutionalLayer) layers.get(0)).testingImages.size(); i++) {
 				for (int j = 0; j < layers.size() - 1; j++) {
+					
 					if(layers.get(j) instanceof InputLayer || layers.get(j) instanceof HiddenLayer) {
 						layers.get(j + 1).layerValue = fp.propagateTest(layers.get(j), layers.get(j + 1));
 					} else {
@@ -461,9 +473,10 @@ public class NetworkTrainer {
 	int filterListCounter = 0; // for later
 
 	private void updateParameters() {
+	
 		for (int i = 0; i < weightChanges.size(); i++) {
 			if (weightChanges.get(i) instanceof double[][]) {
-				for (int j = 0; j < ((double[][]) weightChanges.get(i)).length; j++) {
+			for (int j = 0; j < ((double[][]) weightChanges.get(i)).length; j++) {
 					for (int k = 0; k < ((double[][]) weightChanges.get(i))[0].length; k++) {
 						weightList.get(weightListCounter)[j][k] -= ((double[][]) weightChanges.get(i))[j][k];
 					}

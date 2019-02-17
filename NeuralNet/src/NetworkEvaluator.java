@@ -13,7 +13,7 @@ public class NetworkEvaluator {
 	List<double[][]> layerList = new ArrayList<double[][]>();
 	List<double[][][]> imageList = new ArrayList<double[][][]>();
 	List<Layer> layerListObjects = new ArrayList<Layer>();
-	Weights weights = new Weights(); 
+	Weights weights = new Weights();
 	String filePath = System.getProperty("user.home") + "\\Desktop\\Models\\";
 	String testFilePath = System.getProperty("user.home") + "\\Desktop\\";
 	Layer layer = new Layer();
@@ -62,17 +62,18 @@ public class NetworkEvaluator {
 	public void predictConv(String modelFilePath, String testFilePath) {
 		acquireConvModelValues(modelFilePath);
 		acquireConvTestValues(testFilePath);
-		
+
 		weights.weightList = weightList;
 		weights.filterList = filterList;
-		
+
 		nt.fp.constructForwardPropagationObjects(layerListObjects, weights);
-		
-		forwardPropagationConv(); 
+
+		forwardPropagationConv();
 
 		listOfValues.clear();
 
-		System.out.println("Prediction " + java.util.Arrays.deepToString(layerListObjects.get(layerListObjects.size()-1).layerValue) + "\n");
+		System.out.print("Prediction ");
+		nt.printArray(layerListObjects.get(layerListObjects.size() - 1).layerValue);
 	}
 
 	private void formWeightsToArrays(int[] layerSizes) {
@@ -101,18 +102,27 @@ public class NetworkEvaluator {
 	}
 
 	public void forwardPropagationConv() {
-		((ConvolutionalLayer) layerListObjects.get(0)).trainingImages = imageList;
-	
+		((ConvolutionalLayer) layerListObjects
+				.get(0)).trainingImages = ((ConvolutionalLayer) layerListObjects.get(0)).normalizer
+						.normalizeImagesZscore(imageList, mean, strdDev);
+
 		long start = System.nanoTime();
 		for (int i = 0; i < layerListObjects.size() - 1; i++) {
-			layerListObjects.get(i + 1).layerValue = nt.fp.propagate(layerListObjects.get(i), layerListObjects.get(i + 1));
+			if (layerListObjects.get(i) instanceof InputLayer || layerListObjects.get(i) instanceof HiddenLayer) {
+				layerListObjects.get(i + 1).layerValue = nt.fp.propagate(layerListObjects.get(i),
+						layerListObjects.get(i + 1)); 
+			} else {
+				layerListObjects.get(i + 1).convValue = nt.fp.propagateConv(layerListObjects.get(i),
+						layerListObjects.get(i + 1)); 
+			}
 		}
+
 		long end = System.nanoTime();
-		
+
 		System.out.println(nt.getTrainingTime(start, end));
-		
+
 	}
-	
+
 	public void propagateInputLayer() {
 		layerValue = appendBiasColumn(inputLayer);
 		System.out.println("InitialLayer " + java.util.Arrays.deepToString(layerValue));
@@ -167,6 +177,7 @@ public class NetworkEvaluator {
 	int filterSize;
 	int strideLength;
 	int poolSize;
+	int normalizerNum;
 	String padding;
 
 	String activation = null;
@@ -180,12 +191,28 @@ public class NetworkEvaluator {
 		numofLayers = (int) (double) listOfValues.get(0);
 		listOfValues.remove(0); // remove numofLayers
 
-		
-
 		layerTypes = new int[numofLayers];
 
 		for (int i = 0; i < numofLayers; i++) {
 			layerTypes[i] = (int) (double) listOfValues.get(0);
+			listOfValues.remove(0);
+		}
+
+		normalizerNum = (int) (double) listOfValues.get(0);
+		listOfValues.remove(0);
+		
+		mean = new double[normalizerNum];
+		strdDev = new double[normalizerNum]; 
+		
+		System.out.println("NN " +normalizerNum);
+
+		for (int i = 0; i < normalizerNum; i++) {
+			mean[i] = (double) listOfValues.get(0);
+			listOfValues.remove(0);
+		}
+
+		for (int i = 0; i < normalizerNum; i++) {
+			strdDev[i] = (double) listOfValues.get(0);
 			listOfValues.remove(0);
 		}
 
@@ -197,7 +224,7 @@ public class NetworkEvaluator {
 				listOfValues.remove(0);
 				HiddenLayer hiddenLayer = new HiddenLayer(layerSize, activation);
 				layerListObjects.add(hiddenLayer);
-				
+
 			} else if (layerTypes[i] == 2) { // conv text
 				inputHeight = (int) (double) listOfValues.get(0);
 				listOfValues.remove(0);
@@ -217,8 +244,8 @@ public class NetworkEvaluator {
 						numofFilters, filterSize, strideLength, padding);
 				convLayer.type = "TEXT";
 				layerListObjects.add(convLayer);
-				
-			} else if (layerTypes[i] == 3) { //hiddenConv
+
+			} else if (layerTypes[i] == 3) { // hiddenConv
 				numofFilters = (int) (double) listOfValues.get(0);
 				listOfValues.remove(0);
 				filterSize = (int) (double) listOfValues.get(0);
@@ -230,26 +257,26 @@ public class NetworkEvaluator {
 				HiddenConvolutionalLayer hidden = new HiddenConvolutionalLayer(numofFilters, filterSize, strideLength,
 						padding);
 				layerListObjects.add(hidden);
-				
-			} else if (layerTypes[i] == 4) { //pool
+
+			} else if (layerTypes[i] == 4) { // pool
 				poolSize = (int) (double) listOfValues.get(0);
 				listOfValues.remove(0);
 				PoolingLayer layer = new PoolingLayer(poolSize, "MAX");
 				layerListObjects.add(layer);
-				
-			} else if (layerTypes[i] == 5) { //relu
+
+			} else if (layerTypes[i] == 5) { // relu
 				ReluLayer relu = new ReluLayer();
 				layerListObjects.add(relu);
-				
-			} else if (layerTypes[i] == 6) { //output
+
+			} else if (layerTypes[i] == 6) { // output
 				layerSize = (int) (double) listOfValues.get(0);
 				listOfValues.remove(0);
 				activation = activator.convertActivationInt((int) (double) listOfValues.get(0));
 				listOfValues.remove(0);
 				OutputLayer outputLayer = new OutputLayer(layerSize, activation);
 				layerListObjects.add(outputLayer);
-				
-			} else if (layerTypes[i] == 7) { //conv image
+
+			} else if (layerTypes[i] == 7) { // conv image
 				numofFilters = (int) (double) listOfValues.get(0);
 				listOfValues.remove(0);
 				filterSize = (int) (double) listOfValues.get(0);
@@ -259,21 +286,22 @@ public class NetworkEvaluator {
 				padding = "zero-padding"; // have to change if more types later
 				listOfValues.remove(0);
 				ConvolutionalLayer conv = new ConvolutionalLayer(numofFilters, filterSize, strideLength, padding);
-				conv.channelDepth = 3; //may need to change
+				conv.channelDepth = 3; // may need to change
 				conv.type = "IMAGE";
-				
+
 				layerListObjects.add(conv);
 			}
 		}
 
 		for (int i = 0; i < layerListObjects.size(); i++) {
+			
 			if (layerListObjects.get(i) instanceof ConvolutionalLayer) {
-
 				ConvolutionalLayer conv = (ConvolutionalLayer) layerListObjects.get(i);
-				Filters filter = new Filters(conv.numofFilters, conv.filterSize);
+				Filters filter = new Filters(conv.numofFilters, conv.filterSize, conv.channelDepth);
 				double[][][] array = new double[conv.channelDepth][conv.filterSize][conv.filterSize];
+				List<double[][][]> list = new ArrayList<double[][][]>(conv.numofFilters);
 
-				for(int h=0; h < conv.numofFilters; h++) {
+				for (int h = 0; h < conv.numofFilters; h++) {
 					for (int j = 0; j < array.length; j++) {
 						for (int k = 0; k < array[0].length; k++) {
 							for (int l = 0; l < array[0][0].length; l++) {
@@ -282,32 +310,38 @@ public class NetworkEvaluator {
 							}
 						}
 					}
-					filter.threeDFilterArray.add(array);
+					list.add(array);
 				}
-			filterList.add(filter);
+				
+				filter.threeDFilterArray = list; 
+				filterList.add(filter);
 
 			} else if (layerListObjects.get(i) instanceof HiddenConvolutionalLayer) {
 				HiddenConvolutionalLayer hidden = (HiddenConvolutionalLayer) layerListObjects.get(i);
-				Filters filter = new Filters(hidden.numofFilters, hidden.filterSize);
-				double[][] array = new double[hidden.filterSize][hidden.filterSize];
-				
-				for(int l=0; l<hidden.numofFilters; l++) {
-					for (int j = 0; j < array.length; j++) {
-						for (int k = 0; k < array[0].length; k++) {
-							array[j][k] = listOfValues.get(0);
-							listOfValues.remove(0);
+				Filters filter = new Filters(hidden.numofFilters, hidden.filterSize, hidden.channelDepth);
+				double[][][] array = new double[hidden.channelDepth][hidden.filterSize][hidden.filterSize];
+				List<double[][][]> list = new ArrayList<double[][][]>(hidden.numofFilters);
+
+				for (int l = 0; l < hidden.numofFilters; l++) {
+					for (int m = 0; m < array.length; m++) {
+						for (int j = 0; j < array[0].length; j++) {
+							for (int k = 0; k < array[0][0].length; k++) {
+								array[m][j][k] = listOfValues.get(0);
+								listOfValues.remove(0);
+							}
 						}
 					}
-				
-					filter.twoDFilterArray.add(array);
+
+					list.add(array);
 				}
-				
+
+				filter.threeDFilterArray = list; 
 				filterList.add(filter);
-				
+
 			} else if (layerListObjects.get(i) instanceof HiddenLayer) {
 				HiddenLayer hidden = (HiddenLayer) layerListObjects.get(i);
 
-				 if (layerListObjects.get(i + 1) instanceof HiddenLayer) {
+				if (layerListObjects.get(i + 1) instanceof HiddenLayer) {
 					HiddenLayer postHidden = (HiddenLayer) layerListObjects.get(i + 1);
 					double[][] weight = new double[hidden.layerSize][postHidden.layerSize];
 					for (int j = 0; j < weight.length; j++) {
@@ -331,7 +365,7 @@ public class NetworkEvaluator {
 			}
 		}
 		System.out.println("List size " + listOfValues.size());
-		
+
 	}
 
 	public void acquireTestValues(String testPath) {
@@ -354,12 +388,12 @@ public class NetworkEvaluator {
 	}
 
 	public void acquireConvTestValues(String testPath) {
-		
+
 		try {
 			ConvolutionalLayer conv = (ConvolutionalLayer) layerListObjects.get(0);
-			
+
 			System.out.println(conv.type);
-	
+
 			if (conv.type == "TEXT") {
 				fr = new FileReader(testFilePath + testPath + ".txt");
 				imageList = (fr.readImageTextIntoList(conv.channelDepth, conv.imageHeight, conv.imageWidth));

@@ -51,6 +51,22 @@ public class Normalizer {
 		return inputs;
 	}
 	
+	public List<double[][][]> normalizeImagesZscore(List<double[][][]> inputs, double[] mean, double[] strdDev) {
+		for(int i=0; i<inputs.size(); i++) {
+			for(int j=0; j<inputs.get(i).length; j++) {
+				if(mean[j] != 0.0 && strdDev[j] != 0.0) {
+					for(int k=0; k<inputs.get(i)[0].length; k++) {
+						for(int l=0; l<inputs.get(i)[0][0].length; l++) {
+							inputs.get(i)[j][k][l] = ((inputs.get(i)[j][k][l] - mean[j]) / strdDev[j]);
+						}
+					}
+				}
+			}
+		}
+		
+		return inputs;
+	}
+	
 	
 	public double[][] normalizeInputsTanh(double[][] inputs, int targetSize) {
 		calculateStrdDev(inputs);

@@ -293,8 +293,8 @@ class DensePropagator extends ForwardPropagator {
 		nextLayer.layerValue = layerValue;
 		nextLayer.layerValue = activate(nextLayer);
 
-		// System.out.println("OutputLayer " +
-		// java.util.Arrays.deepToString(nextLayer.layerValue));
+		System.out.print("OutputLayer ");
+		nt.printArray(nextLayer.layerValue);
 
 		return nextLayer.layerValue;
 	}
@@ -393,6 +393,7 @@ class TestPropagator extends ForwardPropagator {
 
 		filterCounter++;
 
+		nextLayer.preActivatedConvValue = convOutputArraySum; 
 		nextLayer.testConvData = convOutputArraySum;
 	
 		return nextLayer.testConvData;

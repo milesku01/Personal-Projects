@@ -1,0 +1,177 @@
+#
+# There is insufficient memory for the Java Runtime Environment to continue.
+# Native memory allocation (mmap) failed to map 536870912 bytes for Failed to commit area from 0x00000000a0c00000 to 0x00000000c0c00000 of length 536870912.
+# Possible reasons:
+#   The system is out of physical RAM or swap space
+#   The process is running with CompressedOops enabled, and the Java Heap may be blocking the growth of the native heap
+# Possible solutions:
+#   Reduce memory load on the system
+#   Increase physical memory or swap space
+#   Check if swap backing store is full
+#   Decrease Java heap size (-Xmx/-Xms)
+#   Decrease number of Java threads
+#   Decrease Java thread stack sizes (-Xss)
+#   Set larger code cache with -XX:ReservedCodeCacheSize=
+# This output file may be truncated or incomplete.
+#
+#  Out of Memory Error (t:/workspace/open/src/hotspot/os/windows/os_windows.cpp:3221), pid=7112, tid=9512
+#
+# JRE version:  (10.0.2+13) (build )
+# Java VM: Java HotSpot(TM) 64-Bit Server VM (10.0.2+13, mixed mode, aot, tiered, compressed oops, g1 gc, windows-amd64)
+# No core dump will be written. Minidumps are not enabled by default on client versions of Windows
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -Xms512M -Xmx1524M -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=Cp1252 NetworkTester
+
+Host: Intel(R) Core(TM) i5-7200U CPU @ 2.50GHz, 4 cores, 7G,  Windows 10 , 64 bit Build 17134 (10.0.17134.556)
+Time: Thu Feb 14 17:38:47 2019 Central Standard Time elapsed time: 0 seconds (0d 0h 0m 0s)
+
+---------------  T H R E A D  ---------------
+
+Current thread (0x000002685265b800):  JavaThread "Unknown thread" [_thread_in_vm, id=9512, stack(0x000000ac75500000,0x000000ac75600000)]
+
+Stack: [0x000000ac75500000,0x000000ac75600000]
+Native frames: (J=compiled Java code, j=interpreted, Vv=VM code, C=native code)
+V  [jvm.dll+0x5a01a9]
+V  [jvm.dll+0x6bcf31]
+V  [jvm.dll+0x6be126]
+V  [jvm.dll+0x6be7b3]
+V  [jvm.dll+0x234978]
+V  [jvm.dll+0x59dac4]
+V  [jvm.dll+0x592825]
+V  [jvm.dll+0x2f632b]
+V  [jvm.dll+0x2f6295]
+V  [jvm.dll+0x2f6172]
+V  [jvm.dll+0x2f8366]
+V  [jvm.dll+0x344293]
+V  [jvm.dll+0x3449a6]
+V  [jvm.dll+0x344393]
+V  [jvm.dll+0x2c4628]
+V  [jvm.dll+0x2c5771]
+V  [jvm.dll+0x69d1db]
+V  [jvm.dll+0x69e9fc]
+V  [jvm.dll+0x3519e9]
+V  [jvm.dll+0x6856a2]
+V  [jvm.dll+0x3ba0c3]
+V  [jvm.dll+0x3bc261]
+C  [javaw.exe+0x3541]
+C  [javaw.exe+0xe1cf]
+C  [javaw.exe+0xe376]
+C  [KERNEL32.DLL+0x13dc4]
+C  [ntdll.dll+0x73691]
+
+
+---------------  P R O C E S S  ---------------
+
+Threads class SMR info:
+_java_thread_list=0x00000268505c7740, length=0, elements={
+}
+
+Java Threads: ( => current thread )
+
+Other Threads:
+  0x0000026852675000 GCTaskThread "GC Thread#0" [stack: 0x000000ac75600000,0x000000ac75700000] [id=5500]
+  0x0000026852677800 GCTaskThread "GC Thread#1" [stack: 0x000000ac75700000,0x000000ac75800000] [id=1228]
+  0x000002685267a000 GCTaskThread "GC Thread#2" [stack: 0x000000ac75800000,0x000000ac75900000] [id=6768]
+  0x000002685267b800 GCTaskThread "GC Thread#3" [stack: 0x000000ac75900000,0x000000ac75a00000] [id=11524]
+  0x00000268526cd000 ConcurrentGCThread "G1 Main Marker" [stack: 0x000000ac75a00000,0x000000ac75b00000] [id=5052]
+  0x00000268526d1000 ConcurrentGCThread "G1 Conc#0" [stack: 0x000000ac75b00000,0x000000ac75c00000] [id=10448]
+
+[error occurred during error reporting (printing all threads), id 0xe0000002]
+
+VM state:not at safepoint (not fully initialized)
+
+VM Mutex/Monitor currently owned by a thread:  ([mutex/lock_event])
+[0x000002685265ac60] Heap_lock - owner thread: 0x000002685265b800
+
+Heap address: 0x00000000a0c00000, size: 1524 MB, Compressed Oops mode: Non-zero based: 0x00000000a0c00000
+Narrow klass base: 0x0000000000000000, Narrow klass shift: 0
+
+GC Heap History (0 events):
+No events
+
+Deoptimization events (0 events):
+No events
+
+Classes redefined (0 events):
+No events
+
+Internal exceptions (0 events):
+No events
+
+Events (0 events):
+No events
+
+
+Dynamic libraries:
+0x00007ff72dfe0000 - 0x00007ff72e01e000 	C:\Program Files\Java\jre-10.0.2\bin\javaw.exe
+0x00007ffa0a890000 - 0x00007ffa0aa71000 	C:\WINDOWS\SYSTEM32\ntdll.dll
+0x00007ffa08700000 - 0x00007ffa087b2000 	C:\WINDOWS\System32\KERNEL32.DLL
+0x00007ffa06d60000 - 0x00007ffa06fd3000 	C:\WINDOWS\System32\KERNELBASE.dll
+0x00007ffa07d20000 - 0x00007ffa07dc1000 	C:\WINDOWS\System32\ADVAPI32.dll
+0x00007ffa08310000 - 0x00007ffa083ae000 	C:\WINDOWS\System32\msvcrt.dll
+0x00007ffa0a7d0000 - 0x00007ffa0a82b000 	C:\WINDOWS\System32\sechost.dll
+0x00007ffa08510000 - 0x00007ffa08634000 	C:\WINDOWS\System32\RPCRT4.dll
+0x00007ffa07e80000 - 0x00007ffa08010000 	C:\WINDOWS\System32\USER32.dll
+0x00007ffa06fe0000 - 0x00007ffa07000000 	C:\WINDOWS\System32\win32u.dll
+0x00007ffa082e0000 - 0x00007ffa08308000 	C:\WINDOWS\System32\GDI32.dll
+0x00007ffa07310000 - 0x00007ffa074a2000 	C:\WINDOWS\System32\gdi32full.dll
+0x00007ffa071f0000 - 0x00007ffa0728f000 	C:\WINDOWS\System32\msvcp_win.dll
+0x00007ffa06c60000 - 0x00007ffa06d5a000 	C:\WINDOWS\System32\ucrtbase.dll
+0x00007ff9e9cb0000 - 0x00007ff9e9f19000 	C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.17134.590_none_fb3d9bff3069e088\COMCTL32.dll
+0x00007ff9f38e0000 - 0x00007ff9f38ea000 	C:\WINDOWS\SYSTEM32\VERSION.dll
+0x00007ffa09060000 - 0x00007ffa09382000 	C:\WINDOWS\System32\combase.dll
+0x00007ffa07290000 - 0x00007ffa0730a000 	C:\WINDOWS\System32\bcryptPrimitives.dll
+0x00007ffa0a830000 - 0x00007ffa0a85d000 	C:\WINDOWS\System32\IMM32.DLL
+0x00007ff9f8200000 - 0x00007ff9f82ef000 	C:\Program Files\Java\jre-10.0.2\bin\msvcr120.dll
+0x00007ff9f8150000 - 0x00007ff9f81f6000 	C:\Program Files\Java\jre-10.0.2\bin\msvcp120.dll
+0x0000000065cb0000 - 0x0000000066720000 	C:\Program Files\Java\jre-10.0.2\bin\server\jvm.dll
+0x00007ffa089c0000 - 0x00007ffa089c8000 	C:\WINDOWS\System32\PSAPI.DLL
+0x00007ff9fb110000 - 0x00007ff9fb119000 	C:\WINDOWS\SYSTEM32\WSOCK32.dll
+0x00007ffa04400000 - 0x00007ffa04423000 	C:\WINDOWS\SYSTEM32\WINMM.dll
+0x00007ffa08260000 - 0x00007ffa082cc000 	C:\WINDOWS\System32\WS2_32.dll
+0x00007ffa043d0000 - 0x00007ffa043fa000 	C:\WINDOWS\SYSTEM32\winmmbase.dll
+0x00007ffa07cd0000 - 0x00007ffa07d19000 	C:\WINDOWS\System32\cfgmgr32.dll
+0x00007ff9fb100000 - 0x00007ff9fb10f000 	C:\Program Files\Java\jre-10.0.2\bin\verify.dll
+0x00007ffa04bd0000 - 0x00007ffa04d99000 	C:\WINDOWS\SYSTEM32\DBGHELP.DLL
+0x00007ff9e5e60000 - 0x00007ff9e5e89000 	C:\WINDOWS\SYSTEM32\dbgcore.DLL
+0x00007ff9fac50000 - 0x00007ff9fac77000 	C:\Program Files\Java\jre-10.0.2\bin\java.dll
+0x00007ff9f9ca0000 - 0x00007ff9f9cb6000 	C:\Program Files\Java\jre-10.0.2\bin\zip.dll
+0x00007ff9fac30000 - 0x00007ff9fac3a000 	C:\Program Files\Java\jre-10.0.2\bin\jimage.dll
+
+dbghelp: loaded successfully - version: 4.0.5 - missing functions: none
+symbol engine: initialized successfully - sym options: 0x614 - pdb path: .;C:\Program Files\Java\jre-10.0.2\bin;C:\WINDOWS\SYSTEM32;C:\WINDOWS\WinSxS\amd64_microsoft.windows.common-controls_6595b64144ccf1df_6.0.17134.590_none_fb3d9bff3069e088;C:\Program Files\Java\jre-10.0.2\bin\server
+
+VM Arguments:
+jvm_args: -Xms512M -Xmx1524M -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=Cp1252 
+java_command: NetworkTester
+java_class_path (initial): C:\Users\kuhnm\Desktop\NeuralNet\bin
+Launcher Type: SUN_STANDARD
+
+Logging:
+Log output configuration:
+#0: stdout all=warning uptime,level,tags
+#1: stderr all=off uptime,level,tags
+
+Environment Variables:
+JAVA_HOME=C:\Program Files\Java\jdk-10.0.2;C:\Program Files\JetBrains\PyCharm2018.2.2\jre64\\bin\server\jvm.dll;
+PATH=C:\Program Files\Java\jdk-10.0.2;C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Git\cmd;C:\Users\kuhnm\AppData\Local\Microsoft\WindowsApps;;C:\Program Files\JetBrains\PyCharm Community Edition 2018.3\bin;
+USERNAME=kuhnm
+OS=Windows_NT
+PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 142 Stepping 9, GenuineIntel
+
+
+
+---------------  S Y S T E M  ---------------
+
+OS: Windows 10 , 64 bit Build 17134 (10.0.17134.556)
+
+CPU:total 4 (initial active 4) (2 cores per cpu, 2 threads per core) family 6 model 142 stepping 9, cmov, cx8, fxsr, mmx, sse, sse2, sse3, ssse3, sse4.1, sse4.2, popcnt, avx, avx2, aes, clmul, erms, 3dnowpref, lzcnt, ht, tsc, tscinvbit, bmi1, bmi2, adx, fma
+
+Memory: 4k page, physical 8312092k(659300k free), swap 29099120k(30908k free)
+
+vm_info: Java HotSpot(TM) 64-Bit Server VM (10.0.2+13) for windows-amd64 JRE (10.0.2+13), built on Jun 28 2018 01:57:56 by "mach5one" with MS VC++ 12.0 (VS2013)
+
+END.
