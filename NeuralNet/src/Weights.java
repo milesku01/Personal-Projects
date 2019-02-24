@@ -37,10 +37,11 @@ public class Weights {
 		
 		for(int i=0; i < layerList.size() - 1; i++) { //finishes before the output layer is multiplied
 		
-			if(layerList.get(i) instanceof InputLayer || layerList.get(i) instanceof HiddenLayer) {
+			if(layerList.get(i) instanceof InputLayer || layerList.get(i) instanceof HiddenLayer || layerList.get(i) instanceof DropoutLayer) {
 				weightList.add(produceWeightObject(layerList.get(i), layerList.get(nextLayer))); 
 			}
 			else if(layerList.get(i) instanceof ConvolutionalLayer) {
+				
 				ConvolutionalLayer conv = (ConvolutionalLayer)layerList.get(i);
 				Filters filter = new Filters(conv.numofFilters, conv.filterSize, conv.channelDepth); 
 				filterList.add(produceFilterValues(filter, model)); 

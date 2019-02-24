@@ -201,7 +201,7 @@ public class Normalizer {
 		}
 		
 			
-		for(int i=0; i<inputs.get(i).length; i++) { 
+		for(int i=0; i<inputs.get(0).length; i++) { 
 			imageMean[i] /= (inputs.size() * inputs.get(0)[0].length * inputs.get(0)[0][0].length); 
 		}
 		

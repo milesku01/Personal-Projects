@@ -8,92 +8,44 @@ public class NetworkTester {
 		Weights weights = new Weights(); 
 		NetworkTrainer trainer = new NetworkTrainer(); 
 	
-		
-		
+	
+		 
+		 
 		model.buildConvolutionalLayer(1, 3, 1, 1, "zero-padding", "Orange Ball Photos all");
 	//	model.buildConvolutionalLayer(6, 6, 1, 1, 3, 1, 1, "zero-padding", "ImageText2");
 		model.buildReluLayer(); 
-	//	model.buildPoolingLayer(2, "MAX"); 
+		model.buildPoolingLayer(2, "MAX"); 
 		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
-		
-		model.buildHiddenConvolutionalLayer(1, 3, 1, "zero-padding");
-		model.buildReluLayer();
 	
-		//model.buildPoolingLayer(2, "MAX"); 
+		
 	
+	//	model.buildDropoutLayer(.5, "TANH"); 
 		model.buildHiddenLayer("TANH"); 
-	//	model.buildHiddenLayer(1, "TANH");
-	//	model.buildHiddenLayer(20, "LEAKYRELU");
+	
+	//	model.buildDropoutLayer(20, .3, "TANH");
 		
 		model.buildOutputLayer(2, "SOFTMAX", "BallTargets"); 
-	
-		
-		
-//		model.buildInputLayer(2, 2, 1, "Inputs");
-//		model.buildHiddenLayer(5, "TANH"); 
-//		model.buildOutputLayer(2, "SOFTMAX");
-		
+
+		/*
+		model.buildInputLayer(2, 2, 1, "Inputs");
+		model.buildDropoutLayer(5, .5, "TANH");
+	//	model.buildHiddenLayer(5, "TANH"); 
+		model.buildOutputLayer(2, "SOFTMAX");
+		*/
 
 		weights.generateInitialWeights(model);
-		trainer.train(model, weights, 15, "MOMENTUM"); 
+		trainer.train(model, weights, 10, "MOMENTUM"); 
+		
+		
 		
 		modelSaver.saveModel(model, weights);
 	
 	
+	    
 	
 		//modelEvaluator.predict("basketball", 15, 32.8, 117.9, 85.1, 12, 23.66, 114.8, 91.2); 
 		
-    	modelEvaluator.predictConv("herewego5", "ImageTest");
+    //	modelEvaluator.predictConv("bestmodel", "ImageTest");
 		
 		
 	}

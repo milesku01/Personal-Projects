@@ -15,6 +15,7 @@ public class Layer { // superclass
 	double[][][] preActivatedConvValue; 
 	int layerSize;
 	static int globalNumofSets;
+	final static long seed = (long)(1 + (new Random().nextFloat() * (10000 - 1)));
 	String activation; 
 	ForwardPropagator fp = new ForwardPropagator(); 
 	
@@ -180,9 +181,20 @@ class OutputLayer extends Layer {
 	
 	public void initializeTargets(Targets target) { //only called for covnet until cleaned
 		target.targetSize = numofOutputNeuron;
-		target.determineConvolutionalTargets(globalNumofSets, numofOutputNeuron, targetFile);
+		target.determineConvolutionalTargets(globalNumofSets, numofOutputNeuron, seed, targetFile);
 	}
 	
+}
+
+class DropoutLayer extends Layer {
+	int numofNeuron = 0;
+	double dropoutProbability = 0;
+	public DropoutLayer(int numofNeuron, double dropoutProbability, String activation) {
+		layerSize = numofNeuron;
+		this.numofNeuron = numofNeuron;
+		this.activation = activation;
+		this.dropoutProbability = dropoutProbability; 
+	}
 }
 
 class ConvolutionalLayer extends Layer {
@@ -261,7 +273,7 @@ class ConvolutionalLayer extends Layer {
 		shuffleArray(convLayer); 
 		
 		imageList = normalizer.normalizeImagesZscore(imageList);
-		
+	
 		if(imageList.size() > 90) {
 			trainTestSplit(convLayer); 
 			imageList.clear();
@@ -281,6 +293,8 @@ class ConvolutionalLayer extends Layer {
 		
 		imageList = normalizer.normalizeImagesZscore(imageList);
 		
+		
+		
 		if(imageList.size() > 90) {
 			trainTestSplit(convLayer); 
 			imageList.clear();
@@ -292,7 +306,7 @@ class ConvolutionalLayer extends Layer {
 	
 	
 	public void shuffleArray(ConvolutionalLayer conv) {
-		Collections.shuffle(conv.imageList, new Random(5793));
+		Collections.shuffle(conv.imageList, new Random(seed));
 	}
 	
 	public void trainTestSplit(ConvolutionalLayer conv) {

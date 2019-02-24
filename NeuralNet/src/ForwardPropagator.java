@@ -5,6 +5,7 @@ public class ForwardPropagator {
 	int objectTracker = 0;
 	static int layerCounter = 0;
 	static int filterCounter = 0;
+	static double heldDropoutProb = 0.0; 
 	int testObjectTracker = 0;
 	static int batchSize = 1;
 	static int remainingBatchSize = 0;
@@ -23,12 +24,7 @@ public class ForwardPropagator {
 
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		layerValue = propagationObjects.get(objectTracker).propagate(layer, nextLayer);
-
-		// if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer ||
-		// layer instanceof ReluLayer || layer instanceof HiddenConvolutionalLayer)
-		// && (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
-		// layerValue = flatten(layerValue);
-		// }
+		
 
 		if (objectTracker == (propagationObjects.size() - 1)) {
 			objectTracker = 0;
@@ -46,7 +42,7 @@ public class ForwardPropagator {
 
 		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer
 				|| layer instanceof HiddenConvolutionalLayer)
-				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
+				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof DropoutLayer || nextLayer instanceof OutputLayer)) {
 			nextLayer.layerValue = flatten(convValue);
 		}
 
@@ -68,12 +64,16 @@ public class ForwardPropagator {
 			filterCounter = 0;
 		}
 
+		if(layer instanceof DropoutLayer) {
+			((DropoutLayer)layer).dropoutProbability = 0.0; 
+		}
+		
 		layerValue = testPropagationObjects.get(testObjectTracker).propagate(layer, nextLayer);
 
-//		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer)
-//				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
-//			layerValue = flatten(layerValue);
-//		}
+		if(layer instanceof DropoutLayer) {
+			((DropoutLayer)layer).dropoutProbability = heldDropoutProb; //clumsily written but should work
+		}
+	
 
 		if (testObjectTracker == (testPropagationObjects.size() - 1)) {
 			testObjectTracker = 0;
@@ -96,7 +96,7 @@ public class ForwardPropagator {
 
 		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer
 				|| layer instanceof HiddenConvolutionalLayer)
-				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof OutputLayer)) {
+				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof DropoutLayer || nextLayer instanceof OutputLayer)) {
 			nextLayer.layerValue = flatten(convValue);
 		}
 		
@@ -134,6 +134,8 @@ public class ForwardPropagator {
 				forwardPropObj = new ReluPropagator();
 			} else if (layerList.get(i) instanceof HiddenConvolutionalLayer) {
 				forwardPropObj = new HiddenConvolutionalPropagator();
+			} else if (layerList.get(i) instanceof DropoutLayer) {
+				forwardPropObj = new DropoutPropagator(); 
 			}
 
 			propagationObjects.add(forwardPropObj);
@@ -283,8 +285,6 @@ class DensePropagator extends ForwardPropagator {
 
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		double[][] layerValue;
-		// System.out.println(layer.preActivatedValue.length + " here " +
-		// layer.preActivatedValue[0].length);
 
 		layer.layerValue = appendBiasColumn(layer);
 		layerValue = nt.matrixMultiplication(layer.layerValue, weightList.get(layerCounter));
@@ -297,6 +297,38 @@ class DensePropagator extends ForwardPropagator {
 		nt.printArray(nextLayer.layerValue);
 
 		return nextLayer.layerValue;
+	}
+}
+
+class DropoutPropagator extends ForwardPropagator {
+	public double[][] propagate(Layer layer, Layer nextLayer) {
+		double[][] layerValue; 
+		
+		heldDropoutProb = ((DropoutLayer)layer).dropoutProbability;
+		
+		layer.layerValue = dropOut(layer);
+		layer.layerValue = appendBiasColumn(layer);
+		layerValue = nt.matrixMultiplication(layer.layerValue, weightList.get(layerCounter));
+		layerCounter++;
+		nextLayer.preActivatedValue = layerValue;
+		nextLayer.layerValue = layerValue;
+		nextLayer.layerValue = activate(nextLayer);
+	
+		return nextLayer.layerValue;
+	}
+	
+	private double[][] dropOut(Layer layer) {
+		double[][] layerValue = copyArray(layer.layerValue);
+		double probability = ((DropoutLayer)layer).dropoutProbability; 
+		
+		for(int i=0; i<layerValue[0].length; i++) {
+			if(Math.random() <= probability) {
+				for(int j=0; j < layerValue.length; j++) {
+					layerValue[j][i] = 0;
+				}
+			}
+		}
+		return layerValue;
 	}
 }
 

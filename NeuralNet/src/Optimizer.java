@@ -6,7 +6,7 @@ public class Optimizer {
 	Optimizer optimizationObject;
 	List<Object> weightChange;
 	public boolean TorF = true;
-	public double learningRate = .000001;
+	public double learningRate = .000005;
 	//public double learningRate = .001;
 	
 	private void createOptimizerObject(String optimizerString) {
@@ -51,7 +51,6 @@ public class Optimizer {
 				}
 				newList.add(threeArrayList);
 			}
-
 		}
 
 		return newList;
@@ -315,7 +314,7 @@ class Momentum extends Optimizer {
 			if (gradientCopy.get(k).twoDGradient != null) {
 				for (int i = 0; i < gradientCopy.get(k).twoDGradient.length; i++) {
 					for (int j = 0; j < gradientCopy.get(k).twoDGradient[0].length; j++) {
-						((double[][]) weightChange.get(k))[i][j] = beta*((double[][])weightChange.get(k))[i][j] + learningRate	* (gradientCopy.get(k).twoDGradient[i][j]);
+						((double[][]) weightChange.get(k))[i][j] = beta*((double[][])weightChange.get(k))[i][j] + (learningRate) * (gradientCopy.get(k).twoDGradient[i][j]);
 					}
 				}
 

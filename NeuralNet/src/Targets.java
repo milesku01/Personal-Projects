@@ -34,10 +34,10 @@ public class Targets {
 		
 	}
 	
-	public void determineConvolutionalTargets(int numofSets, int targetSize, String targetFile) {
+	public void determineConvolutionalTargets(int numofSets, int targetSize, long seed, String targetFile) {
 		fr = new FileReader(strdFilePath + targetFile + ".txt");
 		targets = fr.readInputIntoArray(numofSets, targetSize);
-		shuffleTargets(targets); 
+		shuffleTargets(targets, seed); 
 		splitTargets(targets);
 	}
 	
@@ -69,7 +69,7 @@ public class Targets {
 		}
 	}
 	
-	private void shuffleTargets(double[][] targets) {
+	private void shuffleTargets(double[][] targets, long seed) {
 
 	//	System.out.println(java.util.Arrays.deepToString(targets));
 		
@@ -84,7 +84,7 @@ public class Targets {
 			list.add(array);
 		}
 		
-		Collections.shuffle(list, new Random(5793));
+		Collections.shuffle(list, new Random(seed));
 		
 		for(int i=0; i<targets.length; i++) {
 			for(int j=0; j<targets[0].length; j++) {

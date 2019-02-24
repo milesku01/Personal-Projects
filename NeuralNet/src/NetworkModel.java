@@ -18,6 +18,19 @@ public class NetworkModel {
 
 	}
 
+	public void buildDropoutLayer(int numofNeurons, double probability, String activation) {
+		DropoutLayer dropout = new DropoutLayer(numofNeurons, probability, activation);
+		weightListCount++; 
+		layerList.add(dropout);
+	}
+	
+	public void buildDropoutLayer(double probability, String activation) {
+		DropoutLayer dropout = new DropoutLayer(getInferedNumOfNeurons(layerList.size()), probability, activation);
+		weightListCount++; 
+		layerList.add(dropout);
+	}
+	
+	
 	public void buildHiddenLayer(int numofNeurons, String activation) {
 		HiddenLayer hiddenLayer = new HiddenLayer(numofNeurons, activation);
 		weightListCount++;
