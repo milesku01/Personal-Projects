@@ -20,6 +20,7 @@ public class NetworkTrainer {
 	ForwardPropagator fp = new ForwardPropagator();
 	BackPropagator bp = new BackPropagator();
 	Layer layer = new Layer();
+	Weights weights; 
 	double[][] batchPart;
 	static double accuracy = 0; 
 	static int numofBatches;
@@ -30,7 +31,7 @@ public class NetworkTrainer {
 		this.numofEpochs = numofEpochs;
 		layers = model.layerList;
 		
-		Weights weights = new Weights();
+		weights = new Weights();
 		
 		weights.generateInitialWeights(model);
 
@@ -111,12 +112,19 @@ public class NetworkTrainer {
 		System.out.println(" \nTraining time: " + getTrainingTime(startTime, endTime) + " sec");
 	}
 
+	NetworkTrainer net; 
 	public void trainUntil(NetworkModel model, double accuracy, int numofEpochs, String optimizerString) {
-		//for(int i=0; i<2; i++) {
-		while(this.accuracy < accuracy) {
-			NetworkTrainer net = new NetworkTrainer(); 
-			System.out.println("ACCURACY " + this.accuracy + " " + accuracy);
-			net.train(model, numofEpochs, optimizerString); 
+		
+		if(model.layerList.get(model.layerList.size()-1).activation.equals("SOFTMAX")) {
+			while(this.accuracy < accuracy) {
+				net = new NetworkTrainer(); 
+				net.train(model, numofEpochs, optimizerString); 
+			}
+		} else { 
+			do {
+				net = new NetworkTrainer(); 
+				net.train(model, numofEpochs, optimizerString); 
+			} while(this.accuracy > accuracy);
 		}
 	}
 	
