@@ -72,9 +72,9 @@ public class ImageReader {
 					 if(i==0) {
 						 rgbImage[i][j][k] = red[counter]; 
 					 } else if (i == 1) {
-						 rgbImage[i][j][k] = blue[counter];
+						 rgbImage[i][j][k] = green[counter];
 					 } else if(i == 2) {
-						 rgbImage[i][j][k] = green[counter]; 
+						 rgbImage[i][j][k] = blue[counter]; 
 					 }
 					 counter++; 
 				 }

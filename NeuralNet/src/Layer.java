@@ -71,12 +71,17 @@ class InputLayer extends Layer {
 		inputLayer.layerValue = (fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
 		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
-		inputLayer.layerValue = (normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize)); 
+		//inputLayer.layerValue = (normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize)); 
 		
 		if(numofSets > 90) {
 			trainTestSplit(inputLayer, targets.targetSize); 
+			inputLayer.layerValue = normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize);
 			initializeTestData(inputLayer, targets);
+			inputLayer.testData = normalizer.normalizeInputs(inputLayer.testData, normalizer.meanArray, normalizer.strdDev);
+		} else {
+			inputLayer.layerValue = normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize);
 		}
+		
 		targets.determineTargets(inputLayer.layerValue, numofInput); 
 		inputLayer.layerValue = (extractInputs(inputLayer.layerValue));
 		inputLayer.layerValue = (fp.appendBiasColumn(inputLayer));
@@ -181,6 +186,7 @@ class OutputLayer extends Layer {
 	
 	public void initializeTargets(Targets target) { //only called for covnet until cleaned
 		target.targetSize = numofOutputNeuron;
+		System.out.println(seed);
 		target.determineConvolutionalTargets(globalNumofSets, numofOutputNeuron, seed, targetFile);
 	}
 	
@@ -272,14 +278,21 @@ class ConvolutionalLayer extends Layer {
 		globalNumofSets = numofSets; 
 		shuffleArray(convLayer); 
 		
-		imageList = normalizer.normalizeImagesZscore(imageList);
+	//	imageList = normalizer.normalizeImagesZscore(imageList);
 	
 		if(imageList.size() > 90) {
 			trainTestSplit(convLayer); 
+			convLayer.trainingImages = normalizer.normalizeImagesZscore(convLayer.trainingImages); 
+			convLayer.testingImages = normalizer.normalizeImagesZscore(convLayer.testingImages, normalizer.imageMean, normalizer.imageStrdDev);
 			imageList.clear();
 		} else {
 			convLayer.trainingImages = imageList;
+			convLayer.trainingImages = normalizer.normalizeImagesZscore(convLayer.trainingImages); 
 		}
+		
+		
+		
+		
 		
 	}
 	
@@ -297,9 +310,12 @@ class ConvolutionalLayer extends Layer {
 		
 		if(imageList.size() > 90) {
 			trainTestSplit(convLayer); 
+			convLayer.trainingImages = normalizer.normalizeImagesZscore(convLayer.trainingImages); 
+			convLayer.testingImages = normalizer.normalizeImagesZscore(convLayer.testingImages, normalizer.imageMean, normalizer.imageStrdDev);
 			imageList.clear();
 		} else {
 			convLayer.trainingImages = imageList;
+			convLayer.trainingImages = normalizer.normalizeImagesZscore(convLayer.trainingImages); 
 		}
 		
 	}

@@ -293,8 +293,8 @@ class DensePropagator extends ForwardPropagator {
 		nextLayer.layerValue = layerValue;
 		nextLayer.layerValue = activate(nextLayer);
 
-		System.out.print("OutputLayer ");
-		nt.printArray(nextLayer.layerValue);
+	//	System.out.print("OutputLayer ");
+	//	nt.printArray(nextLayer.layerValue);
 
 		return nextLayer.layerValue;
 	}

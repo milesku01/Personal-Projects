@@ -58,7 +58,7 @@ public class FileReader {
 	}
 
 	public void readFileIntoList() {
-
+		System.out.println("Slow file reader called");
 		long start = System.nanoTime();
 		
 		while (scan.hasNextDouble()) {
@@ -104,7 +104,7 @@ public class FileReader {
 		
 		long end = System.nanoTime();
 
-		System.out.println((double) (end - start) / 1000000000);
+		System.out.println("FileReader " + (double) (end - start) / 1000000000);
 	}
 
 	public double[][] ListToArray(int dimension1, int dimension2) {

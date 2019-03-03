@@ -68,12 +68,7 @@ public class NetworkEvaluator {
 
 		nt.fp.constructForwardPropagationObjects(layerListObjects, weights);
 
-		forwardPropagationConv();
-
-		listOfValues.clear();
-
-		System.out.print("Prediction ");
-		nt.printArray(layerListObjects.get(layerListObjects.size() - 1).layerValue);
+		forwardPropagationConv(); 
 	}
 
 	private void formWeightsToArrays(int[] layerSizes) {
@@ -107,19 +102,24 @@ public class NetworkEvaluator {
 						.normalizeImagesZscore(imageList, mean, strdDev);
 
 		long start = System.nanoTime();
-		for (int i = 0; i < layerListObjects.size() - 1; i++) {
-			if (layerListObjects.get(i) instanceof InputLayer || layerListObjects.get(i) instanceof HiddenLayer) {
-				layerListObjects.get(i + 1).layerValue = nt.fp.propagate(layerListObjects.get(i),
-						layerListObjects.get(i + 1)); 
-			} else {
-				layerListObjects.get(i + 1).convValue = nt.fp.propagateConv(layerListObjects.get(i),
-						layerListObjects.get(i + 1)); 
+		for (int j = 0; j < ((ConvolutionalLayer) layerListObjects.get(0)).trainingImages.size(); j++) {
+			for (int i = 0; i < layerListObjects.size() - 1; i++) {
+				if (layerListObjects.get(i) instanceof InputLayer || layerListObjects.get(i) instanceof HiddenLayer
+						|| layerListObjects.get(i) instanceof DropoutLayer) {
+					layerListObjects.get(i + 1).layerValue = nt.fp.propagate(layerListObjects.get(i),
+							layerListObjects.get(i + 1));
+				} else {
+					layerListObjects.get(i + 1).convValue = nt.fp.propagateConv(layerListObjects.get(i),
+							layerListObjects.get(i + 1));
+				}
 			}
+			System.out.print("Prediction ");
+			nt.printArray(layerListObjects.get(layerListObjects.size() - 1).layerValue);
 		}
 
 		long end = System.nanoTime();
 
-		System.out.println(nt.getTrainingTime(start, end));
+		System.out.println("evaluation time " + nt.getTrainingTime(start, end));
 
 	}
 
@@ -178,89 +178,96 @@ public class NetworkEvaluator {
 	int strideLength;
 	int poolSize;
 	int normalizerNum;
+	int count = -1;
 	String padding;
 
 	String activation = null;
 
+	private int count() {
+		count++;
+		return count;
+	}
+
 	public void acquireConvModelValues(String modelPath) {
 		fr = new FileReader(filePath + modelPath + ".txt");
-		fr.initializeFileReader(); // initializes scanner
-		fr.readFileIntoList();
+		fr.initializeBufferedReader(); // initializes scanner
+		fr.readDataIntoList();
 
 		listOfValues = fr.valuesFromFile;
-		numofLayers = (int) (double) listOfValues.get(0);
-		listOfValues.remove(0); // remove numofLayers
+
+		numofLayers = (int) (double) listOfValues.get(count());
+		// listOfValues.remove(0); // remove numofLayers
 
 		layerTypes = new int[numofLayers];
 
 		for (int i = 0; i < numofLayers; i++) {
-			layerTypes[i] = (int) (double) listOfValues.get(0);
-			listOfValues.remove(0);
+			layerTypes[i] = (int) (double) listOfValues.get(count());
+			// listOfValues.remove(0);
 		}
 
-		normalizerNum = (int) (double) listOfValues.get(0);
-		listOfValues.remove(0);
-		
+		normalizerNum = (int) (double) listOfValues.get(count());
+		// listOfValues.remove(0);
+
 		mean = new double[normalizerNum];
-		strdDev = new double[normalizerNum]; 
-		
-		System.out.println("NN " +normalizerNum);
+		strdDev = new double[normalizerNum];
 
 		for (int i = 0; i < normalizerNum; i++) {
-			mean[i] = (double) listOfValues.get(0);
-			listOfValues.remove(0);
+			mean[i] = (double) listOfValues.get(count());
+			// listOfValues.remove(0);
 		}
 
 		for (int i = 0; i < normalizerNum; i++) {
-			strdDev[i] = (double) listOfValues.get(0);
-			listOfValues.remove(0);
+			strdDev[i] = (double) listOfValues.get(count());
+			// listOfValues.remove(0);
 		}
 
 		for (int i = 0; i < numofLayers; i++) { // layerTypes[0] is InputLayer, will change upon refactoring
 			if (layerTypes[i] == 1) { // hidden
-				layerSize = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				activation = activator.convertActivationInt((int) (double) listOfValues.get(0));
-				listOfValues.remove(0);
+				layerSize = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				activation = activator.convertActivationInt((int) (double) listOfValues.get(count()));
+				// listOfValues.remove(0);
 				HiddenLayer hiddenLayer = new HiddenLayer(layerSize, activation);
 				layerListObjects.add(hiddenLayer);
 
 			} else if (layerTypes[i] == 2) { // conv text
-				inputHeight = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				inputWidth = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				inputChannels = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				numofFilters = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				filterSize = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				strideLength = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
+				inputHeight = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				inputWidth = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				inputChannels = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				numofFilters = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				filterSize = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				strideLength = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
 				padding = "zero-padding"; // have to change if more types later
-				listOfValues.remove(0);
+				count();
+				// listOfValues.remove(0);
 				ConvolutionalLayer convLayer = new ConvolutionalLayer(inputHeight, inputWidth, inputChannels,
 						numofFilters, filterSize, strideLength, padding);
 				convLayer.type = "TEXT";
 				layerListObjects.add(convLayer);
 
 			} else if (layerTypes[i] == 3) { // hiddenConv
-				numofFilters = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				filterSize = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				strideLength = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
+				numofFilters = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				filterSize = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				strideLength = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
 				padding = "zeroPadding";
-				listOfValues.remove(0);
+				count();
+				// listOfValues.remove(0);
 				HiddenConvolutionalLayer hidden = new HiddenConvolutionalLayer(numofFilters, filterSize, strideLength,
 						padding);
 				layerListObjects.add(hidden);
 
 			} else if (layerTypes[i] == 4) { // pool
-				poolSize = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
+				poolSize = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
 				PoolingLayer layer = new PoolingLayer(poolSize, "MAX");
 				layerListObjects.add(layer);
 
@@ -269,22 +276,23 @@ public class NetworkEvaluator {
 				layerListObjects.add(relu);
 
 			} else if (layerTypes[i] == 6) { // output
-				layerSize = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				activation = activator.convertActivationInt((int) (double) listOfValues.get(0));
-				listOfValues.remove(0);
+				layerSize = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				activation = activator.convertActivationInt((int) (double) listOfValues.get(count()));
+				// listOfValues.remove(0);
 				OutputLayer outputLayer = new OutputLayer(layerSize, activation);
 				layerListObjects.add(outputLayer);
 
 			} else if (layerTypes[i] == 7) { // conv image
-				numofFilters = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				filterSize = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
-				strideLength = (int) (double) listOfValues.get(0);
-				listOfValues.remove(0);
+				numofFilters = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				filterSize = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
+				strideLength = (int) (double) listOfValues.get(count());
+				// listOfValues.remove(0);
 				padding = "zero-padding"; // have to change if more types later
-				listOfValues.remove(0);
+				count();
+				// listOfValues.remove(0);
 				ConvolutionalLayer conv = new ConvolutionalLayer(numofFilters, filterSize, strideLength, padding);
 				conv.channelDepth = 3; // may need to change
 				conv.type = "IMAGE";
@@ -294,7 +302,7 @@ public class NetworkEvaluator {
 		}
 
 		for (int i = 0; i < layerListObjects.size(); i++) {
-			
+
 			if (layerListObjects.get(i) instanceof ConvolutionalLayer) {
 				ConvolutionalLayer conv = (ConvolutionalLayer) layerListObjects.get(i);
 				Filters filter = new Filters(conv.numofFilters, conv.filterSize, conv.channelDepth);
@@ -305,15 +313,15 @@ public class NetworkEvaluator {
 					for (int j = 0; j < array.length; j++) {
 						for (int k = 0; k < array[0].length; k++) {
 							for (int l = 0; l < array[0][0].length; l++) {
-								array[j][k][l] = listOfValues.get(0);
-								listOfValues.remove(0);
+								array[j][k][l] = listOfValues.get(count());
+								// listOfValues.remove(0);
 							}
 						}
 					}
 					list.add(array);
 				}
-				
-				filter.threeDFilterArray = list; 
+
+				filter.threeDFilterArray = list;
 				filterList.add(filter);
 
 			} else if (layerListObjects.get(i) instanceof HiddenConvolutionalLayer) {
@@ -326,8 +334,8 @@ public class NetworkEvaluator {
 					for (int m = 0; m < array.length; m++) {
 						for (int j = 0; j < array[0].length; j++) {
 							for (int k = 0; k < array[0][0].length; k++) {
-								array[m][j][k] = listOfValues.get(0);
-								listOfValues.remove(0);
+								array[m][j][k] = listOfValues.get(count());
+								// listOfValues.remove(0);
 							}
 						}
 					}
@@ -335,7 +343,7 @@ public class NetworkEvaluator {
 					list.add(array);
 				}
 
-				filter.threeDFilterArray = list; 
+				filter.threeDFilterArray = list;
 				filterList.add(filter);
 
 			} else if (layerListObjects.get(i) instanceof HiddenLayer) {
@@ -346,8 +354,8 @@ public class NetworkEvaluator {
 					double[][] weight = new double[hidden.layerSize][postHidden.layerSize];
 					for (int j = 0; j < weight.length; j++) {
 						for (int k = 0; k < weight[0].length; k++) {
-							weight[j][k] = listOfValues.get(0);
-							listOfValues.remove(0);
+							weight[j][k] = listOfValues.get(count());
+							// listOfValues.remove(0);
 						}
 					}
 					weightList.add(weights.addWeightBiases(weight));
@@ -356,16 +364,16 @@ public class NetworkEvaluator {
 					double[][] weight = new double[hidden.layerSize][out.layerSize];
 					for (int j = 0; j < weight.length; j++) {
 						for (int k = 0; k < weight[0].length; k++) {
-							weight[j][k] = listOfValues.get(0);
-							listOfValues.remove(0);
+							weight[j][k] = listOfValues.get(count());
+							// listOfValues.remove(0);
 						}
 					}
 					weightList.add(weights.addWeightBiases(weight));
 				}
 			}
 		}
-		System.out.println("List size " + listOfValues.size());
 
+		listOfValues.clear();
 	}
 
 	public void acquireTestValues(String testPath) {
@@ -391,8 +399,6 @@ public class NetworkEvaluator {
 
 		try {
 			ConvolutionalLayer conv = (ConvolutionalLayer) layerListObjects.get(0);
-
-			System.out.println(conv.type);
 
 			if (conv.type == "TEXT") {
 				fr = new FileReader(testFilePath + testPath + ".txt");

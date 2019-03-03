@@ -6,8 +6,8 @@ public class Optimizer {
 	Optimizer optimizationObject;
 	List<Object> weightChange;
 	public boolean TorF = true;
-	public double learningRate = .000005;
-	//public double learningRate = .001;
+	//public double learningRate = .000002;
+	public double learningRate = .01;
 	
 	private void createOptimizerObject(String optimizerString) {
 		if (optimizerString.equals("ADAM")) {
@@ -276,7 +276,7 @@ class Basic extends Optimizer {
 					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
 						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
 							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] = learningRate
+								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] =  learningRate
 										* (gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]);
 							}
 						}
@@ -323,7 +323,7 @@ class Momentum extends Optimizer {
 					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
 						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
 							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] = beta*((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] + learningRate*(gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]);
+								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] = beta*((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] + 100 * learningRate*(gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]);
 							}
 						}
 					}

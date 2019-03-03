@@ -21,13 +21,18 @@ public class NetworkTrainer {
 	BackPropagator bp = new BackPropagator();
 	Layer layer = new Layer();
 	double[][] batchPart;
+	static double accuracy = 0; 
 	static int numofBatches;
 	String optimizerString;
 	String[] activatorStrings;
 
-	public void train(NetworkModel model, Weights weights, int numofEpochs, String optimizerString) {
+	public void train(NetworkModel model, int numofEpochs, String optimizerString) {
 		this.numofEpochs = numofEpochs;
 		layers = model.layerList;
+		
+		Weights weights = new Weights();
+		
+		weights.generateInitialWeights(model);
 
 		if (layers.get(0) instanceof InputLayer) {
 			inputLayer = (InputLayer) layers.get(0);
@@ -66,14 +71,12 @@ public class NetworkTrainer {
 			iterations = numofBatches * numofEpochs;
 		}
 
-		//iterations = 1000;
+	//	iterations = 1;
 
 		fp.constructForwardPropagationObjects(layers, weights);
 		bp.constructBackwardPropagationObjects(model, weights);
 
 		long startTime = System.nanoTime();
-		long start; 
-		long end; 
 		
 		for (int i = 1; i <= iterations + 1; i++) {
 
@@ -108,6 +111,16 @@ public class NetworkTrainer {
 		System.out.println(" \nTraining time: " + getTrainingTime(startTime, endTime) + " sec");
 	}
 
+	public void trainUntil(NetworkModel model, double accuracy, int numofEpochs, String optimizerString) {
+		//for(int i=0; i<2; i++) {
+		while(this.accuracy < accuracy) {
+			NetworkTrainer net = new NetworkTrainer(); 
+			System.out.println("ACCURACY " + this.accuracy + " " + accuracy);
+			net.train(model, numofEpochs, optimizerString); 
+		}
+	}
+	
+	
 	private void getActivatorStrings() {
 		for (int i = 0; i < activatorStrings.length; i++) {
 			activatorStrings[i] = layers.get(i + 1).activation;
@@ -156,8 +169,8 @@ public class NetworkTrainer {
 			}
 		}
 		
-		//System.out.print("OutputArray ");
-		//printArray(layers.get(layers.size()-1).layerValue); 
+		System.out.print("OutputArray ");
+		printArray(layers.get(layers.size()-1).layerValue); 
 	}
 
 	int targetPositionCounter = 0;
@@ -285,8 +298,10 @@ public class NetworkTrainer {
 		}
 
 		if (lastAct.equals("SOFTMAX")) {
-			return (double) (correct / (double) result.length); // must change
+			accuracy = (double) (correct / (double) result.length);
+			return accuracy; // must change
 		} else {
+			accuracy = loss; 
 			return loss;
 		}
 
