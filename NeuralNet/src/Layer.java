@@ -51,6 +51,7 @@ class InputLayer extends Layer {
 	int numofInput = 0;
 	int batchSize = 0;
 	int remainingBatchSize = 0; 
+	int targetSize; 
 	String fileName = "";
 	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\";
 	FileReader fileReader;
@@ -69,7 +70,8 @@ class InputLayer extends Layer {
 	public void initializeLayer(InputLayer inputLayer, Targets targets) { //add error handling
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
 		inputLayer.layerValue = (fileReader.readInputIntoArray(numofSets, numofInput)); 
-		targets.targetSize = fileReader.determineTargetSize(numofSets, numofInput);
+		targetSize = fileReader.determineTargetSize(numofSets, numofInput);
+		targets.targetSize = targetSize;
 		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
 		//inputLayer.layerValue = (normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize)); 
 		
@@ -87,6 +89,29 @@ class InputLayer extends Layer {
 		inputLayer.layerValue = (fp.appendBiasColumn(inputLayer));
 		
 	}
+	
+	public void initializeLayerText(InputLayer inputLayer, String lookup, Targets targets) { //add error handling
+		fileReader = new FileReader(strdFilePath + fileName + ".txt");
+		inputLayer.layerValue = (fileReader.parseInputIntoArray(numofSets, numofInput, lookup)); 
+		targetSize = fileReader.determineTargetSizeWithText(numofSets, numofInput);
+		targets.targetSize = targetSize;
+		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
+
+		if(numofSets > 90) {
+			trainTestSplit(inputLayer, targets.targetSize); 
+			inputLayer.layerValue = normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize);
+			initializeTestData(inputLayer, targets);
+			inputLayer.testData = normalizer.normalizeInputs(inputLayer.testData, normalizer.meanArray, normalizer.strdDev);
+		} else {
+			inputLayer.layerValue = normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize);
+		}
+		
+		targets.determineTargets(inputLayer.layerValue, numofInput); 
+		inputLayer.layerValue = (extractInputs(inputLayer.layerValue));
+		inputLayer.layerValue = (fp.appendBiasColumn(inputLayer));
+		
+	} 
+	
 	
 	int trainingSize; 
 	
@@ -144,7 +169,6 @@ class InputLayer extends Layer {
 	}
 	
 	public double[][] extractInputs(double[][] inputs) {
-		int targetSize = fileReader.determineTargetSize(numofSets, numofInput);
 		double[][] result  = new double[inputs.length][inputs[0].length - targetSize]; 
 		
 		for(int i=0; i < inputs.length; i++) {

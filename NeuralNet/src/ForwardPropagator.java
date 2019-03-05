@@ -342,7 +342,8 @@ class TestPropagator extends ForwardPropagator {
 			if (counter == 0)
 				layer.testData = appendBiasColumn(layer);
 			counter++;
-			testValue = nt.matrixMultiplication(layer.testData, weightList.get(0));
+			testValue = nt.matrixMultiplication(layer.testData, weightList.get(layerCounter));
+			layerCounter++; 
 			nextLayer.layerValue = testValue;
 			nextLayer.testData = activate(nextLayer);
 

@@ -59,6 +59,58 @@ public class NetworkEvaluator {
 		System.out.println("Prediction " + java.util.Arrays.deepToString(layerValue) + "\n");
 	}
 
+	public void predictNCAA(String modelFilePath, String team1, String team2) {
+		double[] team1Stats = teamSearch(team1);
+		double[] team2Stats = teamSearch(team2); 
+		
+		double[] game = joinArray(team1Stats, team2Stats);
+		
+		inputLayer = new double[1][game.length];
+
+		acquireModelValues(modelFilePath);
+
+		for (int i = 0; i < game.length; i++) {
+			inputLayer[0][i] = game[i];
+		}
+
+		inputLayer = normalizer.normalizeInputs(inputLayer, mean, strdDev);
+
+		forwardPropagation();
+
+		listOfValues.clear();
+
+		System.out.println("Prediction " + java.util.Arrays.deepToString(layerValue) + "\n");
+	}
+	
+	private double[] teamSearch(String team) {
+		double[] stats = null; 
+		if(team.equals("GONZAGA")) {
+			stats = new double[]{1}; 
+		} else if(team.equals("DUKE")) {
+			stats = new double[]{2};
+		}
+		
+		return stats;
+	}
+	
+	private double[] joinArray(double[]... arrays) {
+	        int length = 0;
+	        for (double[] array : arrays) {
+	            length += array.length;
+	        }
+
+	        final double[] result = new double[length];
+
+	        int offset = 0;
+	        for (double[] array : arrays) {
+	            System.arraycopy(array, 0, result, offset, array.length);
+	            offset += array.length;
+	        }
+
+	        return result;
+	}
+	
+	
 	public void predictConv(String modelFilePath, String testFilePath) {
 		acquireConvModelValues(modelFilePath);
 		acquireConvTestValues(testFilePath);
@@ -69,8 +121,8 @@ public class NetworkEvaluator {
 		nt.fp.constructForwardPropagationObjects(layerListObjects, weights);
 
 		forwardPropagationConv(); 
-	}
-
+	}	
+	
 	private void formWeightsToArrays(int[] layerSizes) {
 		int counter = 0;
 		for (int k = 0; k < layerSizes.length - 1; k++) {
@@ -133,14 +185,19 @@ public class NetworkEvaluator {
 	}
 
 	public void acquireModelValues(String modelPath) {
-		fr = new FileReader(filePath + modelPath + ".txt");
-		fr.initializeBufferedReader(); // initializes scanner
+		fr = new FileReader(filePath + modelPath + ".txt"); 
+		
+		fr.initializeBufferedReader(); 
 		fr.readDataIntoList();
 
 		listOfValues = fr.valuesFromFile;
 		numofLayers = (int) (double) listOfValues.get(0);
 
-		listOfValues.remove(0); // remove numofLayers
+		listOfValues.remove(0); 
+		
+		for(int i=0; i<numofLayers; i++) {
+			listOfValues.remove(0); //used to remove object type since not needed here
+		}
 
 		int numofSets = (int) (double) listOfValues.get(0);
 

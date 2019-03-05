@@ -16,8 +16,17 @@ public class NetworkModel {
 		weightListCount++; 
 		layerList.add(inputLayer);
 
-	}
+	} 
+	
+	public void buildInputLayerText(int numofSets, int numofInputs, int batchSize, String filePath, String lookup) {
+		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, batchSize, filePath); // no activation
+		if (layerList.isEmpty())
+			inputLayer.initializeLayerText(inputLayer, lookup, targets);
+		weightListCount++; 
+		layerList.add(inputLayer);
 
+	}
+	
 	public void buildDropoutLayer(int numofNeurons, double probability, String activation) {
 		DropoutLayer dropout = new DropoutLayer(numofNeurons, probability, activation);
 		weightListCount++; 
