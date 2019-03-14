@@ -59,9 +59,13 @@ public class NetworkEvaluator {
 		System.out.println("Prediction " + java.util.Arrays.deepToString(layerValue) + "\n");
 	}
 
-	public void predictNCAA(String modelFilePath, String team1, String team2) {
-		double[] team1Stats = teamSearch(team1);
-		double[] team2Stats = teamSearch(team2); 
+	public void predictNCAA(String modelFilePath, String lookup, String team1, String team2) {
+		buildTeamSearch(System.getProperty("user.home") + "\\Desktop\\" + lookup + ".txt"); 
+		
+		double[] team1Stats = fr.textSearch(team1);
+	//	= teamSearch(team1);
+		double[] team2Stats = fr.textSearch(team2);
+		//= teamSearch(team2); 
 		
 		double[] game = joinArray(team1Stats, team2Stats);
 		
@@ -82,15 +86,17 @@ public class NetworkEvaluator {
 		System.out.println("Prediction " + java.util.Arrays.deepToString(layerValue) + "\n");
 	}
 	
-	private double[] teamSearch(String team) {
-		double[] stats = null; 
-		if(team.equals("GONZAGA")) {
-			stats = new double[]{1}; 
-		} else if(team.equals("DUKE")) {
-			stats = new double[]{2};
-		}
+	private void buildTeamSearch(String lookup) {
+	
+		fr = new FileReader(lookup); 
 		
-		return stats;
+		fr.valuesFromFile2 = new ArrayList<Double>(); 
+		fr.stringList2 = new ArrayList<String>(); 
+		
+		
+		fr.initializeBufferedReader();
+		fr.parseDataIntoLists(fr.valuesFromFile2, fr.stringList2);
+		fr.buildLookupTable();
 	}
 	
 	private double[] joinArray(double[]... arrays) {

@@ -41,6 +41,8 @@ public class FileReader {
 		buildLookupTable(); 
 		return parseListsToArray(dimension1, dimension2); 
 	}
+	
+	
 
 	public List<double[][][]> readImageTextIntoList(int dimension1, int dimension2, int dimension3) {
 		initializeFileReader();
@@ -225,7 +227,7 @@ public class FileReader {
 	}
 	
 	double[][] data; 
-	private double[] textSearch(String team) {
+	public double[] textSearch(String team) {
 		double[] stats = new double[data[0].length]; 
 	
 		for(int i=0; i<stringList2.size(); i++) {
@@ -239,7 +241,7 @@ public class FileReader {
 		return stats;
 	}
 	
-	private void buildLookupTable() {
+	public void buildLookupTable() {
 		int counter = 0; 
 		data = new double[stringList2.size()][(valuesFromFile2.size() / stringList2.size())]; 
 		
@@ -249,7 +251,6 @@ public class FileReader {
 				counter++; 
 			}
 		}
-		
 	}
 	
 
