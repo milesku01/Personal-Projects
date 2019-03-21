@@ -333,15 +333,17 @@ class DropoutPropagator extends ForwardPropagator {
 }
 
 class TestPropagator extends ForwardPropagator {
-	int counter = 0;
+	static int counter = 0;
 
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		double[][] testValue;
-
+		
 		if (layer instanceof InputLayer) {
-			if (counter == 0)
+			if (counter == 0) {
 				layer.testData = appendBiasColumn(layer);
-			counter++;
+				counter++; 
+			}
+			
 			testValue = nt.matrixMultiplication(layer.testData, weightList.get(layerCounter));
 			layerCounter++; 
 			nextLayer.layerValue = testValue;

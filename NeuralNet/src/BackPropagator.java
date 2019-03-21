@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BackPropagator {
-	final double regularize = 0.0001;
+	final double regularize = 0.001;
 	int objectTracker = 0;
 	static int layerCounter;
 	static int batchSize;
@@ -164,7 +164,8 @@ class DenseBackPropagator extends BackPropagator {
 		gradient = nt.elementwiseMultiplication(gradient, computeDerivative(layer));
 		gradient = removeBiasColumn(gradient);
 		previousPartialGradient = gradient;
-		if ((nextLayer instanceof HiddenLayer)) {
+		
+		if ((nextLayer instanceof HiddenLayer) || (nextLayer instanceof DropoutLayer)) {
 			gradient = nt.matrixMultiplication(nt.matrixTranspose(nextLayer.layerValue), gradient);
 		} else {
 			gradient = nt.matrixMultiplication(nt.matrixTranspose(((InputLayer) nextLayer).currentBatch), gradient);
@@ -333,8 +334,8 @@ class OutputBackPropagator extends BackPropagator {
 			currentTargetBatch = batch;
 		}
 
-		System.out.print("TARGETBATCH ");
-		nt.printArray(batch);
+	//	System.out.print("TARGETBATCH ");
+	//	nt.printArray(batch);
 
 		return batch;
 	}

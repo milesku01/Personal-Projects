@@ -93,6 +93,7 @@ class InputLayer extends Layer {
 	public void initializeLayerText(InputLayer inputLayer, String lookup, Targets targets) { //add error handling
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
 		inputLayer.layerValue = (fileReader.parseInputIntoArray(numofSets, numofInput, lookup)); 
+		System.out.println(layerValue.length); 
 		targetSize = fileReader.determineTargetSizeWithText(numofSets, numofInput);
 		targets.targetSize = targetSize;
 		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
@@ -122,7 +123,7 @@ class InputLayer extends Layer {
 		
 		int testingSize = numofSets-trainingSize; 
 		
-		if(numofSets > 90) { //roughly 70% of 140 is 100
+		if(numofSets > 90) {
 			trainingData = new double[trainingSize][numofInput + targetSize]; 
 			testData = new double[testingSize][numofInput + targetSize]; 
 			
