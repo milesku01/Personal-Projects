@@ -12,19 +12,17 @@ public class NetworkModel {
 	public void buildInputLayer(int numofSets, int numofInputs, int batchSize, String filePath) {
 		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, batchSize, filePath); // no activation
 		if (layerList.isEmpty())
-			inputLayer.initializeLayer(inputLayer, targets);
+			inputLayer.initializeLayer(targets);
 		weightListCount++; 
 		layerList.add(inputLayer);
-
 	} 
 	
 	public void buildInputLayerText(int numofSets, int numofInputs, int batchSize, String filePath, String lookup) {
 		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, batchSize, filePath); // no activation
 		if (layerList.isEmpty())
-			inputLayer.initializeLayerText(inputLayer, lookup, targets);
+			inputLayer.initializeLayerText(lookup, targets);
 		weightListCount++; 
 		layerList.add(inputLayer);
-
 	}
 	
 	public void buildDropoutLayer(int numofNeurons, double probability, String activation) {

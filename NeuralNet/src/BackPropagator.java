@@ -192,7 +192,7 @@ class DenseBackPropagator extends BackPropagator {
 
 	public void computeHiddenGradients(Layer layer, Layer nextLayer) {
 		double[][][] reformattedArray;
-		double[][][] preFlattendArray = copyThreeDArray(layer.preActivatedConvValue);
+	//	double[][][] preFlattendArray = copyThreeDArray(layer.preActivatedConvValue);
 
 		gradients = new Gradients();
 
@@ -203,7 +203,7 @@ class DenseBackPropagator extends BackPropagator {
 		// gradient = removeBiasColumn(gradient);
 		previousPartialGradient = gradient;
 
-		reformattedArray = reformatArray(preFlattendArray, previousPartialGradient);
+		reformattedArray = reformatArray(layer.preActivatedConvValue, previousPartialGradient);
 
 		gradients.runningTotal = reformattedArray;
 
@@ -242,28 +242,28 @@ class OutputBackPropagator extends BackPropagator {
 
 	private double[][] computeDerivativeofError(double[][] targetBatch, Layer finalLayer) {
 		double[][] derivativeOfError = new double[targetBatch.length][targetBatch[0].length];
-		double[][] finalLayerValue = nt.copyArray(finalLayer.layerValue);
+		//double[][] finalLayerValue = nt.copyArray(finalLayer.layerValue);
 
 		if (finalLayer.activation.equals("SOFTMAX")) {
 			for (int i = 0; i < targetBatch.length; i++) {
 				for (int j = 0; j < targetBatch[0].length; j++) {
 
-					if (finalLayerValue[i][j] < 0.000000001) {
-						finalLayerValue[i][j] += .000000001;
+					if (finalLayer.layerValue[i][j] < 0.000000001) {
+						finalLayer.layerValue[i][j] += .000000001;
 					}
-					if (finalLayerValue[i][j] > .999999999) {
-						finalLayerValue[i][j] -= .000000001;
+					if (finalLayer.layerValue[i][j] > .999999999) {
+						finalLayer.layerValue[i][j] -= .000000001;
 					}
 
-					derivativeOfError[i][j] = -1 * (targetBatch[i][j] * (1 / finalLayerValue[i][j]))
-							+ ((1.0 - targetBatch[i][j]) * (1.0 / (1.0 - finalLayerValue[i][j])));
+					derivativeOfError[i][j] = -1 * (targetBatch[i][j] * (1 / finalLayer.layerValue[i][j]))
+							+ ((1.0 - targetBatch[i][j]) * (1.0 / (1.0 - finalLayer.layerValue[i][j])));
 				}
 			}
 
 		} else {
 			for (int i = 0; i < targetBatch.length; i++) {
 				for (int j = 0; j < targetBatch[0].length; j++) {
-					derivativeOfError[i][j] = targetBatch[i][j] - finalLayerValue[i][j];
+					derivativeOfError[i][j] = targetBatch[i][j] - finalLayer.layerValue[i][j];
 				}
 			}
 		}
@@ -293,7 +293,7 @@ class OutputBackPropagator extends BackPropagator {
 	}
 
 	public boolean hasReachedEndofBatchTarget() {
-		if (nt.numofBatches - 1 == batchCounterTarget) {
+		if (NetworkTrainer.numofBatches - 1 == batchCounterTarget) {
 			return true;
 		} else {
 			return false;
@@ -352,7 +352,8 @@ class HiddenConvolutionalBackPropagator extends BackPropagator {
 
 		double[][][] dOut = hidden.fullyConvolvedDerivative;
 
-		filterList = copyList(hidden.filterList); // may need to copy
+		filterList = hidden.filterList;
+	//	filterList = copyList(hidden.filterList); // may need to copy
 
 		filterList = rotate90(rotate90(filterList));
 

@@ -65,8 +65,7 @@ public class Activator {
 	
 	public double[][] activate(Layer layer) { //used only for overriding the superclass
 		createActivationObject(layer.activation); 
-		layerValue = activationObject.activate(layer);
-		return layerValue; 
+		return activationObject.activate(layer);
 	}
 	public double[][] computeActivatedDerivative(Layer layer){
 		createActivationObject(layer.activation); 
@@ -86,13 +85,13 @@ public class Activator {
 
 class Sigmoid extends Activator{
 	public double[][] activate(Layer layer){
-		double[][] layerValue = copyArray(layer.layerValue);
-		for(int i = 0; i < layerValue.length; i++) {
-			for (int j = 0; j < layerValue[0].length; j++) {
-				layerValue[i][j] = sigmoid(layerValue[i][j]);
+		//double[][] layerValue = copyArray(layer.layerValue);
+		for(int i = 0; i < layer.layerValue.length; i++) {
+			for (int j = 0; j < layer.layerValue[0].length; j++) {
+				layer.layerValue[i][j] = sigmoid(layer.layerValue[i][j]);
 			}
 		}
-		return layerValue;
+		return layer.layerValue;
 	}
 	private static double sigmoid(double x)
 	{
@@ -139,54 +138,55 @@ class Elu extends Activator{
 }
 class Relu extends Activator{
 	public double[][] activate(Layer layer){
-		double[][] layerValue = copyArray(layer.layerValue);
-		for(int i=0; i < layerValue.length; i++) {
-			for(int j=0; j < layerValue[0].length; j++) {
-				if(layerValue[i][j] <= 0) {
-					layerValue[i][j] = 0;
+	//	double[][] layerValue = copyArray(layer.layerValue);
+		for(int i=0; i < layer.layerValue.length; i++) {
+			for(int j=0; j < layer.layerValue[0].length; j++) {
+				if(layer.layerValue[i][j] <= 0) {
+					layer.layerValue[i][j] = 0;
 				}
 			}
 		}
-		return layerValue; 
+		return layer.layerValue; 
 	}
+	
 	public double[][] computeActivatedDerivative(Layer layer){
-		double[][] layerValue = copyArray(layer.preActivatedValue);
-		for(int i=0; i < layerValue.length; i++) {
-			for(int j=0; j < layerValue[0].length; j++) {
-				if(layerValue[i][j] <= 0) {
-					layerValue[i][j] = 0;
+	//	double[][] layerValue = copyArray(layer.preActivatedValue);
+		for(int i=0; i < layer.preActivatedValue.length; i++) {
+			for(int j=0; j < layer.preActivatedValue[0].length; j++) {
+				if(layer.preActivatedValue[i][j] <= 0) {
+					layer.preActivatedValue[i][j] = 0;
 				} else {
-					layerValue[i][j] = 1; 
+					layer.preActivatedValue[i][j] = 1; 
 				}
 			}
 		}
-		return layerValue; 
+		return layer.preActivatedValue; 
 	}
 }
 class LeakyRelu extends Activator{
 	public double[][] activate(Layer layer){
-		double[][] layerValue = copyArray(layer.layerValue);
-		for(int i=0; i < layerValue.length; i++) {
-			for(int j=0; j < layerValue[0].length; j++) {
-				if(layerValue[i][j] < 0) {
-					layerValue[i][j] *= .01;
+		//double[][] layerValue = copyArray(layer.layerValue);
+		for(int i=0; i < layer.layerValue.length; i++) {
+			for(int j=0; j < layer.layerValue[0].length; j++) {
+				if(layer.layerValue[i][j] < 0) {
+					layer.layerValue[i][j] *= .01;
 				}
 			}
 		}
-		return layerValue; 
+		return layer.layerValue; 
 	}
 	public double[][] computeActivatedDerivative(Layer layer){
-		double[][] layerValue = copyArray(layer.preActivatedValue);
-		for(int i=0; i < layerValue.length; i++) {
-			for(int j=0; j < layerValue[0].length; j++) {
-				if(layerValue[i][j] < 0) {
-					layerValue[i][j] = .01;
+		//double[][] layerValue = copyArray(layer.preActivatedValue);
+		for(int i=0; i < layer.preActivatedValue.length; i++) {
+			for(int j=0; j < layer.preActivatedValue[0].length; j++) {
+				if(layer.preActivatedValue[i][j] < 0) {
+					layer.preActivatedValue[i][j] = .01;
 				} else {
-					layerValue[i][j] = 1; 
+					layer.preActivatedValue[i][j] = 1; 
 				}
 			}
 		}
-		return layerValue; 
+		return layer.preActivatedValue; 
 	}
 }
 

@@ -233,7 +233,8 @@ class InputLayerPropagator extends ForwardPropagator {
 		layerCounter++;
 		nextLayer.preActivatedValue = layerValue;
 		nextLayer.layerValue = layerValue; // it's here for a reason
-		nextLayer.layerValue = activate(nextLayer);
+		activate(nextLayer);
+		//nextLayer.layerValue = activate(nextLayer);
 		return nextLayer.layerValue;
 	}
 
@@ -292,7 +293,7 @@ class DensePropagator extends ForwardPropagator {
 		nextLayer.preActivatedValue = layerValue;
 		nextLayer.layerValue = layerValue;
 		nextLayer.layerValue = activate(nextLayer);
-
+		
 	//	System.out.print("OutputLayer ");
 	//	nt.printArray(nextLayer.layerValue);
 

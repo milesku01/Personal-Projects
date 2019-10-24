@@ -44,6 +44,19 @@ public class Layer { // superclass
 		return output; 
 	}
 	
+	public double[][] appendBiasColumn() {
+		double[][] inputsWithBiases = new double[layerValue.length][layerValue[0].length + 1];
+
+		for (int i = 0; i < layerValue.length; i++) {
+			for (int j = 0; j < layerValue[0].length; j++) {
+				inputsWithBiases[i][j] = layerValue[i][j];
+			}
+		}
+		for (int i = 0; i < layerValue.length; i++) {
+			inputsWithBiases[i][layerValue[0].length] = 1;
+		}
+		return inputsWithBiases;
+	}
 }
 
 class InputLayer extends Layer {
@@ -55,7 +68,7 @@ class InputLayer extends Layer {
 	String fileName = "";
 	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\";
 	FileReader fileReader;
-	Normalizer normalizer = new Normalizer();
+	static Normalizer normalizer = new Normalizer();
 	
 	public InputLayer(int numofSets, int numofInput, int batchSize, String fileName) {
 		layerSize = numofInput;
@@ -67,56 +80,54 @@ class InputLayer extends Layer {
 		remainingBatchSize = (numofSets % batchSize);
 	}
 	
-	public void initializeLayer(InputLayer inputLayer, Targets targets) { //add error handling
+	public void initializeLayer(Targets targets) { //add error handling
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
-		inputLayer.layerValue = (fileReader.readInputIntoArray(numofSets, numofInput)); 
+		layerValue = (fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targetSize = fileReader.determineTargetSize(numofSets, numofInput);
 		targets.targetSize = targetSize;
-		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
-		//inputLayer.layerValue = (normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize)); 
+		layerValue = shuffleArray(layerValue); 
 		
 		if(numofSets > 90) {
-			trainTestSplit(inputLayer, targets.targetSize); 
-			inputLayer.layerValue = normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize);
-			initializeTestData(inputLayer, targets);
-			inputLayer.testData = normalizer.normalizeInputs(inputLayer.testData, normalizer.meanArray, normalizer.strdDev);
+			trainTestSplit(targets.targetSize); 
+			layerValue = normalizer.normalizeInputsZscore(layerValue, targets.targetSize);
+			initializeTestData(targets);
+			testData = normalizer.normalizeInputs(testData, normalizer.meanArray, normalizer.strdDev);
 		} else {
-			inputLayer.layerValue = normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize);
+			layerValue = normalizer.normalizeInputsZscore(layerValue, targets.targetSize);
 		}
 		
-		targets.determineTargets(inputLayer.layerValue, numofInput); 
-		inputLayer.layerValue = (extractInputs(inputLayer.layerValue));
-		inputLayer.layerValue = (fp.appendBiasColumn(inputLayer));
+		targets.determineTargets(layerValue, numofInput); 
+		layerValue = extractInputs(layerValue);
+		layerValue = appendBiasColumn();
 		
 	}
 	
-	public void initializeLayerText(InputLayer inputLayer, String lookup, Targets targets) { //add error handling
+	public void initializeLayerText(String lookup, Targets targets) { //add error handling
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
-		inputLayer.layerValue = (fileReader.parseInputIntoArray(numofSets, numofInput, lookup)); 
+		layerValue = (fileReader.parseInputIntoArray(numofSets, numofInput, lookup)); 
 		System.out.println(layerValue.length); 
 		targetSize = fileReader.determineTargetSizeWithText(numofSets, numofInput);
 		targets.targetSize = targetSize;
-		inputLayer.layerValue = shuffleArray(inputLayer.layerValue); 
+		layerValue = shuffleArray(layerValue); 
 
 		if(numofSets > 90) {
-			trainTestSplit(inputLayer, targets.targetSize); 
-			inputLayer.layerValue = normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize);
-			initializeTestData(inputLayer, targets);
-			inputLayer.testData = normalizer.normalizeInputs(inputLayer.testData, normalizer.meanArray, normalizer.strdDev);
+			trainTestSplit(targets.targetSize); 
+			layerValue = normalizer.normalizeInputsZscore(layerValue, targets.targetSize);
+			initializeTestData(targets);
+			testData = normalizer.normalizeInputs(testData, normalizer.meanArray, normalizer.strdDev);
 		} else {
-			inputLayer.layerValue = normalizer.normalizeInputsZscore(inputLayer.layerValue, targets.targetSize);
+			layerValue = normalizer.normalizeInputsZscore(layerValue, targets.targetSize);
 		}
 		
-		targets.determineTargets(inputLayer.layerValue, numofInput); 
-		inputLayer.layerValue = (extractInputs(inputLayer.layerValue));
-		inputLayer.layerValue = (fp.appendBiasColumn(inputLayer));
-		
+		targets.determineTargets(layerValue, numofInput); 
+		layerValue = extractInputs(layerValue);
+		layerValue = appendBiasColumn();
 	} 
 	
 	
 	int trainingSize; 
 	
-	private void trainTestSplit(InputLayer inputLayer, int targetSize) {
+	private void trainTestSplit(int targetSize) {
 		double[][] trainingData; 
 		trainingSize = (int)(.7 * numofSets); 
 		remainingBatchSize = (trainingSize % batchSize);
@@ -129,22 +140,22 @@ class InputLayer extends Layer {
 			
 			for(int i=0; i<trainingSize; i++) {
 				for(int j=0; j<numofInput + targetSize; j++) {
-					trainingData[i][j] = inputLayer.layerValue[i][j];
+					trainingData[i][j] = layerValue[i][j];
 				}
 			}
 			for(int i=trainingSize; i<numofSets; i++) {
 				for(int j=0; j<numofInput + targetSize; j++) {
-					testData[i-trainingSize][j] = inputLayer.layerValue[i][j]; 
+					testData[i-trainingSize][j] = layerValue[i][j]; 
 				}
 			}
 			
-			inputLayer.layerValue = trainingData; 
+			layerValue = trainingData; 
 		}
 	}
 	
-	private void initializeTestData(InputLayer inputLayer, Targets target) {
-		target.determineTestTargets(inputLayer.testData, numofInput, trainingSize);
-		inputLayer.testData= extractInputs(inputLayer.testData); 
+	private void initializeTestData(Targets target) {
+		target.determineTestTargets(testData, numofInput, trainingSize);
+		testData= extractInputs(testData); 
 	}
 	
 	private double[][] shuffleArray(double[][] inputLayer) {

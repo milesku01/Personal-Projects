@@ -5,6 +5,7 @@ import java.util.List;
 
 public class NetworkTrainer {
 	int batchSize = 0;
+	static int numofLayers; 
 	int convBatchSize = 0;
 	int numofEpochs = 0;
 	static int remainingBatchSize;
@@ -13,23 +14,26 @@ public class NetworkTrainer {
 	InputLayer inputLayer;
 	ConvolutionalLayer convLayer;
 	Targets targets;
-	List<double[][]> weightList;
+	static List<double[][]> weightList;
 	List<Filters> filterList;
 	Activator activator = new Activator();
 	Optimizer optimizer = new Optimizer();
 	ForwardPropagator fp = new ForwardPropagator();
 	BackPropagator bp = new BackPropagator();
 	Layer layer = new Layer();
+	NetworkEvaluator eval;
+	FileReader fr; 
 	Weights weights;
 	double[][] batchPart;
 	static double accuracy = 0;
 	static int numofBatches;
 	String optimizerString;
-	String[] activatorStrings;
+	static String[] activatorStrings;
 
 	public void train(NetworkModel model, int numofEpochs, String optimizerString) {
 		this.numofEpochs = numofEpochs;
 		layers = model.layerList;
+		numofLayers = layers.size();
 
 		weights = new Weights();
 
@@ -130,6 +134,16 @@ public class NetworkTrainer {
 			} while (this.accuracy < accuracy);
 		}
 	}
+	
+	public void trainUntilMatchFound(NetworkModel model, int numofEpochs, String matchingTable, String optimizerString, String lookup) {
+		eval = new NetworkEvaluator(); 
+
+		do {
+			net = new NetworkTrainer();
+			net.train(model, numofEpochs, optimizerString);
+		} while (!eval.pairsMatch(inputLayer.normalizer, numofLayers, weightList, matchingTable, lookup));
+	}
+	
 	
 	
 	

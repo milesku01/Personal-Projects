@@ -161,58 +161,6 @@ public class FileReader {
 				}
 			}
 
-			/*
-			if (TorF) {
-				try {
-					String space = " ";
-
-					TorF = false;
-					BufferedOutputStream bos = new BufferedOutputStream(
-							new FileOutputStream("C:\\Users\\kuhnm\\Desktop" + "\\" + "list" + ".txt"));
-
-					for (int i = 0; i < valuesFromFile.size(); i += 2) {
-						if (valuesFromFile.get(i) > valuesFromFile.get(i + 1)) {
-							bos.write((1.0 + "").getBytes());
-							bos.write((space + "").getBytes());
-							bos.write((0.0 + "").getBytes());
-							bos.write((space + "").getBytes());
-						} else {
-							bos.write((0.0 + "").getBytes());
-							bos.write((space + "").getBytes());
-							bos.write((1.0 + "").getBytes());
-							bos.write((space + "").getBytes());
-						}
-					}
-
-					bos.close();
-				} catch (IOException e) {
-					System.out.println("ERROR");
-				}
-			}
-
-			 */
-			
-		/*
-			if (TorF) {
-				try {
-					String space = " ";
-
-					TorF = false;
-					BufferedOutputStream bos = new BufferedOutputStream(
-							new FileOutputStream("C:\\Users\\kuhnm\\Desktop" + "\\" + "names" + ".txt"));
-
-					for (int i = 0; i < stringList.size(); i++) {
-							bos.write((stringList.get(i) + "").getBytes());
-							bos.write((space + "").getBytes());
-					}
-
-					bos.close();
-				} catch (IOException e) {
-					System.out.println("ERROR");
-				}
-			}
-		*/	
-			
 			valuesFromFile.trimToSize();
 
 			read.close();
