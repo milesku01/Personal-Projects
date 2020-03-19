@@ -32,6 +32,12 @@ public class FileReader {
 		readFileIntoList();
 		return ListToArray(dimension1, dimension2);
 	}
+	
+	public List<Double> readInputIntoList() {
+		initializeFileReader();
+		readFileIntoList();
+		return valuesFromFile; 
+	}
 
 	public double[][] parseInputIntoArray(int dimension1, int dimension2, String lookup) {
 		initializeBufferedReader();
@@ -41,7 +47,6 @@ public class FileReader {
 
 		buildLookupTable();
 		return parseListsToArray(dimension1, dimension2);
-		//return parseListsToArrayDouble(dimension1, dimension2);
 	}
 
 	public List<double[][][]> readImageTextIntoList(int dimension1, int dimension2, int dimension3) {
@@ -223,6 +228,7 @@ public class FileReader {
 	}
 	
 	static boolean TorF2 = true; 
+	
 	private double[][] parseListsToArrayDouble(int dimension1, int dimension2) {
 		int targetSize = determineTargetSizeWithText(dimension1, dimension2);
 		ArrayList<String> stringList2 = new ArrayList<String>();

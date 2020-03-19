@@ -287,6 +287,7 @@ class OutputBackPropagator extends BackPropagator {
 			}
 		}
 
+	
 		gradients.twoDGradient = gradient;
 
 		return gradients;

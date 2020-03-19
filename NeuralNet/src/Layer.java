@@ -102,6 +102,26 @@ class InputLayer extends Layer {
 		
 	}
 	
+	public void initializeDiagnosticLayer(Targets targets) {
+		fileReader = new FileReader(strdFilePath + fileName + ".txt");
+		layerValue = (fileReader.readInputIntoArray(numofSets, numofInput)); 
+		targetSize = fileReader.determineTargetSize(numofSets, numofInput);
+		targets.targetSize = targetSize;
+		
+		if(numofSets > 90) {
+			trainTestSplit(targets.targetSize); 
+			layerValue = normalizer.normalizeInputsZscore(layerValue, targets.targetSize);
+			initializeTestData(targets);
+			testData = normalizer.normalizeInputs(testData, normalizer.meanArray, normalizer.strdDev);
+		} else {
+			layerValue = normalizer.normalizeInputsZscore(layerValue, targets.targetSize);
+		}
+		
+		targets.determineTargets(layerValue, numofInput); 
+		layerValue = extractInputs(layerValue);
+		layerValue = appendBiasColumn();
+	}
+	
 	public void initializeLayerText(String lookup, Targets targets) { //add error handling
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
 		layerValue = (fileReader.parseInputIntoArray(numofSets, numofInput, lookup)); 

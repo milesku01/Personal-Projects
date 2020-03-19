@@ -278,7 +278,7 @@ public class NetworkTrainer {
 
 	public void formatOutput(int i) {
 		// if (i % numofBatches == 0) {
-		System.out.println();
+		//System.out.println();
 
 		// System.out.println("Current batch " +
 		// java.util.Arrays.deepToString(layers.get(0).currentBatch));
@@ -287,8 +287,8 @@ public class NetworkTrainer {
 		// System.out.println(layers.get(i).layerValue.length + " " +
 		// layers.get(i).layerValue[0].length);
 		// }
-		// System.out.println("Last Layer " +
-		// java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
+		 System.out.println("Last Layer " +
+		 java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
 
 		// System.out.println("Targets: " +
 		// java.util.Arrays.deepToString(targets.targets));
@@ -299,6 +299,7 @@ public class NetworkTrainer {
 		// }
 
 		System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); //
+	//	System.out.println("Regularization: " + regularizationTerm()); 
 		// }
 	}
 
@@ -382,12 +383,12 @@ public class NetworkTrainer {
 			}
 			loss *= (.5 / ((double) result.length * (double) result[0].length));
 		}
-		System.out.println("Reg " + regularizationTerm());
+		//System.out.println("Reg " + regularizationTerm());
 		loss += regularizationTerm();
 		return loss;
 	}
 
-	private double regularizationTerm() {
+	public double regularizationTerm() {
 		double currentLength = 1;
 		double weightSquaredSum = 0.0;
 

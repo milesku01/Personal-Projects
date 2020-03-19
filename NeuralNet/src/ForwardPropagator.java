@@ -25,6 +25,7 @@ public class ForwardPropagator {
 	public double[][] propagate(Layer layer, Layer nextLayer) {
 		layerValue = propagationObjects.get(objectTracker).propagate(layer, nextLayer);
 		
+		
 
 		if (objectTracker == (propagationObjects.size() - 1)) {
 			objectTracker = 0;
@@ -230,6 +231,9 @@ class InputLayerPropagator extends ForwardPropagator {
 		currentBatch = getBatch(layer);
 		layer.currentBatch = currentBatch;
 		layerValue = nt.matrixMultiplication(currentBatch, weightList.get(layerCounter));
+		
+//		System.out.println(java.util.Arrays.deepToString(weightList.get(layerCounter))); 
+		
 		layerCounter++;
 		nextLayer.preActivatedValue = layerValue;
 		nextLayer.layerValue = layerValue; // it's here for a reason
@@ -289,6 +293,9 @@ class DensePropagator extends ForwardPropagator {
 
 		layer.layerValue = appendBiasColumn(layer);
 		layerValue = nt.matrixMultiplication(layer.layerValue, weightList.get(layerCounter));
+		
+	//	System.out.println(java.util.Arrays.deepToString(weightList.get(layerCounter))); 
+		
 		layerCounter++;
 		nextLayer.preActivatedValue = layerValue;
 		nextLayer.layerValue = layerValue;

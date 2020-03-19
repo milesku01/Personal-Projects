@@ -5,6 +5,7 @@ public class NetworkModel {
 	static int weightListCount = 0;
 	static int filterCount = 0; 
 	static int inferedDepth = 0;
+	static String modelType = ""; 
 
 	public List<Layer> layerList = new ArrayList<Layer>();
 	public Targets targets = new Targets();
@@ -13,6 +14,16 @@ public class NetworkModel {
 		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, batchSize, filePath); // no activation
 		if (layerList.isEmpty())
 			inputLayer.initializeLayer(targets);
+		weightListCount++; 
+		layerList.add(inputLayer);
+	} 
+	
+	public void buildInputLayerDiagnostic(int numofSets, int numofInputs, int batchSize, String filePath) {
+		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, batchSize, filePath); // no activation
+		modelType = "DIAGNOSTIC"; 
+		
+		if (layerList.isEmpty())
+			inputLayer.initializeDiagnosticLayer(targets);
 		weightListCount++; 
 		layerList.add(inputLayer);
 	} 

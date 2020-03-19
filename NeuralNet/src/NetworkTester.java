@@ -6,39 +6,41 @@ public class NetworkTester {
 	public static void main(String[] args) {
 		NetworkModel model = new NetworkModel();
 		NetworkTrainer trainer = new NetworkTrainer(); 
+		DiagnosticTool dt = new DiagnosticTool();
 		 
 		String name = "worked2"; 
 		
+	//	dt.runStandardDiagnostic();
+		
+	
 		
 	//	modelEvaluator.checkModelAgainstActual(name, "match2", "Lookup");		
-		
-	//	model.buildInputLayer(4, 2, 4, "Inputs2");
 	
+	/*
+		model.buildInputLayer(26, 1, 26, "NIC");
 	
-	//	model.buildInputLayerText(1953, 62, 200, "WinLossGames", "Lookup");
-	
-		//hey checking
+	//	model.buildInputLayerText(1953, 24, 1953, "WinLossGames", "Lookup3");
 		
-	//	model.buildInputLayerText(45, 62, 45, "match", "Lookup"); 
+	//	model.buildInputLayerText(45, 24, 45, "match", "Lookup3"); 
 		
-	//	model.buildHiddenLayer(80, "LEAKYRELU");
+		model.buildHiddenLayer(1000, "RELU");
 		
 	//	model.buildHiddenLayer(100, "RELU");
 		
-	//	model.buildHiddenLayer(80, "LEAKYRELU"); 
+		
+	//	model.buildHiddenLayer(30, "RELU"); 
+	
+		model.buildOutputLayer(1, "LINEAR");
 	
 		
-	//	model.buildOutputLayer(2, "SOFTMAX");
-	
-		
-	//	trainer.train(model, 15, "ADAM"); 
+		trainer.train(model, 10000, "ADAM"); 
 
-	//	trainer.trainUntil(model, .80, 20, "ADAM");
+	//	trainer.trainUntil(model, .78, 10, "ADAM");
 		
-	//	trainer.trainUntilMatchFound(model, 12 , "match2", "ADAM", "Lookup");
+	//	trainer.trainUntilMatchFound(model, 20 , "match2", "ADAM", "Lookup3");
 		
-	//	modelSaver.saveModel(model, trainer.weights); // for regular train
-	
+		modelSaver.saveModel(model, trainer.weights); // for regular train
+	*/
 	
 	//	modelSaver.saveModel(model, trainer.net.weights); // for train until 
 
@@ -47,12 +49,13 @@ public class NetworkTester {
 	 
 	
 		
-		modelEvaluator.constructNCAABracket("basketBall72", "startingBracket", "Lookup"); 
+		modelEvaluator.constructNCAABracket("basketBall76", "startingBracket", "Lookup"); 
 
-	//  modelEvaluator.predict("basketball", 15, 32.8, 117.9, 85.1, 12, 23.66, 114.8, 91.2); 
+	//  modelEvaluator.predict("NIC3", 4); 
 		
+	//	modelEvaluator.checkModelAgainstActual("basketBall762", "match", "Lookup3");
 		
-//		modelEvaluator.predictNCAA("basketBall81", "Lookup", "Connecticut", "South-Florida");
+	//	modelEvaluator.predictNCAA("basketBall778", "Lookup3", "Connecticut", "South-Florida");
 		
 //	modelEvaluator.predictNCAA(name, "Lookup", "Auburn", "North-Carolina");
 	
