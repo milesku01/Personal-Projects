@@ -12,6 +12,7 @@ public class NetworkModel {
 
 	public void buildInputLayer(int numofSets, int numofInputs, int batchSize, String filePath) {
 		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, batchSize, filePath); // no activation
+		modelType = "STANDARD"; 
 		if (layerList.isEmpty())
 			inputLayer.initializeLayer(targets);
 		weightListCount++; 
@@ -30,6 +31,7 @@ public class NetworkModel {
 	
 	public void buildInputLayerText(int numofSets, int numofInputs, int batchSize, String filePath, String lookup) {
 		InputLayer inputLayer = new InputLayer(numofSets, numofInputs, batchSize, filePath); // no activation
+		modelType = "STANDARD";
 		if (layerList.isEmpty())
 			inputLayer.initializeLayerText(lookup, targets);
 		weightListCount++; 

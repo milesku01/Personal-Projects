@@ -102,7 +102,7 @@ class InputLayer extends Layer {
 		
 	}
 	
-	public void initializeDiagnosticLayer(Targets targets) {
+	public void initializeDiagnosticLayer(Targets targets) { //does not shuffle the inputs
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
 		layerValue = (fileReader.readInputIntoArray(numofSets, numofInput)); 
 		targetSize = fileReader.determineTargetSize(numofSets, numofInput);

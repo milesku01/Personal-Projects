@@ -144,10 +144,6 @@ public class NetworkTrainer {
 		} while (!eval.pairsMatch(inputLayer.normalizer, numofLayers, weightList, matchingTable, lookup));
 	}
 	
-	
-	
-	
-
 	private void getActivatorStrings() {
 		for (int i = 0; i < activatorStrings.length; i++) {
 			activatorStrings[i] = layers.get(i + 1).activation;
@@ -287,8 +283,8 @@ public class NetworkTrainer {
 		// System.out.println(layers.get(i).layerValue.length + " " +
 		// layers.get(i).layerValue[0].length);
 		// }
-		 System.out.println("Last Layer " +
-		 java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
+		// System.out.println("Last Layer " +
+		// java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
 
 		// System.out.println("Targets: " +
 		// java.util.Arrays.deepToString(targets.targets));
@@ -298,7 +294,7 @@ public class NetworkTrainer {
 		// java.util.Arrays.deepToString(weightList.get(j)));
 		// }
 
-		System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); //
+		//System.out.println("Loss: " + reportLoss(layers.get(layers.size() - 1))); //
 	//	System.out.println("Regularization: " + regularizationTerm()); 
 		// }
 	}

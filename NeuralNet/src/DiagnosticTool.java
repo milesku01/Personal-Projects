@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class DiagnosticTool {
@@ -10,6 +11,7 @@ public class DiagnosticTool {
 	
 	public double loss = 0.6932483625355279;
 	public double regularization = 1.0769364244274416E-4;
+	public boolean diagnosticSuccess = true; 
 //	FileReader frWeights = new FileReader(); 
 //	FileReader frGradients = new FileReader();
 //	FileReader frWeightChanges = new FileReader();
@@ -31,31 +33,17 @@ public class DiagnosticTool {
 		model.buildHiddenLayer(3, "LINEAR"); 
 		
 		model.buildOutputLayer(2, "SOFTMAX");
-		
 			
 		trainer.train(model, 10, "ADAM"); 
 		
-	
-		
 		compareLayers(trainer.layers); 
-	//	compareWeights(trainer.weights); 
-	
+		compareWeights(trainer.weights.weightList); 
 		
-	//	compareRegularization(trainer.regularizationTerm()); 
-	//	compareLoss(trainer.reportLoss(trainer.layers.get(trainer.layers.size()-1))); 
-	//	compareWeightChanges(trainer.weightChanges); 
+		compareRegularization(trainer.regularizationTerm()); 
+		compareLoss(trainer.reportLoss(trainer.layers.get(trainer.layers.size()-1))); 
+		compareWeightChanges(trainer.weightChanges); 
 		
-	//	trainer.weightList;
-	//	trainer.gradients;
-	//	trainer.accuracy;
-		
-	//	trainer.regularizationTerm();
-	//	trainer.reportLoss(trainer.layers.get(trainer.layers.size()-1)); 
-		
-	//	trainer.weightChanges; //cast to double[][] 
-		
-		
-	
+		printDiagnosticMessage(); 
 	}
 
 	
@@ -64,13 +52,11 @@ public class DiagnosticTool {
 		boolean change = false; 
 		List<Double> expectedValues = frLayers.readInputIntoList();
 	
-		System.out.println(expectedValues.size());
-		
 		for(int i=0; i < layers.size(); i++) {
 			for(int j=0; j < layers.get(i).layerValue.length; j++) {
 				for(int k=0; k < layers.get(i).layerValue[0].length; k++) {
 					if(!isWithinTolerance(layers.get(i).layerValue[j][k], expectedValues.get(counter))) {
-						 change = true; 
+						 change = true; 	 
 					}
 					counter++; 
 				}
@@ -78,43 +64,89 @@ public class DiagnosticTool {
 		}
 		if(change) {
 			System.out.println("A layerValue has changed"); 
+			diagnosticSuccess = false; 
 		}
 	}
 	
-	private void compareWeights(Weights weights) {
-		
-		for(int i=0; i < weights.weightList.size(); i++) {
-			System.out.println(java.util.Arrays.deepToString(weights.weightList.get(i))); 
+	private void compareWeights(List<double[][]> weights) {
+		int counter = 0; 
+		boolean change = false; 
+		List<Double> expectedValues = frWeights.readInputIntoList();
+	
+		for(int i=0; i < weights.size(); i++) {
+			for(int j=0; j < weights.get(i).length; j++) {
+				for(int k=0; k < weights.get(i)[0].length; k++) {
+					if(!isWithinTolerance(weights.get(i)[j][k], expectedValues.get(counter))) {
+						 change = true; 
+					 
+					}
+					counter++; 
+				}
+			}
+		}
+		if(change) {
+			System.out.println("A weight has changed"); 
+			diagnosticSuccess = false; 
 		}
 	}
-	
-
 	
 	private void compareRegularization(double reg) {
-		if(Math.abs(reg - regularization) > .0000001) {
+		if(!isWithinTolerance(reg, regularization)) {
 			System.out.println("There is a difference in regularization"); 
+			diagnosticSuccess = false; 
 		}
 	}
 	
 	private void compareLoss(double loss) {
-		if(Math.abs(this.loss - loss) > .0000001) {
+		if(!isWithinTolerance(this.loss, loss)) {
 			System.out.println("There is a difference in loss");
+			diagnosticSuccess = false; 
 		}
 	}
 	
-	private void compareWeightChanges(List<Object> weightChanges) {
+	private void compareWeightChanges(List<Object> weightChanges) { //TODO change from object state to double[][] after 
+																//major changes
+		List<double[][]> weight = new ArrayList<double[][]>();
+		
 		for (int i = 0; i < weightChanges.size(); i++) {
 			if (weightChanges.get(i) instanceof double[][]) {
-				System.out.println(java.util.Arrays.deepToString((double[][])weightChanges.get(i))); 
+				weight.add((double[][])weightChanges.get(i)); 
 			}
 		}
+		
+		int counter = 0; 
+		boolean change = false; 
+		List<Double> expectedValues = frWeightChanges.readInputIntoList();
+	
+		for(int i=0; i < weight.size(); i++) {
+			for(int j=0; j < weight.get(i).length; j++) {
+				for(int k=0; k < weight.get(i)[0].length; k++) {
+					if(!isWithinTolerance(weight.get(i)[j][k], expectedValues.get(counter))) {
+						 change = true;  
+					}
+					counter++; 
+				}
+			}
+		}
+		if(change) {
+			System.out.println("A weightChange has changed"); 
+			diagnosticSuccess = false; 
+		}	
 	}
 	
 	private boolean isWithinTolerance(double real, double expected) {
-		if(Math.abs(this.loss - loss) > .0000001) {
+		if(Math.abs(real - expected) > .0000001) {
 			return false;
 		} else {
 			return true; 
+		}
+	}
+	
+	private void printDiagnosticMessage() {
+		if(diagnosticSuccess) {
+			System.out.println("Diagnostic was successful!"); 
+		} else {
+			System.out.println("There wasa discrepancy");
 		}
 	}
 	

@@ -87,25 +87,16 @@ public class FileReader {
 	}
 
 	public void readFileIntoList() {
-		System.out.println("Slow file reader called");
-		long start = System.nanoTime();
-
 		while (scan.hasNextDouble()) {
 			valuesFromFile.add(scan.nextDouble());
 		}
 
 		scan.close();
-
-		long end = System.nanoTime();
-
-		System.out.println("time" + (double) (end - start) / 1000000000);
 	}
 
 	public void readDataIntoList() {
 		String line;
 		double score;
-
-		long start = System.nanoTime();
 
 		try {
 			while ((line = read.readLine()) != null) {
@@ -129,10 +120,6 @@ public class FileReader {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-		long end = System.nanoTime();
-
-		System.out.println("FileReader " + (double) (end - start) / 1000000000);
 	}
 
 	static boolean TorF = true;
@@ -144,8 +131,6 @@ public class FileReader {
 
 		Pattern pattern = Pattern.compile(".*[a-zA-Z]+.*");
 		Matcher matcher;
-
-		long start = System.nanoTime();
 
 		try {
 			while ((line = read.readLine()) != null) {
@@ -178,9 +163,6 @@ public class FileReader {
 			e.printStackTrace();
 		}
 
-		long end = System.nanoTime();
-
-		System.out.println("FileReader " + (double) (end - start) / 1000000000);
 	}
 
 	private double[][] ListToArray(int dimension1, int dimension2) {
