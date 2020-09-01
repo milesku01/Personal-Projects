@@ -1,15 +1,9 @@
-import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * class Gradients holds data for a gradient object 
+ *
+ */
 public class Gradients {
 	double[][] twoDGradient; 
-	
-	double[][] dRelu;
-	double[][] dPool;
-	
-	double[][][] runningTotal;
-	
-	List<double[][][]> threeDGradientList = new ArrayList<double[][][]>(); 
-	
 	String gradientIdentifier;
 }

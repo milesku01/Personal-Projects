@@ -2,122 +2,104 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ForwardPropagator {
-	int objectTracker = 0;
-	static int layerCounter = 0;
-	static int filterCounter = 0;
 	static double heldDropoutProb = 0.0; 
-	int testObjectTracker = 0;
+
 	static int batchSize = 1;
 	static int remainingBatchSize = 0;
 	double[][] layerValue;
-	double[][] currentBatch;
-	double[][][] convValue;
+	
 	ForwardPropagator forwardPropObj;
 	List<ForwardPropagator> propagationObjects;
 	List<ForwardPropagator> testPropagationObjects;
-	static List<Layer> layerList = new ArrayList<Layer>();
 	static List<double[][]> weightList = new ArrayList<double[][]>();
-	static InputLayer inputLayer;
-	static NetworkTrainer nt = new NetworkTrainer();
-	static Weights weights;
+	
 	Activator activator = new Activator();
 
-	public double[][] propagate(Layer layer, Layer nextLayer) {
-		layerValue = propagationObjects.get(objectTracker).propagate(layer, nextLayer);
-		
-		
-
-		if (objectTracker == (propagationObjects.size() - 1)) {
-			objectTracker = 0;
-			layerCounter = 0;
-			filterCounter = 0;
-		} else {
-			objectTracker++;
+	/**
+	 * Runs one instance of a forward propagation (only one batch)
+	 * Invokes the propagation method on each sequential pair of layers and updates 
+	 * the values in the next layer (previousLayer is not updated)
+	 * 
+	 * @param layerList passes the list of layers from the network trainer to the propagator
+	 */
+	public void runPropagation(List<Layer> layerList) {
+		for (int i = 0; i < layerList.size() - 1; i++) {
+			propagate(layerList.get(i), layerList.get(i+1));															
 		}
-
-		return layerValue;
+	}
+	
+	/**
+	 * Runs one instance of forward propagation that occurs in the test portion of the training
+	 * (to measure accuracy) 
+	 * Invokes the propagation method on each sequential pair of layers and updates 
+	 * the values in the next layer (previousLayer is not updated)
+	 * 
+	 * @param layerList passes the list of layers 
+	 */
+	public void runPropagationTest(List<Layer> layerList) {
+		for (int i = 0; i < layerList.size() - 1; i++) {
+			propagateTest(layerList.get(i), layerList.get(i+1));															
+		}
+	}
+	
+	/**
+	 * Runs an instance of propagation between two layers (layer and nextLayer) by calling a list 
+	 * of propagation objects which directs the propagation to occur in the correct class (polymorphically) 
+	 * Upon creation of each layer Object it's assigned is a layerPosition which controls which propagation object is called 
+	 * And then the propagate method from the proper class is used to run the propagation (matrix multiplication and activation) 
+	 * 
+	 * @param layer Layer that will not be updated (values of this layer are multiplied with weights to create the next layer)
+	 * @param nextLayer assumes the value of the operations of the previous multiplication 
+	 */
+	public void propagate(Layer layer, Layer nextLayer) {
+		propagationObjects.get(layer.layerPosition).propagate(layer, nextLayer);
 	}
 
-	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
-		convValue = propagationObjects.get(objectTracker).propagateConv(layer, nextLayer);
+	/**
+	 * Much like the propagate method propagateTest runs an instance of propagation between two layers by
+	 * calling a list of propagation objects which directs the propagation to occur in the correct class
+	 * 
+	 * @param layer that will not be updated (values of this layer are multiplied with weights to create the next layer)
+	 * @param nextLayer assumes the value of the operations of the previous multiplication 
 
-		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer
-				|| layer instanceof HiddenConvolutionalLayer)
-				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof DropoutLayer || nextLayer instanceof OutputLayer)) {
-			nextLayer.layerValue = flatten(convValue);
-		}
-
-		if (objectTracker == (propagationObjects.size() - 1)) {
-			objectTracker = 0;
-			layerCounter = 0;
-			filterCounter = 0;
-		} else {
-			objectTracker++;
-		}
-
-		return convValue;
-
-	}
-
-	public double[][] propagateTest(Layer layer, Layer nextLayer) {
-		if (testObjectTracker == 0) {
-			layerCounter = 0;
-			filterCounter = 0;
-		}
-
-		if(layer instanceof DropoutLayer) {
-			((DropoutLayer)layer).dropoutProbability = 0.0; 
-		}
+	 */
+	public void propagateTest(Layer layer, Layer nextLayer) {
 		
-		layerValue = testPropagationObjects.get(testObjectTracker).propagate(layer, nextLayer);
+		testPropagationObjects.get(layer.layerPosition).propagate(layer, nextLayer);
 
 		if(layer instanceof DropoutLayer) {
 			((DropoutLayer)layer).dropoutProbability = heldDropoutProb; //clumsily written but should work
 		}
-	
-
-		if (testObjectTracker == (testPropagationObjects.size() - 1)) {
-			testObjectTracker = 0;
-			layerCounter = 0;
-			filterCounter = 0;
-		} else {
-			testObjectTracker++;
-		}
-
-		return layerValue;
 	}
 	
-	public double[][][] propagateConvTest(Layer layer, Layer nextLayer) {
-		if (testObjectTracker == 0) {
-			layerCounter = 0;
-			filterCounter = 0;
-		}
-		
-		convValue = testPropagationObjects.get(testObjectTracker).propagateConv(layer, nextLayer);
-
-		if ((layer instanceof ConvolutionalLayer || layer instanceof PoolingLayer || layer instanceof ReluLayer
-				|| layer instanceof HiddenConvolutionalLayer)
-				&& (nextLayer instanceof HiddenLayer || nextLayer instanceof DropoutLayer || nextLayer instanceof OutputLayer)) {
-			nextLayer.layerValue = flatten(convValue);
-		}
-		
-		if (testObjectTracker == (testPropagationObjects.size() - 1)) {
-			testObjectTracker = 0;
-			layerCounter = 0;
-			filterCounter = 0;
-		} else {
-			testObjectTracker++;
-		}
-		
-		return convValue; 
-	}
-
+	
+	/**
+	 * constructs the proper polymorphic objects that fit with the type of propagation 
+	 * first initializes the local weight list from the weight object and then allocated the memory for the 
+	 * propagation lists 
+	 * 
+	 * Conditionally if the number of sets is above the threshold then an testing propagation object is 
+	 * immediately to the testPropagation objects which is then allocated space and then added to the list of test objects
+	 * 
+	 * then the number of layer pairs is looped through (layerList size - 1) (the output layer doesn't require a propagator)
+	 * based on the type of object, the appropriate propagator type is added to the list
+	 * 
+	 * conditionally if the number of sets is above the threshold than the object type is also added to the 
+	 * test propagation list (with the exception of the first object which is added automatically) 
+	 * 
+	 * 
+	 * @param layerList: the list of layers containing layer objects to create propagation objects 
+	 * @param weights: the list of weights is initialized here because this method is run at the beginning and only run once
+	 */
 	public void constructForwardPropagationObjects(List<Layer> layerList, Weights weights) { // only occur once
 
-		setupConstants(layerList, weights);
+		weightList = weights.weightList;
+		propagationObjects = new ArrayList<ForwardPropagator>(layerList.size());
+		
 
-		if (layerList.get(0).globalNumofSets > 90) {
+		if (Utility.testSplitThreshold(layerList.get(0))) {
 			forwardPropObj = new TestPropagator();
+			testPropagationObjects = new ArrayList<ForwardPropagator>(layerList.size());
 			testPropagationObjects.add(forwardPropObj);
 		}
 
@@ -127,21 +109,13 @@ public class ForwardPropagator {
 				forwardPropObj = new DensePropagator();
 			} else if (layerList.get(i) instanceof InputLayer) {
 				forwardPropObj = new InputLayerPropagator();
-			} else if (layerList.get(i) instanceof ConvolutionalLayer) {
-				forwardPropObj = new ConvolutionalPropagator();
-			} else if (layerList.get(i) instanceof PoolingLayer) {
-				forwardPropObj = new PoolingPropagator();
-			} else if (layerList.get(i) instanceof ReluLayer) {
-				forwardPropObj = new ReluPropagator();
-			} else if (layerList.get(i) instanceof HiddenConvolutionalLayer) {
-				forwardPropObj = new HiddenConvolutionalPropagator();
 			} else if (layerList.get(i) instanceof DropoutLayer) {
 				forwardPropObj = new DropoutPropagator(); 
 			}
 
 			propagationObjects.add(forwardPropObj);
 
-			if (layerList.get(0).globalNumofSets > 90) {
+			if (Utility.testSplitThreshold(layerList.get(0))) {
 				if (i > 0) {
 					testPropagationObjects.add(forwardPropObj);
 				}
@@ -149,184 +123,129 @@ public class ForwardPropagator {
 		}
 	}
 
-	private void setupConstants(List<Layer> layerList, Weights weights) {
-		ForwardPropagator.layerList = layerList;
-		ForwardPropagator.weights = weights;
-		if (layerList.get(0) instanceof InputLayer) {
-			inputLayer = (InputLayer) layerList.get(0);
-			batchSize = inputLayer.batchSize;
-			remainingBatchSize = inputLayer.remainingBatchSize;
-		}
-		ForwardPropagator.weightList = weights.weightList;
-		propagationObjects = new ArrayList<ForwardPropagator>(layerList.size());
-		testPropagationObjects = new ArrayList<ForwardPropagator>(layerList.size());
-
-	}
-
-	public double[][] appendBiasColumn(Layer layer) {
-		double[][] layerValue = copyArray(layer.layerValue);
-		double[][] inputsWithBiases = new double[layerValue.length][layerValue[0].length + 1];
-
-		for (int i = 0; i < layerValue.length; i++) {
-			for (int j = 0; j < layerValue[0].length; j++) {
-				inputsWithBiases[i][j] = layerValue[i][j];
-			}
-		}
-		for (int i = 0; i < layerValue.length; i++) {
-			inputsWithBiases[i][layerValue[0].length] = 1;
-		}
-		return inputsWithBiases;
-	}
-
+	/**
+	 * Activates the layerValue by calling an instance of the activator class
+	 * 
+	 * @param layer: the layer being activated 
+	 * @return returns the newly activated layer to be assigned to the layerValue of the nextLayer
+	 */
 	public double[][] activate(Layer layer) {
-		double[][] activatedValue;
-		activatedValue = activator.activate(layer);
-		return activatedValue;
-	}
-
-	public double[][] copyArray(double[][] input) {
-		double[][] copy = new double[input.length][input[0].length];
-		for (int i = 0; i < input.length; i++) {
-			for (int j = 0; j < input[0].length; j++) {
-				copy[i][j] = input[i][j];
-			}
-		}
-		return copy;
-	}
-
-	public double[][][] copyThreeDArray(double[][][] input) {
-		double[][][] copy = new double[input.length][input[0].length][input[0][0].length];
-
-		for (int i = 0; i < input.length; i++) {
-			for (int j = 0; j < input[0].length; j++) {
-				for (int k = 0; k < input[0][0].length; k++) {
-					copy[i][j][k] = input[i][j][k];
-				}
-			}
-		}
-		return copy;
-	}
-
-	public double[][] flatten(double[][][] input) {
-		int counter = 0;
-		double[][] output = new double[1][input.length * input[0].length * input[0][0].length];
-
-		for (int i = 0; i < input.length; i++) {
-			for (int j = 0; j < input[0].length; j++) {
-				for (int k = 0; k < input[0][0].length; k++) {
-					output[0][counter] = input[i][j][k];
-					counter++;
-				}
-			}
-		}
-		return output;
+		return activator.activate(layer);
 	}
 
 }
 
+/**
+ * Class inputLayerPropagator is a subclass of ForwardPropagator and handles the forward propagation between the 
+ * first layer of the network with the first set of weights. Because of batching this propagator is separated from
+ * the standard DensePropagator
+ * 
+ *
+ */
 class InputLayerPropagator extends ForwardPropagator {
 
-	public double[][] propagate(Layer layer, Layer nextLayer) {
-		double[][] layerValue;
-		currentBatch = getBatch(layer);
-		layer.currentBatch = currentBatch;
-		layerValue = nt.matrixMultiplication(currentBatch, weightList.get(layerCounter));
+	int batchTracker = 0; 
+	
+	/**
+	 * Overloaded method propagate assigns the current batch to the currentBatch member of the inputLayer class 
+	 * (assigned so that the batch can be viewed if necessary and for back propagation) 
+	 * 
+	 * the preactivated value of the next layer (which is simply the  matrix multiplication of the initial weights 
+	 * and the first layerValue and the first weight values) is assigned 
+	 * and the nextLayers actual value is assigned by activating the preactivated value 
+	 */
+	public void propagate(Layer layer, Layer nextLayer) {
 		
-//		System.out.println(java.util.Arrays.deepToString(weightList.get(layerCounter))); 
+		layer.currentBatch = getBatch((InputLayer)layer);
+		nextLayer.preActivatedValue = Utility.matrixMultiplication(layer.currentBatch, weightList.get(layer.layerPosition));
+		nextLayer.layerValue = activate(nextLayer);
+	}
+	
+	/**
+	 * gets the current batch to be propagated by the propagate method, uses a batch tracking and batch list system to get them
+	 * (it gets the first batch and then increases the counter to get the second batch) if the final batch as been reached (indicated by a flag
+	 * in assigned to the batchObject) then the counter resets to begin the training process for another epoch 
+	 * 
+	 * @param layer: the layer which contains the batch references
+	 * @return returns the batch to be operated on / worked with 
+	 */
+	private double[][] getBatch(InputLayer layer) {
+		double[][] batch = layer.batchList.get(batchTracker).batchValue;
 		
-		layerCounter++;
-		nextLayer.preActivatedValue = layerValue;
-		nextLayer.layerValue = layerValue; // it's here for a reason
-		activate(nextLayer);
-		//nextLayer.layerValue = activate(nextLayer);
-		return nextLayer.layerValue;
-	}
-
-	int batchTracker = 0;
-	int batchCounter = 0;
-
-	public double[][] getBatch(Layer layer) {
-		double[][] batch;
-
-		if (remainingBatchSize == 0) {
-			remainingBatchSize = batchSize;
-		}
-
-		if (!hasReachedEndofBatch()) {
-			batch = new double[batchSize][layer.layerSize + 1];
-			for (int i = 0; i < batchSize; i++) {
-				for (int j = 0; j < layer.layerSize + 1; j++) { // added one for the bias column
-					batch[i][j] = layer.layerValue[batchTracker][j];
-				}
-				batchTracker++;
-			}
-			batchCounter++;
-
+		
+		if(layer.batchList.get(batchTracker).finalBatch) {
+			batchTracker = 0; 
 		} else {
-			batch = new double[remainingBatchSize][layer.layerSize + 1];
-			for (int i = 0; i < remainingBatchSize; i++) {
-				for (int j = 0; j < layer.layerSize + 1; j++) {
-					batch[i][j] = layer.layerValue[batchTracker][j];
-				}
-				batchTracker++;
-			}
-			batchTracker = 0;
-			batchCounter = 0;
+			batchTracker++;
 		}
-		return batch;
+		return batch; 
 	}
-
-	public boolean hasReachedEndofBatch() {
-		if (nt.numofBatches - 1 == batchCounter) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
 }
 
+/**
+ * Class Dense propagator is a subclass of forwardPropagator and handles the forward propagation between any 
+ * "Dense Layers" which are any standard type of layer that only requires matrix multiplication and activation 
+ * so this will be the most commonly used propagator  
+ *
+ */
 class DensePropagator extends ForwardPropagator {
-
-	public double[][] propagate(Layer layer, Layer nextLayer) {
-		double[][] layerValue;
-
-		layer.layerValue = appendBiasColumn(layer);
-		layerValue = nt.matrixMultiplication(layer.layerValue, weightList.get(layerCounter));
+	
+	/**
+	 * Overloaded propagate method assigns assigns the value of the next layer to the result of the multiplication and activation of the weights and
+	 * the previous layer 
+	 * 
+	 * First the "current" layer (previous layer) is given a bias column which will shift the graph of the equation to better fit the curve 
+	 * then the next layers preactivated value is set by the matrix multiplication of the previous layer and the weights 
+	 * then the layer value is created and assigned by activating that result 
+	 * 
+	 */
+	public void propagate(Layer layer, Layer nextLayer) {
+		layer.layerValue = Utility.appendBiasColumn(layer.layerValue);
 		
-	//	System.out.println(java.util.Arrays.deepToString(weightList.get(layerCounter))); 
-		
-		layerCounter++;
-		nextLayer.preActivatedValue = layerValue;
-		nextLayer.layerValue = layerValue;
+		nextLayer.preActivatedValue = Utility.matrixMultiplication(layer.layerValue, weightList.get(layer.layerPosition)); 
 		nextLayer.layerValue = activate(nextLayer);
-		
-	//	System.out.print("OutputLayer ");
-	//	nt.printArray(nextLayer.layerValue);
-
-		return nextLayer.layerValue;
 	}
 }
 
+/**
+ * Class dropoutPropagator is a subclass of ForwardPropagator and handles the forward propagation between a dropout layer and another layer 
+ * Dropout Layers have some of the neurons (columns) randomly set to 0 which increases the generalization of the network and helps it to
+ * find new paths 
+ * 
+ */
 class DropoutPropagator extends ForwardPropagator {
-	public double[][] propagate(Layer layer, Layer nextLayer) {
-		double[][] layerValue; 
+	/**
+	 * The dropout operation first occurs which randomly zeros columns of the layerValue using a specified probability 
+	 * Then a bias column is appended to the layerValue to introduce and element into the network which shifts the graph directionally and 
+	 * helps the network to generalize then the next layers preactivated value is set by the matrix multiplication of the previous layer and the weights 
+	 * then the layer value is created and assigned by activating that result 
+	 * 
+	 */
+	public void propagate(Layer layer, Layer nextLayer) {
 		
-		heldDropoutProb = ((DropoutLayer)layer).dropoutProbability;
-		
-		layer.layerValue = dropOut(layer);
-		layer.layerValue = appendBiasColumn(layer);
-		layerValue = nt.matrixMultiplication(layer.layerValue, weightList.get(layerCounter));
-		layerCounter++;
-		nextLayer.preActivatedValue = layerValue;
-		nextLayer.layerValue = layerValue;
+		dropOut(layer);
+		Utility.appendBiasColumn(layer.layerValue);
+		nextLayer.preActivatedValue = Utility.matrixMultiplication(layer.layerValue, weightList.get(layer.layerPosition));
 		nextLayer.layerValue = activate(nextLayer);
-	
-		return nextLayer.layerValue;
 	}
 	
-	private double[][] dropOut(Layer layer) {
-		double[][] layerValue = copyArray(layer.layerValue);
+	/**
+	 * The dropout method randomly zeros columns of the layerValue of "layer" according to the dropout probability 
+	 * This is done to improve the generalization of the network
+	 * 
+	 * The reference of layer.layerValue is set to the variable layerValue
+	 * The probability is assigned to a variable from the dropoutProbability 
+	 * Using a for loop each column is cycled through (outer for loop) 
+	 * 
+	 * Then if a random number between 0 and 1 is less than the specified probability then the next operation occurs (essentially a random number of 
+	 * columns proportional to the probablity are selected) then if the if condition is met then each of the values in that column are set to 0 
+	 * (inner for loop) 
+	 * 
+	 * 
+	 * @param layer: The dropout layer to be operated on 
+	 */
+	private void dropOut(Layer layer) {
+		double[][] layerValue = layer.layerValue;
 		double probability = ((DropoutLayer)layer).dropoutProbability; 
 		
 		for(int i=0; i<layerValue[0].length; i++) {
@@ -336,354 +255,24 @@ class DropoutPropagator extends ForwardPropagator {
 				}
 			}
 		}
-		return layerValue;
 	}
 }
 
+/**
+ * Class testPropagator is a subclass of ForwardPropagator and handles in lieu of the inputPropagator for test cases 
+ * 
+ */
 class TestPropagator extends ForwardPropagator {
-	static int counter = 0;
-
-	public double[][] propagate(Layer layer, Layer nextLayer) {
-		double[][] testValue;
-		
-		if (layer instanceof InputLayer) {
-			if (counter == 0) {
-				layer.testData = appendBiasColumn(layer);
-				counter++; 
-			}
-			
-			testValue = nt.matrixMultiplication(layer.testData, weightList.get(layerCounter));
-			layerCounter++; 
-			nextLayer.layerValue = testValue;
-			nextLayer.testData = activate(nextLayer);
-
-		} 
-		return nextLayer.testData; 
-	}
-
-	int batchCounter = 0;
-
-	private void getBatch(ConvolutionalLayer conv) {
-		conv.currentImage = conv.testingImages.get(batchCounter);
-
-		if (!hasReachedEndofBatch(conv.testingImages.size())) {
-			batchCounter++;
-		} else {
-			batchCounter = 0;
-		}
-
-	}
-
-	private boolean hasReachedEndofBatch(int numofBatches) {
-		if (numofBatches - 1 == batchCounter) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public double[][] appendBiasColumn(Layer layer) {
-		double[][] layerValue = copyArray(layer.testData);
-		double[][] inputsWithBiases = new double[layerValue.length][layerValue[0].length + 1];
-
-		for (int i = 0; i < layerValue.length; i++) {
-			for (int j = 0; j < layerValue[0].length; j++) {
-				inputsWithBiases[i][j] = layerValue[i][j];
-			}
-		}
-		for (int i = 0; i < layerValue.length; i++) {
-			inputsWithBiases[i][layerValue[0].length] = 1;
-		}
-		return inputsWithBiases;
-	}
-
 	
-	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
-		
-		ConvolutionalLayer conv = (ConvolutionalLayer) layer;
-		getBatch(conv);
-		double[][][] image = conv.currentImage;
+	/**
+	 * The nextLayers preActivated values are created by multiplying the testData of the layer with the weights 
+	 * Then the nextLayers testData is assigned by activating the previous result
+	 */
+	public void propagate(Layer layer, Layer nextLayer) {
+					
+		nextLayer.preActivatedValue = Utility.matrixMultiplication(layer.testData, weightList.get(layer.layerPosition));
 
-		List<double[][][]> filters = weights.filterList.get(filterCounter).threeDFilterArray;
-
-		int biasTerm = 1;
-		int colorChannels = image.length;
-		int filterSize = filters.get(0)[0].length;
-		int strideLength = conv.strideLength;
-		int numofXCycles = (image[0][0].length - filterSize) / strideLength + 1;
-		int numofYCycles = (image[0].length - filterSize) / strideLength + 1;
-		double convOutput = 0;
-
-		double[][][] convOutputArraySum = new double[filters.size()][numofYCycles][numofXCycles];
-
-		for (int h = 0; h < filters.size(); h++) {
-
-			for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
-				for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
-
-					for (int i = 0; i < colorChannels; i++) {
-						for (int j = 0; j < filterSize; j++) {
-							for (int k = 0; k < filterSize; k++) {
-								convOutput += image[i][j + cornerPosY][k + cornerPosX] * filters.get(h)[i][j][k];
-							}
-						}
-					}
-					convOutputArraySum[h][cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
-					convOutput = 0;
-				}
-			}
-		}
-
-		filterCounter++;
-
-		nextLayer.preActivatedConvValue = convOutputArraySum; 
-		nextLayer.testConvData = convOutputArraySum;
-	
-		return nextLayer.testConvData;
+		nextLayer.testData = activate(nextLayer);
 	}
-	
-	
 }
 
-class ConvolutionalPropagator extends ForwardPropagator {
-	ConvolutionalLayer conv;
-	double[][][] image;
-	List<double[][][]> filters;
-
-	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
-
-		conv = (ConvolutionalLayer) layer;
-		getBatch(conv);
-		image = conv.currentImage;
-
-		filters = weights.filterList.get(filterCounter).threeDFilterArray;
-
-		int biasTerm = 1;
-		int colorChannels = image.length;
-		int filterSize = filters.get(0)[0].length;
-		int strideLength = conv.strideLength;
-		int numofXCycles = (image[0][0].length - filterSize) / strideLength + 1;
-		int numofYCycles = (image[0].length - filterSize) / strideLength + 1;
-		double convOutput = 0;
-
-		double[][][] convOutputArraySum = new double[filters.size()][numofYCycles][numofXCycles];
-
-		for (int h = 0; h < filters.size(); h++) {
-
-			for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
-				for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
-
-					for (int i = 0; i < colorChannels; i++) {
-						for (int j = 0; j < filterSize; j++) {
-							for (int k = 0; k < filterSize; k++) {
-								convOutput += image[i][j + cornerPosY][k + cornerPosX] * filters.get(h)[i][j][k];
-							}
-						}
-					}
-					convOutputArraySum[h][cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
-					convOutput = 0;
-				}
-			}
-		}
-
-		filterCounter++;
-
-		nextLayer.preActivatedConvValue = convOutputArraySum;
-		nextLayer.convValue = convOutputArraySum;
-
-		return convOutputArraySum;
-	}
-
-	int batchCounter = 0;
-
-	private void getBatch(ConvolutionalLayer conv) {
-		conv.currentImage = conv.trainingImages.get(batchCounter);
-
-		if (!hasReachedEndofBatch(conv.trainingImages.size())) {
-			batchCounter++;
-		} else {
-			batchCounter = 0;
-		}
-
-	}
-
-	private boolean hasReachedEndofBatch(int numofBatches) {
-		if (numofBatches - 1 == batchCounter) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-}
-
-class HiddenConvolutionalPropagator extends ForwardPropagator {
-	HiddenConvolutionalLayer conv;
-	double[][][] input;
-	List<double[][][]> filters;
-
-	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
-		conv = (HiddenConvolutionalLayer) layer;
-		input = layer.convValue;
-
-		filters = weights.filterList.get(filterCounter).threeDFilterArray;
-
-		int biasTerm = 1;
-		int filterSize = filters.get(0)[0].length;
-		int strideLength = conv.strideLength;
-		int numofXCycles = (input[0][0].length - filterSize) / strideLength + 1;
-		int numofYCycles = (input[0].length - filterSize) / strideLength + 1;
-		double convOutput = 0;
-
-		double[][][] convOutputArraySum = new double[filters.size()][numofYCycles][numofXCycles];
-
-		for (int h = 0; h < filters.size(); h++) {
-			for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
-				for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
-					for (int l = 0; l < input.length; l++) {
-						for (int j = 0; j < filterSize; j++) {
-							for (int k = 0; k < filterSize; k++) {
-								convOutput += input[l][j + cornerPosY][k + cornerPosX] * filters.get(h)[l][j][k];
-							}
-						}
-					}
-					convOutputArraySum[h][cornerPosY / strideLength][cornerPosX / strideLength] = convOutput + biasTerm;
-					convOutput = 0;
-				}
-			}
-
-		}
-
-		filterCounter++;
-
-		nextLayer.preActivatedConvValue = convOutputArraySum; 
-		nextLayer.convValue = convOutputArraySum;
-
-		return convOutputArraySum;
-	}
-
-}
-
-class PoolingPropagator extends ForwardPropagator {
-	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
-		PoolingLayer pool = (PoolingLayer) layer;
-
-		layer.preActivatedConvValue = pool.convValue;
-
-		int strideLength = pool.poolSize;
-		int numofXCycles = pool.convValue[0][0].length / strideLength;
-		int numofYCycles = pool.convValue[0].length / strideLength;
-
-		double[][][] input = pool.convValue;
-
-		double[][][] poolArray = new double[pool.convValue.length][pool.poolSize][pool.poolSize];
-		double[][][] maxPoolOutput = new double[pool.convValue.length][numofYCycles][numofXCycles];
-
-		pool.expandedLayer = fullExpandedMaxArray(pool);
-
-		
-		for (int k=0; k < pool.convValue.length; k++) {
-		
-			for (int cornerPosY = 0; cornerPosY < numofYCycles; cornerPosY += strideLength) {
-				for (int cornerPosX = 0; cornerPosX < numofXCycles; cornerPosX += strideLength) {
-				
-				
-					for (int i = 0; i < pool.poolSize; i++) {
-						for (int j = 0; j < pool.poolSize; j++) {
-							poolArray[k][i][j] = input[k][i + cornerPosY][j + cornerPosX];
-						}
-					}
-				
-					maxPoolOutput[k][cornerPosY / strideLength][cornerPosX / strideLength] = getMaxValue(poolArray);
-				}
-			}
-		}	
-
-		nextLayer.preActivatedConvValue = maxPoolOutput;
-		nextLayer.convValue = maxPoolOutput;
-
-		return maxPoolOutput;
-	}
-
-	private double getMaxValue(double[][][] subSample) {
-		double max = subSample[0][0][0];
-		for (int i = 0; i < subSample.length; i++) {
-			for (int j = 0; j < subSample[0].length; j++) {
-				for(int k=0; k < subSample[0][0].length; k++) {
-					if (subSample[i][j][k] > max) {
-						max = subSample[i][j][k];
-					}
-				}
-			}
-		}
-
-		return max;
-	}
-
-	private double[][][] fullExpandedMaxArray(PoolingLayer pool) {
-		double[][][] input = copyThreeDArray(pool.convValue);
-		double max;
-		int maxX;
-		int maxY;
-
-		for (int i = 0; i < pool.convValue.length; i++) {
-			for (int j = 0; j < pool.convValue[0].length; j += pool.poolSize) {
-				for (int m = 0; m < pool.convValue[0][0].length; m += pool.poolSize) {
-					max = 0;
-					maxX = 0;
-					maxY = 0;
-
-					for (int k = 0; k < pool.poolSize; k++) {
-						for (int l = 0; l < pool.poolSize; l++) {
-							if (input[i][j + k][m + l] > max) {
-								max = input[i][j + k][m + l];
-								maxX = j + k;
-								maxY = m + l;
-							}
-						}
-					}
-
-					for (int k = 0; k < pool.poolSize; k++) {
-						for (int l = 0; l < pool.poolSize; l++) {
-							if ((j + k != maxX) || (m + l != maxY)) {
-								input[i][j + k][m + l] = 0;
-							} else if ((j + k == maxX) || (m + l == maxY)) {
-								input[i][j + k][m + l] = 1;
-							}
-						}
-					}
-
-				}
-			}
-		}
-
-		return input;
-	}
-
-}
-
-class ReluPropagator extends ForwardPropagator {
-	
-	public double[][][] propagateConv(Layer layer, Layer nextLayer) {
-		layer.activation = "RELU";
-		nextLayer.preActivatedConvValue = layer.convValue; // might be trouble w/ references
-		nextLayer.convValue = activateRelu(layer);
-		return nextLayer.convValue;
-	}
-	
-	private double[][][] activateRelu(Layer layer) {
-		double[][][] output = copyThreeDArray(layer.preActivatedConvValue); 
-		
-		for(int i=0; i<output.length; i++) {
-			for(int j=0; j<output[0].length; j++) {
-				for(int k=0; k<output[0][0].length; k++) {
-					if(output[i][j][k] < 0) {
-						output[i][j][k] = 0;
-					}
-				}
-			}
-		}
-		return output; 
-	}
-
-}

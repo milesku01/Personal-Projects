@@ -1,21 +1,32 @@
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * Class DiagnosticTool is used to find any changes in output of a previous known working network
+ * and a run through of the current network
+ *
+ */
 public class DiagnosticTool {
+	
 	NetworkModel model = new NetworkModel();
 	NetworkTrainer trainer = new NetworkTrainer(); 
-	FileReader frLayers = new FileReader("C:\\Users\\kuhnm\\Desktop\\NeuralNetworkDiagnosticLayers.txt");
-	FileReader frWeights = new FileReader("C:\\Users\\kuhnm\\Desktop\\NeuralNetworkDiagnosticWeights.txt");
-	FileReader frWeightChanges = new FileReader("C:\\Users\\kuhnm\\Desktop\\NeuralNetworkDiagnosticWeightChanges.txt"); 
+	FileReader frLayers = new FileReader(System.getProperty("user.home") + "\\Desktop\\Diagnostic\\NeuralNetworkDiagnosticLayers.txt");
+	FileReader frWeights = new FileReader(System.getProperty("user.home") + "\\Desktop\\Diagnostic\\NeuralNetworkDiagnosticWeights.txt");
+	FileReader frWeightChanges = new FileReader(System.getProperty("user.home") + "\\Desktop\\Diagnostic\\NeuralNetworkDiagnosticWeightChanges.txt"); 
 	
-	
-	public double loss = 0.6932483625355279;
-	public double regularization = 1.0769364244274416E-4;
+	public double loss = 0.6932487482299111;
+	public double regularization = 1.0827903295037047E-4;
 	public boolean diagnosticSuccess = true; 
-//	FileReader frWeights = new FileReader(); 
-//	FileReader frGradients = new FileReader();
-//	FileReader frWeightChanges = new FileReader();
-	
+
+	/**
+	 * void runStandardDiagnostic runs a simple diagnostic test run from a Diagnostic object
+	 * creates a model with may layers and all the types of activation functions
+	 * The only difference from a standard model and this one is diagnostic input layer which is needed for proper 
+	 * weight setup 
+	 * 
+	 * The values of the layers, the weights, the weight changes, the loss and regularization are compared to a previous model
+	 * 
+	 * Based on those comparisons, an appropriate diagnostic message is displayed 
+	 */
 	public void runStandardDiagnostic() {
 	
 		model.buildInputLayerDiagnostic(4, 2, 4, "Test");
@@ -46,7 +57,18 @@ public class DiagnosticTool {
 		printDiagnosticMessage(); 
 	}
 
-	
+	/**
+	 * void compareLayers compares the layerValues of all the layers in the model after 10 epochs
+	 * The expected values are read from a file into a list 
+	 * 
+	 * Nested for loops are used to individually compare the value of the layers and the expected values in the list, this requires the use
+	 * of the counter. In each iteration of the for loop a change is checked for using the isWithinTolerance which returns true if the values match
+	 * If the values don't match then boolean change is changed to true 
+	 * 
+	 * If change is true then boolean diagnostic success becomes false and the message that a layerValue has changed is printed
+	 * 
+	 * @param layers: The list of layers tracked by the network trainer is passed to this method 
+	 */
 	private void compareLayers(List<Layer> layers) {
 		int counter = 0; 
 		boolean change = false; 
@@ -68,6 +90,19 @@ public class DiagnosticTool {
 		}
 	}
 	
+	/**
+	 * void compareWeights compares the weight values of all the layers in the model after 10 epochs 
+	 * The expectedValues are read from a file into a list 
+	 * 
+	 * Nested for loops are used to individually compare the weight values and the expected values from the list
+	 * This is done using a counter to get the values from the list. The expected values are compared with the weight values 
+	 * tracked by the weightList in the trainer object using the isWithinTolerance method 
+	 * 
+	 * If change is true (a value was not within tolerance) then the diagnosticSuccess boolean is tripped to
+	 * false indicating an unsuccessful diagnostic 
+	 * 
+	 * @param weights: The list of weight values tracked by the NetworkTrainer object is passed to this method 
+	 */
 	private void compareWeights(List<double[][]> weights) {
 		int counter = 0; 
 		boolean change = false; 
@@ -90,6 +125,11 @@ public class DiagnosticTool {
 		}
 	}
 	
+	/**
+	 * void compareRegularization checks if there is a difference between the known regularization and the regularizaton produced by the
+	 * network in its current config using the isWithinTolerance method
+	 * @param reg: the regularizaiton produced by the model is passed to this method for comparisong
+	 */
 	private void compareRegularization(double reg) {
 		if(!isWithinTolerance(reg, regularization)) {
 			System.out.println("There is a difference in regularization"); 
@@ -97,6 +137,11 @@ public class DiagnosticTool {
 		}
 	}
 	
+	/**
+	 * void compareLoss checks if there is a difference between the known loss of a previous model and the loss produced
+	 * by the current model 
+	 * @param loss: the loss produced by the model is passed to this method for comparison
+	 */
 	private void compareLoss(double loss) {
 		if(!isWithinTolerance(this.loss, loss)) {
 			System.out.println("There is a difference in loss");
@@ -104,8 +149,8 @@ public class DiagnosticTool {
 		}
 	}
 	
-	private void compareWeightChanges(List<Object> weightChanges) { //TODO change from object state to double[][] after 
-																//major changes
+	//TODO document once weight changes type changes from Object to double[][]
+	private void compareWeightChanges(List<Object> weightChanges) { //TODO change from object state to double[][] after 														//major changes
 		List<double[][]> weight = new ArrayList<double[][]>();
 		
 		for (int i = 0; i < weightChanges.size(); i++) {
@@ -134,6 +179,13 @@ public class DiagnosticTool {
 		}	
 	}
 	
+	/**
+	 * boolean isWithinTolerance checks if a value is within a certain distance from another, if it is, the method 
+	 * returns true, if not, it returns false 
+	 * @param real: the real value newly produced by the model
+	 * @param expected: the expected value from the file
+	 * @return: returns true if the values were within tolerance and false if they weren't
+	 */
 	private boolean isWithinTolerance(double real, double expected) {
 		if(Math.abs(real - expected) > .0000001) {
 			return false;
@@ -142,11 +194,15 @@ public class DiagnosticTool {
 		}
 	}
 	
+	/**
+	 * prints a successful diagnostic message is the diagnosticSuccess boolean wasn't flagged and
+	 * message about a discrepancy if the diagnosticSuccess boolean was flagged
+	 */
 	private void printDiagnosticMessage() {
 		if(diagnosticSuccess) {
 			System.out.println("Diagnostic was successful!"); 
 		} else {
-			System.out.println("There wasa discrepancy");
+			System.out.println("There was a discrepancy");
 		}
 	}
 	

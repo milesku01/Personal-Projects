@@ -34,12 +34,7 @@ public class Targets {
 		
 	}
 	
-	public void determineConvolutionalTargets(int numofSets, int targetSize, long seed, String targetFile) {
-		fr = new FileReader(strdFilePath + targetFile + ".txt");
-		targets = fr.readInputIntoArray(numofSets, targetSize);
-		shuffleTargets(targets, seed); 
-		splitTargets(targets);
-	}
+
 	
 	public void splitTargets(double[][] targets) {
 		int numofSets = targets.length;
@@ -49,7 +44,7 @@ public class Targets {
 		double[][] trainingData = new double[trainingSize][targetSize];
 		double[][] testData = new double[testingSize][targetSize];
 		
-		if(numofSets > 90) { //roughly 70% of 140 is 100
+		if(numofSets > 90) { 
 			trainingData = new double[trainingSize][targetSize]; 
 			testData = new double[testingSize][targetSize]; 
 			
@@ -70,9 +65,7 @@ public class Targets {
 	}
 	
 	private void shuffleTargets(double[][] targets, long seed) {
-
-	//	System.out.println(java.util.Arrays.deepToString(targets));
-		
+	
 		double[] array; 
 		List<double[]> list = new ArrayList<double[]>();
 		

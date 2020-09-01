@@ -33,23 +33,12 @@ public class Optimizer {
 
 	protected List<Object> initializeList(List<Gradients> list) {
 		double[][] twoArray;
-		double[][][] threeArray;
-		List<double[][][]> threeArrayList;
 		List<Object> newList = new ArrayList<Object>(list.size());
 
 		for (int i = 0; i < list.size(); i++) {
 			if (list.get(i).twoDGradient != null) {
 				twoArray = new double[list.get(i).twoDGradient.length][list.get(i).twoDGradient[0].length];
 				newList.add(twoArray);
-			} else if (list.get(i).twoDGradient == null) {
-				threeArrayList = new ArrayList<double[][][]>(list.get(i).threeDGradientList.size());
-				
-				for (int j = 0; j < list.get(i).threeDGradientList.size(); j++) {
-					threeArray = new double[list.get(i).threeDGradientList.get(j).length][list.get(i).threeDGradientList
-							.get(j)[0].length][list.get(i).threeDGradientList.get(j)[0][0].length];
-					threeArrayList.add(threeArray);
-				}
-				newList.add(threeArrayList);
 			}
 		}
 
@@ -111,19 +100,7 @@ class Adam extends Optimizer {
 					}
 				}
 				
-			} else if (gradientCopy.get(k).twoDGradient == null) {
-				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
-					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
-						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
-							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) firstMomentEstimate.get(k)).get(h)[l][i][j] = (beta1
-										* ((List<double[][][]>) firstMomentEstimate.get(k)).get(h)[l][i][j])
-										+ ((1.0 - beta1) * (gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]));
-							}
-						}
-					}
-				}
-			}
+			} 
 		}
 	}
 
@@ -138,20 +115,7 @@ class Adam extends Optimizer {
 										* gradientCopy.get(k).twoDGradient[i][j]);
 					}
 				}
-			} else if (gradientCopy.get(k).twoDGradient == null) {
-				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
-					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
-						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
-							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) secondMomentEstimate.get(k)).get(h)[l][i][j] = (beta2
-										* ((List<double[][][]>) secondMomentEstimate.get(k)).get(h)[l][i][j])
-										+ ((1.0 - beta2) * gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]
-												* gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]);
-							}
-						}
-					}
-				}
-			}
+			} 
 		}
 
 	}
@@ -168,19 +132,7 @@ class Adam extends Optimizer {
 				}
 
 			} 
-			else if (gradientCopy.get(k).twoDGradient == null) {
-				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
-					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
-						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
-							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) firstMomentEstimateCorrected.get(k)).get(
-										h)[l][i][j] = ((List<double[][][]>) firstMomentEstimate.get(k)).get(h)[l][i][j]
-												/ (1.0 - Math.pow(beta1, betaCounter));
-							}
-						}
-					}
-				}
-			}
+			
 		}
 	}
 
@@ -195,19 +147,7 @@ class Adam extends Optimizer {
 					}
 				}
 
-			} else if (gradientCopy.get(k).twoDGradient == null) {
-				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
-					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
-						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
-							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) secondMomentEstimateCorrected.get(k)).get(
-										h)[l][i][j] = ((List<double[][][]>) secondMomentEstimate.get(k)).get(h)[l][i][j]
-												/ (1.0 - Math.pow(beta2, betaCounter));
-							}
-						}
-					}
-				}
-			}
+			} 
 		}
 	}
 
@@ -221,21 +161,6 @@ class Adam extends Optimizer {
 								/ (Math.sqrt(((double[][]) secondMomentEstimateCorrected.get(k))[i][j]) + offSet));
 					}
 				}
-			} else if (gradientCopy.get(k).twoDGradient == null) {
-				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
-					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
-						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
-							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] = ((learningRate
-										* ((List<double[][][]>) firstMomentEstimateCorrected.get(k)).get(h)[l][i][j])
-										/ (Math.sqrt(((List<double[][][]>) secondMomentEstimateCorrected.get(k))
-												.get(h)[l][i][j]) + offSet));
-							}
-						}
-					}
-				}
-				
-				//System.out.println(java.util.Arrays.deepToString(((List<double[][][]>)weightChange.get(0)).get(0)));
 			}
 		}
 		
@@ -271,17 +196,6 @@ class Basic extends Optimizer {
 					}
 				}
 
-			} else if (gradientCopy.get(k).twoDGradient == null) {
-				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
-					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
-						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
-							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] =  learningRate
-										* (gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]);
-							}
-						}
-					}
-				}
 			}
 		}
 	}
@@ -318,17 +232,7 @@ class Momentum extends Optimizer {
 					}
 				}
 
-			} else if (gradientCopy.get(k).twoDGradient == null) {
-				for (int h = 0; h < gradientCopy.get(k).threeDGradientList.size(); h++) {
-					for (int l = 0; l < gradientCopy.get(k).threeDGradientList.get(h).length; l++) {
-						for (int i = 0; i < gradientCopy.get(k).threeDGradientList.get(h)[0].length; i++) {
-							for (int j = 0; j < gradientCopy.get(k).threeDGradientList.get(h)[0][0].length; j++) {
-								((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] = beta*((List<double[][][]>) weightChange.get(k)).get(h)[l][i][j] + 100 * learningRate*(gradientCopy.get(k).threeDGradientList.get(h)[l][i][j]);
-							}
-						}
-					}
-				}
-			}
+			} 
 		}
 	}
 	

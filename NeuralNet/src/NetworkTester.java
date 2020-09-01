@@ -12,23 +12,23 @@ public class NetworkTester {
 		
 		dt.runStandardDiagnostic();
 		
-	
+		
 		
 	//	modelEvaluator.checkModelAgainstActual(name, "match2", "Lookup");		
 	
 	
-		model.buildInputLayerText(1953, 24, 1953, "WinLossGames", "Lookup3");
+	//	model.buildInputLayerText(1953, 24, 1953, "WinLossGames", "Lookup3");
 		
 	//	model.buildInputLayerText(45, 24, 45, "match", "Lookup3"); 
 		
-		model.buildHiddenLayer(50, "TANH");
+//		model.buildHiddenLayer(50, "TANH");
 		
-		model.buildOutputLayer(2, "SOFTMAX");
+	//	model.buildOutputLayer(2, "SOFTMAX");
 	
 		
 	//	trainer.train(model, 10, "ADAM"); 
 
-		trainer.trainUntil(model, .78, 8, "ADAM");
+	//	trainer.trainUntil(model, .78, 8, "ADAM");
 		
 	//	trainer.trainUntilMatchFound(model, 20 , "match2", "ADAM", "Lookup3");
 		
