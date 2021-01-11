@@ -10,25 +10,45 @@ public class NetworkTester {
 		 
 		String name = "worked2"; 
 		
-		dt.runStandardDiagnostic();
+	//	dt.runStandardDiagnostic();
 		
 		
+	//	modelEvaluator.predict("TestModelXOR", 100, 0);
+		
+	//	modelEvaluator.predict("TestModelXOR", "TestFile");
 		
 	//	modelEvaluator.checkModelAgainstActual(name, "match2", "Lookup");		
+	//	modelEvaluator.predictNCAAMatchup("Basketball752", "Lookup", "Minnesota", "Iowa");
 	
+		modelEvaluator.constructNCAABracket("Basketball7525", "startingBracket", "Lookup");
 	
-	//	model.buildInputLayerText(1953, 24, 1953, "WinLossGames", "Lookup3");
 		
-	//	model.buildInputLayerText(45, 24, 45, "match", "Lookup3"); 
+	//	modelEvaluator.checkModelAgainstActual("Basketball7525", "match2", "Lookup");
 		
-//		model.buildHiddenLayer(50, "TANH");
+	//	model.buildInputLayer(4, 2, 4, "TestFile");
+		
+	//	model.buildHiddenLayer(4, "TANH");
+		
+	//	model.buildOutputLayer(1, "SIGMOID");
+		
+		
+		
+		
+	//	model.buildInputLayerText(1953, 62, 1953, "WinLossGames", "Lookup");
+		
+		//model.buildInputLayerText(45, 24, 45, "match", "Lookup3"); 
+		
+	//	model.buildHiddenLayer(25, "RELU");
+		
+	//	model.buildHiddenLayer(10, "RELU");
+		
 		
 	//	model.buildOutputLayer(2, "SOFTMAX");
 	
 		
-	//	trainer.train(model, 10, "ADAM"); 
+	//	trainer.train(model, 20, "ADAM"); 
 
-	//	trainer.trainUntil(model, .78, 8, "ADAM");
+	//	trainer.trainUntil(model, .75, 12, "ADAM");
 		
 	//	trainer.trainUntilMatchFound(model, 20 , "match2", "ADAM", "Lookup3");
 		
@@ -37,7 +57,8 @@ public class NetworkTester {
 	
 	//	modelSaver.saveModel(model, trainer.net.weights); // for train until 
 
-	
+
+		
 	 
 	 
 	
@@ -50,7 +71,7 @@ public class NetworkTester {
 		
 	//	modelEvaluator.predictNCAA("basketBall778", "Lookup3", "Connecticut", "South-Florida");
 		
-//	modelEvaluator.predictNCAA(name, "Lookup", "Auburn", "North-Carolina");
+	//	modelEvaluator.predictNCAA(name, "Lookup", "Auburn", "North-Carolina");
 	
 	
 	}

@@ -62,7 +62,7 @@ public class NetworkTrainer {
 
 		// iterations = 1;
 
-		fp.constructForwardPropagationObjects(layers, weights);
+		fp.constructForwardPropagationObjects(model, weights); //TODO change to just passing network model 
 		bp.constructBackwardPropagationObjects(model, weights);
 
 		long startTime = System.nanoTime();
@@ -103,6 +103,7 @@ public class NetworkTrainer {
 		}
 	}
 	
+	/*
 	public void trainUntilMatchFound(NetworkModel model, int numofEpochs, String matchingTable, String optimizerString, String lookup) {
 		eval = new NetworkEvaluator(); 
 
@@ -112,6 +113,7 @@ public class NetworkTrainer {
 		} while (!eval.pairsMatch(inputLayer.normalizer, numofLayers, weightList, matchingTable, lookup));
 	}
 	
+	*/
 	private void getActivatorStrings() {
 		for (int i = 0; i < activatorStrings.length; i++) {
 			activatorStrings[i] = layers.get(i + 1).activation;
@@ -139,7 +141,7 @@ public class NetworkTrainer {
 
 	public void forwardPropagation() {
 	
-		fp.runPropagation(layers);
+		fp.runPropagation();
 		/*	for (int i = 0; i < layers.size() - 1; i++) {
 		
 			//layers.get(i + 1).layerValue = fp.propagate(layers.get(i), layers.get(i + 1)); // nextLayer,
@@ -195,14 +197,13 @@ public class NetworkTrainer {
 	}
 
 	public double[][] forwardPropTest() {
-		double[][] returnValue = null;
-		
+	
 		//for (int i = 0; i < layers.size() - 1; i++) {
 			//layers.get(i + 1).layerValue = fp.propagateTest(layers.get(i), layers.get(i + 1));
 		//}
-		fp.runPropagationTest(layers); 
-		returnValue = layers.get(layers.size() - 1).testData;
-		return returnValue;
+		fp.runPropagationTest(); 
+		
+		return layers.get(layers.size() - 1).testData;
 	}
 	
 
@@ -225,8 +226,8 @@ public class NetworkTrainer {
 
 		//}
 		
-		// System.out.println("Last Layer " +
-		// java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
+	//	 System.out.println("Last Layer " +
+	//	 java.util.Arrays.deepToString(layers.get(layers.size()-1).layerValue));
 
 		// System.out.println("Targets: " +
 		// java.util.Arrays.deepToString(targets.targets));

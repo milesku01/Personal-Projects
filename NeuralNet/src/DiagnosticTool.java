@@ -29,7 +29,7 @@ public class DiagnosticTool {
 	 */
 	public void runStandardDiagnostic() {
 	
-		model.buildInputLayerDiagnostic(4, 2, 4, "Test");
+		model.buildInputLayerDiagnostic(4, 2, 4, "DiagnosticTest");
 		
 		model.buildHiddenLayer(3, "RELU");
 			

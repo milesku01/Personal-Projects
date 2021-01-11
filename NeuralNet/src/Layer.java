@@ -116,6 +116,22 @@ class InputLayer extends Layer {
 		remainingBatchSize = (numofSets % batchSize);
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
 	}
+	
+	
+	
+	/**
+	 * Constructor used in model evaluation to create an input layer
+	 * @param numofSets
+	 * @param inputLayer 
+	 */
+	public InputLayer(int numofInput, double[][] inputLayer) {
+		layerSize = numofInput;
+		this.numofInput = numofInput;
+		layerValue = inputLayer;
+	}
+
+
+
 
 	/**
 	 * initializeLayer is used for data preprocessing in a "normal" situation. That
@@ -210,11 +226,11 @@ class InputLayer extends Layer {
 	private void trainTestSplitNormalize() {
 		if (Utility.testSplitThreshold(this)) { // TODO check if this works
 			trainTestSplit();
-			layerValue = normalizer.normalizeInputsZscore(layerValue, targetSize);
+			normalizer.normalizeInputsZscore(layerValue, targetSize);
 			initializeTestData();
-			testData = normalizer.normalizeInputs(testData, normalizer.meanArray, normalizer.strdDev);
+			normalizer.normalizeInputs(testData, normalizer.meanArray, normalizer.strdDev);
 		} else {
-			layerValue = normalizer.normalizeInputsZscore(layerValue, targetSize);
+			normalizer.normalizeInputsZscore(layerValue, targetSize);
 		}
 	}
 
@@ -370,7 +386,7 @@ class InputLayer extends Layer {
 	private void initializeTestData() {
 		targets.determineTestTargets(testData, numofInput, trainingSize);
 		testData = extractInputs(testData);
-		Utility.appendBiasColumn(testData);
+		testData = Utility.appendBiasColumn(testData);
 	}
 
 	/**
@@ -418,7 +434,7 @@ class InputLayer extends Layer {
 		}
 		return result;
 	}
-} // end of class inputlayer
+} // end of class inputLayer
 
 /**
  * Class Batch holds batch objects as part for the input layer

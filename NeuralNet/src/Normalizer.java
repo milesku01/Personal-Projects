@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
 
 public class Normalizer {
 
@@ -9,17 +7,16 @@ public class Normalizer {
 	double[] imageMean; 
 	double[] imageStrdDev; 
 
-	public double[][] normalizeInputs(double[][] inputs, double[] mean, double[] strdDev) {
+	public void normalizeInputs(double[][] inputs, double[] mean, double[] strdDev) {
 		inputs = jiggleInputs(inputs);
 		for (int i = 0; i < inputs[0].length; i++) {
 			for (int j = 0; j < inputs.length; j++) {
 				inputs[j][i] = ((inputs[j][i] - mean[i]) / strdDev[i]);
 			}
 		}
-		return inputs;
 	}
 
-	public double[][] normalizeInputsZscore(double[][] inputs, int targetSize) {
+	public void normalizeInputsZscore(double[][] inputs, int targetSize) {
 		calculateStrdDev(inputs);
 
 		for (int i = 0; i < inputs[0].length - targetSize; i++) {
@@ -29,7 +26,6 @@ public class Normalizer {
 				}
 			}
 		}
-		return inputs;
 	}
 	
 	public double[][] normalizeInputsTanh(double[][] inputs, int targetSize) {

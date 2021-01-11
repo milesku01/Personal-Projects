@@ -140,6 +140,7 @@ class OutputBackPropagator extends BackPropagator {
 
 	private double[][] computePartialGradientLastLayer(Layer finalLayer) {
 		double[][] partialGradient;
+		
 		if (finalLayer.activation.equals("SOFTMAX")) {
 			partialGradient = nt.elementwiseMultiplication((computeDerivativeofError(getTargetBatch(), finalLayer)),
 					computeDerivative(finalLayer));
@@ -152,8 +153,7 @@ class OutputBackPropagator extends BackPropagator {
 
 	private double[][] computeDerivativeofError(double[][] targetBatch, Layer finalLayer) {
 		double[][] derivativeOfError = new double[targetBatch.length][targetBatch[0].length];
-		//double[][] finalLayerValue = nt.copyArray(finalLayer.layerValue);
-
+		
 		if (finalLayer.activation.equals("SOFTMAX")) {
 			for (int i = 0; i < targetBatch.length; i++) {
 				for (int j = 0; j < targetBatch[0].length; j++) {

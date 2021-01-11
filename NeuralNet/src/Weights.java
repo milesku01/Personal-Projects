@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class Weights {
 	private double[][] weightArray;
-	List<double[][]> weightList;
+	List<double[][]> weightList = new ArrayList<double[][]>();
 	Random r = new Random();
 
 	public void createStandardWeights(NetworkModel model) {
@@ -30,7 +30,6 @@ public class Weights {
 		int nextLayer = 1;
 
 		List<Layer> layerList = model.layerList;
-		weightList = new ArrayList<double[][]>(model.weightListCount);
 
 		if (model.modelType.equals("DIAGNOSTIC")) {
 			createStandardWeights(model);
