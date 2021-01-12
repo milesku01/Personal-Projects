@@ -3,50 +3,74 @@ import java.util.List;
 
 public class BackPropagator {
 	final double regularize = 0.001;
-	int objectTracker = 0;
-	static int layerCounter;
+	int listSize = 0; 
 	static int batchSize;
 	static int remainingBatchSize;
 	static double[][] gradient;
-	BackPropagator backPropObj;
+	
 	List<BackPropagator> propagationObjects = new ArrayList<BackPropagator>();
-	static List<Layer> layerList;
+	
 	static List<double[][]> weightList;
+	static List<double[][]> weightChanges;
+
 	static double[][] previousPartialGradient;
-	static NetworkTrainer nt = new NetworkTrainer();
-	static InputLayer inputLayer;
+
+	InputLayer inputLayer;
+	Layer finalLayer; 
 	static Targets targets;
 	static Gradients gradients;
+	List<double[][]> gradientList  = new ArrayList<double[][]>(); 
 	Activator activator = new Activator();
-
-	public Gradients computeGradients(Layer layer, Layer nextLayer) {
+	Optimizer optimizer = new Optimizer(); 
+	
+	static List<Layer> layerList = new ArrayList<Layer>();
+	
+	
+	
+	public void runBackPropagation(String optimizerString) {
 		
-		gradients = propagationObjects.get(objectTracker).computeGradients(layer, nextLayer);
+		for (int i = layerList.size() - 1; i > 0; i--) {
+			gradientList.add(propagationObjects.get(layerList.size() - 1 - i).computeGradients(layerList.get(i), layerList.get(i - 1)));
 
-		if (objectTracker == (propagationObjects.size() - 1)) {
-			objectTracker = 0;
-			layerCounter = weightList.size(); // once propagated over output, will decrease by one
-		} else {
-			objectTracker++;
-			layerCounter--;
 		}
+		
+		weightChanges = optimizer.optimize(gradientList, optimizerString);
+		updateParameters();
+	}
+	
+	public double[][] computeGradients(Layer layer, Layer nextLayer) {
+		
+		return propagationObjects.get(listSize - layer.layerPosition).computeGradients(layer, nextLayer);
 
-		return gradients;
 	}
 
-	public void constructBackwardPropagationObjects(NetworkModel model, Weights weights) { // only occur once
+	int weightListCounter = 0;
+	private void updateParameters() {
 
+		for (int i = 0; i < weightChanges.size(); i++) {
+			if (weightChanges.get(i) instanceof double[][]) {
+				for (int j = 0; j < ((double[][]) weightChanges.get(i)).length; j++) {
+					for (int k = 0; k < ((double[][]) weightChanges.get(i))[0].length; k++) {
+						weightList.get(weightListCounter)[j][k] -= weightChanges.get(i)[j][k];
+					}
+				}
+				weightListCounter++;
+			}
+		}
+		weightListCounter = 0;
+	}
+	
+	
+	public void constructBackwardPropagationObjects(NetworkModel model, Weights weights) { // only occur once
+		BackPropagator backPropObj;
 		setupConstants(model, weights);
 
 		for (int i = layerList.size() - 1; i >= 0; i--) { // minus one because returns last value
-			if (layerList.get(i) instanceof HiddenLayer) {
+			if (layerList.get(i) instanceof HiddenLayer || layerList.get(i) instanceof DropoutLayer) {
 				backPropObj = new DenseBackPropagator();
 				propagationObjects.add(backPropObj);
 			} else if (layerList.get(i) instanceof OutputLayer) {
 				backPropObj = new OutputBackPropagator();
-				propagationObjects.add(backPropObj);
-			} else if(layerList.get(i) instanceof DropoutLayer) {
-				backPropObj = new DenseBackPropagator();
 				propagationObjects.add(backPropObj);
 			}
 		}
@@ -54,22 +78,26 @@ public class BackPropagator {
 	}
 
 	private void setupConstants(NetworkModel model, Weights weights) {
-		BackPropagator.layerList = model.layerList;
-		targets = ((InputLayer)model.layerList.get(0)).targets; //TEMP FIX 
-
-			inputLayer = (InputLayer) layerList.get(0);
-			batchSize = inputLayer.batchSize;
-			remainingBatchSize = inputLayer.remainingBatchSize;
-		
-
-		BackPropagator.weightList = weights.weightList;
-		layerCounter = weightList.size();
+		layerList = model.layerList;
+		listSize = layerList.size(); 
+		inputLayer = (InputLayer) layerList.get(0);
+		finalLayer = layerList.get(layerList.size() - 1); 
+		targets = Layer.targets; //TEMP FIX 
+		batchSize = Layer.batchSize;
+		remainingBatchSize = Layer.remainingBatchSize;
+		weightList = weights.weightList;
 	}
 
 	protected double[][] computeDerivative(Layer input) {
-		double[][] derivative;
-		derivative = activator.computeActivatedDerivative(input);
-		return derivative;
+		return activator.computeActivatedDerivative(input);
+	}
+	
+	protected void regularize(double[][] gradients, Layer layer) {
+		for (int j = 0; j < gradient.length; j++) {
+			for (int k = 0; k < gradient[0].length; k++) {
+				gradient[j][k] += regularize * weightList.get(layer.layerPosition - 1)[j][k]; //check minus one 
+			} 
+		}
 	}
 
 	protected double[][] removeBiasColumn(double[][] layerValue) {
@@ -100,61 +128,57 @@ public class BackPropagator {
 
 class DenseBackPropagator extends BackPropagator {
 
-	public Gradients computeGradients(Layer layer, Layer nextLayer) {
-		gradients = new Gradients();
-
-		gradient = nt.matrixMultiplication(previousPartialGradient, nt.matrixTranspose(weightList.get(layerCounter)));
+	public double[][] computeGradients(Layer layer, Layer nextLayer) {
+		
+		gradient = Utility.matrixMultiplication(previousPartialGradient, Utility.matrixTranspose(weightList.get(layer.layerPosition)));
 		layer.preActivatedValue = concatenateColumn(layer.preActivatedValue);
-		gradient = nt.elementwiseMultiplication(gradient, computeDerivative(layer));
+		gradient = Utility.elementwiseMultiplication(gradient, computeDerivative(layer));
 		gradient = removeBiasColumn(gradient);
 		previousPartialGradient = gradient;
 		
 		if ((nextLayer instanceof HiddenLayer) || (nextLayer instanceof DropoutLayer)) {
-			gradient = nt.matrixMultiplication(nt.matrixTranspose(nextLayer.layerValue), gradient);
-		} else {
-			gradient = nt.matrixMultiplication(nt.matrixTranspose(((InputLayer) nextLayer).currentBatch), gradient);
+			gradient = Utility.matrixMultiplication(Utility.matrixTranspose(nextLayer.layerValue), gradient);
+		} else { //nextLayer is the inputLayer  
+			gradient = Utility.matrixMultiplication(Utility.matrixTranspose(((InputLayer) nextLayer).currentBatch), gradient);
 		}
 
-		if (layerCounter == 1) {
+		if (layer.layerPosition == 1) { //reached final two layers 
 			for (int j = 0; j < gradient.length; j++) {
 				for (int k = 0; k < gradient[0].length; k++) {
-					gradient[j][k] = ((double) remainingBatchSize / (double) batchSize) * gradient[j][k];
+					gradient[j][k] *= ((double) remainingBatchSize / (double) batchSize);
 				}
 			}
 		}
 
-		for (int j = 0; j < gradient.length; j++) {
-			for (int k = 0; k < gradient[0].length; k++) {
-				gradient[j][k] = gradient[j][k] + regularize * weightList.get(layerCounter - 1)[j][k];
-			} 
-		}
+		regularize(gradient, layer);
 
-		gradients.twoDGradient = gradient;
 
-		return gradients;
+		return gradient;
 	}
 
 }
 
 class OutputBackPropagator extends BackPropagator {
+	
+	int targetBatchTracker = 0;
 
-	private double[][] computePartialGradientLastLayer(Layer finalLayer) {
+	private double[][] computePartialGradientLastLayer(OutputLayer finalLayer) {
 		double[][] partialGradient;
 		
-		if (finalLayer.activation.equals("SOFTMAX")) {
-			partialGradient = nt.elementwiseMultiplication((computeDerivativeofError(getTargetBatch(), finalLayer)),
+		partialGradient = Utility.elementwiseMultiplication((computeDerivativeofError(getTargetBatch(finalLayer), finalLayer)),
 					computeDerivative(finalLayer));
-		} else {
-			partialGradient = nt.elementwiseMultiplication((computeDerivativeofError(getTargetBatch(), finalLayer)),
-					nt.scalarMultiply(-1.0, computeDerivative(finalLayer)));
+		
+		if (!finalLayer.activation.equals("SOFTMAX"))  {
+			Utility.scalarMultiply(-1.0, partialGradient);
 		}
+		
 		return partialGradient;
 	}
 
 	private double[][] computeDerivativeofError(double[][] targetBatch, Layer finalLayer) {
 		double[][] derivativeOfError = new double[targetBatch.length][targetBatch[0].length];
 		
-		if (finalLayer.activation.equals("SOFTMAX")) {
+		if (finalLayer.activation.equals("SOFTMAX")) { //derivative of softmax error 
 			for (int i = 0; i < targetBatch.length; i++) {
 				for (int j = 0; j < targetBatch[0].length; j++) {
 
@@ -180,75 +204,33 @@ class OutputBackPropagator extends BackPropagator {
 		return derivativeOfError;
 	}
 
-	public Gradients computeGradients(Layer layer, Layer nextLayer) {
-		gradients = new Gradients();
-		previousPartialGradient = computePartialGradientLastLayer(layer);
-
+	public double[][] computeGradients(Layer layer, Layer nextLayer) {
+		previousPartialGradient = computePartialGradientLastLayer((OutputLayer)layer);
+		
+	
 		if (layerList.size() > 2) { // must add layer size handling, must have input and output layer (at least two
 									// layers)
-			gradient = nt.matrixMultiplication(nt.matrixTranspose(nextLayer.layerValue), previousPartialGradient);
+			gradient = Utility.matrixMultiplication(Utility.matrixTranspose(nextLayer.layerValue), previousPartialGradient);
 		} else {
-			gradient = nt.matrixMultiplication(nt.matrixTranspose(nextLayer.currentBatch), previousPartialGradient);
+			System.out.println(nextLayer.currentBatch.length);
+			gradient = Utility.matrixMultiplication(Utility.matrixTranspose(nextLayer.currentBatch), previousPartialGradient);
 		}
 
-		for (int i = 0; i < gradient.length; i++) {
-			for (int j = 0; j < gradient[0].length; j++) {
-				gradient[i][j] = gradient[i][j] + regularize * weightList.get(weightList.size() - 1)[i][j];
-			}
-		}
-
+		regularize(gradient, layer); 
 	
-		gradients.twoDGradient = gradient;
-
-		return gradients;
+		return gradient;
 	}
 
-	public boolean hasReachedEndofBatchTarget() {
-		if (InputLayer.numofBatches - 1 == batchCounterTarget) {
-			return true;
+	private double[][] getTargetBatch(OutputLayer layer) {
+		double[][] batch = layer.batchList.get(targetBatchTracker).batchValue;
+		
+		layer.currentBatch.batchValue = batch; 
+
+		if (layer.batchList.get(targetBatchTracker).finalBatch) {
+			targetBatchTracker = 0;
 		} else {
-			return false;
+			targetBatchTracker++;
 		}
-	}
-
-	int batchTrackerTarget = 0;
-	int batchCounterTarget = 0;
-	double[][] currentTargetBatch;
-
-	private double[][] getTargetBatch() {
-		double[][] batch;
-
-		if (remainingBatchSize == 0) {
-			remainingBatchSize = batchSize;
-		}
-		if (!hasReachedEndofBatchTarget()) {
-			batch = new double[batchSize][targets.targetSize];
-			for (int i = 0; i < batchSize; i++) {
-				for (int j = 0; j < targets.targetSize; j++) {
-					batch[i][j] = targets.targets[batchTrackerTarget][j];
-				}
-				batchTrackerTarget++;
-			}
-			batchCounterTarget++;
-			currentTargetBatch = batch;
-		} else {
-			batch = new double[remainingBatchSize][targets.targetSize];
-
-			for (int i = 0; i < remainingBatchSize; i++) {
-				for (int j = 0; j < targets.targetSize; j++) {
-					batch[i][j] = targets.targets[batchTrackerTarget][j];
-				}
-				batchTrackerTarget++;
-			}
-			batchTrackerTarget = 0;
-			batchCounterTarget = 0;
-			currentTargetBatch = batch;
-		}
-
-	//	System.out.print("TARGETBATCH ");
-	//	nt.printArray(batch);
-
 		return batch;
 	}
-
 }

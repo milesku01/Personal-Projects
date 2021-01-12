@@ -13,7 +13,7 @@ public class DiagnosticTool {
 	FileReader frWeights = new FileReader(System.getProperty("user.home") + "\\Desktop\\Diagnostic\\NeuralNetworkDiagnosticWeights.txt");
 	FileReader frWeightChanges = new FileReader(System.getProperty("user.home") + "\\Desktop\\Diagnostic\\NeuralNetworkDiagnosticWeightChanges.txt"); 
 	
-	public double loss = 0.6932487482299111;
+	public double loss = 0.6932542744391355;
 	public double regularization = 1.0827903295037047E-4;
 	public boolean diagnosticSuccess = true; 
 
@@ -52,7 +52,7 @@ public class DiagnosticTool {
 		
 		compareRegularization(trainer.regularizationTerm()); 
 		compareLoss(trainer.reportLoss(trainer.layers.get(trainer.layers.size()-1))); 
-		compareWeightChanges(trainer.weightChanges); 
+		compareWeightChanges(BackPropagator.weightChanges); 
 		
 		printDiagnosticMessage(); 
 	}
@@ -144,19 +144,19 @@ public class DiagnosticTool {
 	 */
 	private void compareLoss(double loss) {
 		if(!isWithinTolerance(this.loss, loss)) {
-			System.out.println("There is a difference in loss");
+			System.out.println("There is a difference in loss " + loss);
 			diagnosticSuccess = false; 
 		}
 	}
 	
 	//TODO document once weight changes type changes from Object to double[][]
-	private void compareWeightChanges(List<Object> weightChanges) { //TODO change from object state to double[][] after 														//major changes
+	private void compareWeightChanges(List<double[][]> weightChanges) { //TODO change from object state to double[][] after 														//major changes
 		List<double[][]> weight = new ArrayList<double[][]>();
 		
 		for (int i = 0; i < weightChanges.size(); i++) {
-			if (weightChanges.get(i) instanceof double[][]) {
-				weight.add((double[][])weightChanges.get(i)); 
-			}
+			
+			weight.add(weightChanges.get(i)); 
+			
 		}
 		
 		int counter = 0; 

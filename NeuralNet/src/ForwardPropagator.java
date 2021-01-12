@@ -185,7 +185,7 @@ class InputLayerPropagator extends ForwardPropagator {
 				weightList.get(layer.layerPosition));
 		nextLayer.layerValue = activate(nextLayer);
 
-		// System.out.println(java.util.Arrays.deepToString(nextLayer.layerValue));v
+		
 		// //TODO remove
 	}
 

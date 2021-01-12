@@ -20,7 +20,7 @@ public class NetworkTester {
 	//	modelEvaluator.checkModelAgainstActual(name, "match2", "Lookup");		
 	//	modelEvaluator.predictNCAAMatchup("Basketball752", "Lookup", "Minnesota", "Iowa");
 	
-		modelEvaluator.constructNCAABracket("Basketball7525", "startingBracket", "Lookup");
+	//	modelEvaluator.constructNCAABracket("Basketball7525", "startingBracket", "Lookup");
 	
 		
 	//	modelEvaluator.checkModelAgainstActual("Basketball7525", "match2", "Lookup");
@@ -34,28 +34,26 @@ public class NetworkTester {
 		
 		
 		
-	//	model.buildInputLayerText(1953, 62, 1953, "WinLossGames", "Lookup");
+		model.buildInputLayerText(1953, 62, 1953, "WinLossGames", "Lookup");
 		
 		//model.buildInputLayerText(45, 24, 45, "match", "Lookup3"); 
 		
-	//	model.buildHiddenLayer(25, "RELU");
-		
-	//	model.buildHiddenLayer(10, "RELU");
+		model.buildHiddenLayer(10, "TANH");
 		
 		
-	//	model.buildOutputLayer(2, "SOFTMAX");
+		model.buildOutputLayer(2, "SOFTMAX");
 	
 		
-	//	trainer.train(model, 20, "ADAM"); 
+		
+		
+	//	trainer.train(model, 10, "ADAM"); 
 
-	//	trainer.trainUntil(model, .75, 12, "ADAM");
+		trainer.trainUntil(model, .72, 12, "ADAM");
 		
 	//	trainer.trainUntilMatchFound(model, 20 , "match2", "ADAM", "Lookup3");
 		
-	//	modelSaver.saveModel(model, trainer.weights); // for regular train
+		modelSaver.saveModel(model, trainer.weights); // for regular train
 	
-	
-	//	modelSaver.saveModel(model, trainer.net.weights); // for train until 
 
 
 		

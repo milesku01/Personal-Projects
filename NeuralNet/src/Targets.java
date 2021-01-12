@@ -5,18 +5,18 @@ import java.util.Random;
 
 public class Targets {
 	int numofOutputNeuron; 
-	double[][] targets;
+	double[][] targetValues;
 	public int targetSize; 
 	double[][] testTargets; 
 	String strdFilePath = System.getProperty("user.home") + "\\Desktop\\"; 
 	FileReader fr;
 
 	public void determineTargets(double[][] layerValue, int numofInput) {
-		targets = new double[layerValue.length][targetSize]; 
+		targetValues = new double[layerValue.length][targetSize]; 
 		
 		for(int i=0; i < layerValue.length; i++) {
 			for(int j=0; j < targetSize; j++) {
-				targets[i][j] = layerValue[i][j + numofInput];
+				targetValues[i][j] = layerValue[i][j + numofInput];
 			}
 		}
 		
@@ -60,7 +60,7 @@ public class Targets {
 			}
 			
 			testTargets = testData;
-			this.targets = trainingData; 
+			targetValues = trainingData; 
 		}
 	}
 	
@@ -87,7 +87,7 @@ public class Targets {
 		
 		System.out.println(java.util.Arrays.deepToString(targets));
 		
-		this.targets = targets; 
+		targetValues = targets; 
 	}
 	
 }

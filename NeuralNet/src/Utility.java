@@ -54,5 +54,37 @@ public class Utility {
 		return C;
 	}
 	
+	public static double[][] elementwiseMultiplication(double[][] m, double[][] n) {
+		double[][] result = new double[m.length][m[0].length];
+		if (m.length != n.length || m[0].length != n[0].length) {
+			throw new IllegalArgumentException(
+					"Dimensions did not match" + m.length + " " + m[0].length + " " + n.length + " " + n[0].length);
+		}
+		for (int i = 0; i < m.length; i++) {
+			for (int j = 0; j < m[0].length; j++) {
+				result[i][j] = m[i][j] * n[i][j];
+			}
+		}
+		return result;
+	}
+
+	public static double[][] matrixTranspose(double[][] m) {
+		double[][] temp = new double[m[0].length][m.length];
+		for (int i = 0; i < m.length; i++)
+			for (int j = 0; j < m[0].length; j++)
+				temp[j][i] = m[i][j];
+		return temp;
+	}
+	
+	public static double[][] scalarMultiply(double num, double[][] m) {
+		for (int i = 0; i < m.length; i++) {
+			for (int j = 0; j < m[0].length; j++) {
+				m[i][j] = num * m[i][j];
+			}
+		}
+		return m;
+	}
+
+
 	
 }

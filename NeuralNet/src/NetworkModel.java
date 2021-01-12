@@ -167,6 +167,8 @@ public class NetworkModel {
 		outputLayer.layerPosition = layerPositionCount;
 		layerPositionCount = 0;
 		
+		outputLayer.initialize(); 
+		
 		layerList.add(outputLayer);
 		
 	} 

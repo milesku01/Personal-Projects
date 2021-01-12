@@ -31,6 +31,18 @@ public class Layer {
 
 	// stores the number of nodes in a layer (columns)
 	int layerSize;
+	
+	// batchSize represents the num of numofSets processed at one time
+	static int batchSize = 0;
+	// numofBatches holds the number of batches resulting from a batch split
+	static int numofBatches = 0; // possibly find a way to change away from static
+	
+	// to create batches of size batch size there may be a leftover batch smaller
+		// than batchSize, the size of that is stored in
+		// remainingBatchSize
+	static int remainingBatchSize = 0;
+		
+	static Targets targets = new Targets();
 
 	// random seed for shuffling input data the same way in two arrays
 	final static long seed = (long) (1 + (new Random().nextFloat() * (10000 - 1)));
@@ -74,17 +86,12 @@ class InputLayer extends Layer {
 	int numofSets = 0;
 	// numofInput represents the number of stats within each stat
 	int numofInput = 0;
-	// batchSize represents the num of numofSets processed at one time
-	int batchSize = 0;
-	// to create batches of size batch size there may be a leftover batch smaller
-	// than batchSize, the size of that is stored in
-	// remainingBatchSize
-	int remainingBatchSize = 0;
+	
+	
 	// targetSize refers to the size of the result of a "game" i.e. the final score
 	// (in which case the size would be 2 one for each team)
 	int targetSize;
-	// numofBatches holds the number of batches resulting from a batch split
-	static int numofBatches = 0; // possibly find a way to change away from static
+	
 	// fileName holds the string of the file name which holds the input data
 	String fileName = "";
 	// the strdFilePath holds the stardard file path of a user for easier management
@@ -98,7 +105,7 @@ class InputLayer extends Layer {
 	// holds a list of batch objects which holds each input batch as batch objects
 	List<Batch> batchList = new ArrayList<Batch>();
 
-	Targets targets = new Targets();
+	
 
 	/**
 	 * Constructor which creates an InputLayer object with numofSets, the numofInput
@@ -111,7 +118,7 @@ class InputLayer extends Layer {
 		layerSize = numofInput;
 		this.numofSets = numofSets;
 		this.numofInput = numofInput;
-		this.batchSize = batchSize;
+		Layer.batchSize = batchSize;
 		this.fileName = fileName;
 		remainingBatchSize = (numofSets % batchSize);
 		fileReader = new FileReader(strdFilePath + fileName + ".txt");
@@ -245,6 +252,9 @@ class InputLayer extends Layer {
 	 */
 	private void formatInput() {
 		targets.determineTargets(layerValue, numofInput);
+		
+		//System.out.println(targets.targetValues.length);
+		
 		layerValue = extractInputs(layerValue);
 		layerValue = Utility.appendBiasColumn(layerValue);
 
@@ -476,6 +486,10 @@ class HiddenLayer extends Layer {
 class OutputLayer extends Layer {
 	int numofOutputNeuron = 0; //needed? TODO 
 	String targetFile;
+	List<Batch> batchList = new ArrayList<Batch>(); 
+	double[][] targetValue  = targets.targetValues;
+	
+	Batch currentBatch = new Batch();  
 
 	/**
 	 * Constructor outputLayer constructs an output layer object with the activation type and the number of output neurons (the size of the targets) 
@@ -500,6 +514,93 @@ class OutputLayer extends Layer {
 		this.numofOutputNeuron = numofOutputNeuron;
 		this.activation = activation;
 		this.targetFile = targetFile;
+	}
+	
+	public void initialize() {
+		splitIntoBatches(); 
+	}
+	
+	public void splitIntoBatches() {
+		Batch batch;
+		
+		
+		// loops through all the batches except for the last batch
+		
+		for (int i = 0; i < numofBatches - 1; i++) {
+			batch = new Batch();
+			getBatch(batch); // rename
+		}
+
+		batch = new Batch();
+		getBatchRemaining(batch); // rename
+	}
+
+	int batchCounter = 0;
+	
+	
+
+	/**
+	 * Extracts a small subset of layerValue into a batch which is assigned to an
+	 * object
+	 * 
+	 * getBatch() is called by a loop and calls each batch except for the remaining
+	 * batch which is handled by the subsequent method Nested for loops then extract
+	 * information from layerValue (of the inputLayer) using a batchCounter to track
+	 * where in the array to be extracting information
+	 * 
+	 * the batchValue is assigned to the object and the increment is increased
+	 * 
+	 * @param batch: the batch object to be assigned to
+	 */
+	private void getBatch(Batch batch) { // rename
+		double[][] batchVal = new double[batchSize][targetValue[0].length];
+		
+		
+
+		for (int i = 0; i < batchSize; i++) {
+			for (int j = 0; j < targetValue[0].length; j++) { // added one for the bias column
+				batchVal[i][j] = targetValue[i + batchCounter * batchSize][j];
+			}
+		}
+		batch.batchValue = batchVal;
+		
+		batchCounter++;
+
+		batchList.add(batch);
+	}
+
+	/**
+	 * First checks if the remaining batch size is 0 which means the batches are
+	 * divided up evenly if it is 0 then the remaining batch size is set to a full
+	 * batch size
+	 * 
+	 * Nested for loops then extract information from layerValue (of the inputLayer)
+	 * using a batchCounter to track where in the array to be extracting information
+	 * 
+	 * the batchValue is assigned to the object and the finalBatch flagged is
+	 * assinged to the batch object
+	 * 
+	 * @param batch: the batch object to be assigned to
+	 */
+	private void getBatchRemaining(Batch batch) { // rename
+		double[][] batchVal;
+
+		if (remainingBatchSize == 0) {
+			remainingBatchSize = batchSize;
+		}
+
+		batchVal = new double[remainingBatchSize][targetValue[0].length];
+		
+		for (int i = 0; i < remainingBatchSize; i++) {
+			for (int j = 0; j < targetValue[0].length; j++) {
+				batchVal[i][j] = targetValue[i + batchCounter * batchSize][j];
+			}
+		}
+		batch.batchValue = batchVal;
+		batch.finalBatch = true;
+		
+
+		batchList.add(batch);
 	}
 
 }
